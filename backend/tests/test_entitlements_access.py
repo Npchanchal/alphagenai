@@ -14,6 +14,18 @@ def setup_function():
     reset_auth_store()
 
 
+def test_platform_super_opens_holdings_and_ninja():
+    me = client.get("/api/entitlements/me", headers={"X-API-Key": "intellens-admin"})
+    assert me.status_code == 200, me.text
+    assert {"holdings", "ninja"} <= set(me.json()["features"])
+    opened = client.get("/api/ninja/templates", headers={"X-API-Key": "intellens-admin"})
+    assert opened.status_code == 200, opened.text
+    latest = client.get("/api/holdings/latest", headers={"X-API-Key": "intellens-admin"})
+    assert latest.status_code in (200, 404)
+    viewer = client.get("/api/ninja/templates", headers={"X-API-Key": "intellens-viewer"})
+    assert viewer.status_code == 403
+
+
 def test_entitlements_me_guest_default():
     r = client.get("/api/entitlements/me")
     assert r.status_code == 200

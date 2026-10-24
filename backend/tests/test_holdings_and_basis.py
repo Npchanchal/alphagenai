@@ -280,6 +280,19 @@ def test_infosys_fy24_margin_is_on_the_record():
     assert "20%-22%" in (outcome.guidance_quote or "")
 
 
+def test_a_paid_desk_keeps_holdings_after_an_expired_checklist():
+    from app.services.orgs import org_snapshot
+
+    get_data().setdefault("pilot_checklists", {})["onestop-demo"] = {
+        "approved": True,
+        "term_days": 30,
+        "created_at": (datetime.now(timezone.utc) - timedelta(days=40)).isoformat(),
+    }
+    save_data()
+    features = set(org_snapshot("onestop-demo")["features"])
+    assert {"holdings", "ninja", "desk"} <= features
+
+
 def test_expired_evaluation_closes_the_desk():
     expired = _pilot_key(30, started_days_ago=31)
     closed = client.get("/api/analyst/skills", headers={"X-API-Key": expired})

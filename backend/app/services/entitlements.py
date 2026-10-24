@@ -86,6 +86,13 @@ def _role_features(role: str) -> Set[str]:
     return set(ROLE_FEATURES.get(r, ROLE_FEATURES["viewer"]))
 
 
+def _with_platform_super(feats: list, actor: Dict[str, Any]) -> list:
+    """A platform super operates the product. The desk modules stay open."""
+    if str(actor.get("platform_admin_role") or "") != "super":
+        return feats
+    return sorted(set(feats) | set(orgs.PLAN_FEATURES["desk"]))
+
+
 def guest_entitlements() -> Dict[str, Any]:
     return {
         "plan": "guest",
@@ -120,7 +127,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         return guest_entitlements()
     plan_feats = set(snap.get("features") or [])
     role = str(user.get("role") or "viewer")
-    feats = sorted(plan_feats & _role_features(role))
+    feats = _with_platform_super(sorted(plan_feats & _role_features(role)), user)
     return {
         "plan": snap.get("plan") or "pilot",
         "role": role,
@@ -148,7 +155,7 @@ def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
         snap = {"plan": "pilot", "features": sorted(orgs.PLAN_FEATURES["pilot"])}
     plan_feats = set(snap.get("features") or [])
     role = str(key_row.get("role") or "analyst")
-    feats = sorted(plan_feats & _role_features(role))
+    feats = _with_platform_super(sorted(plan_feats & _role_features(role)), key_row)
     return {
         "plan": snap.get("plan") or "pilot",
         "role": role,

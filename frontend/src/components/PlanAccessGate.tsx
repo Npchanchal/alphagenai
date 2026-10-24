@@ -48,7 +48,7 @@ export default function PlanAccessGate({
     );
   }
 
-  if (has(feature)) {
+  if (has(feature) || user?.platform_admin_role === "super") {
     return <>{children}</>;
   }
 

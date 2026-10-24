@@ -162,7 +162,7 @@ def org_snapshot(org_id: str) -> Dict[str, Any]:
         features = sorted(extra)
     from app.services.pilot_checklist import pilot_evaluation_ended
 
-    if pilot_evaluation_ended(org_id):
+    if plan == "pilot" and pilot_evaluation_ended(org_id):
         features = ["tracker"]
     return {
         "id": org_id,
