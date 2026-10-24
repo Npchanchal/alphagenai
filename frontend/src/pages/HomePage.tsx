@@ -543,7 +543,9 @@ export default function HomePage() {
                           <td>{c.ticker}</td>
                           <td>{c.sector}</td>
                           <td
-                            className={`score ${scoreClass(c.gci_score)}`}
+                            className={`score ${scoreClass(c.gci_score)}${
+                              c.gci_score == null ? " score-reason" : ""
+                            }`}
                             title={
                               c.gci_score == null
                                 ? t(
@@ -555,7 +557,7 @@ export default function HomePage() {
                             }
                             data-testid={c.gci_score == null ? `not-scored-${c.id}` : undefined}
                           >
-                            {formatCompanyScore(c.gci_score, 1, c.coverage_status)}
+                            {formatCompanyScore(c.gci_score, 1, c.coverage_status, c.coverage_reason)}
                           </td>
                           <td>
                             <ChangeTriple

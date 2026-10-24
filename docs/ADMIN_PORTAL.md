@@ -75,14 +75,18 @@ Route: `/admin?section=<id>`
 
 | Section ID | Label | Visible when |
 |---|---|---|
-| `overview` | Overview | Always (any platform role) |
+| `overview` | Work board | Always. Queue rows follow the caller's permissions |
 | `orgs` | Organizations | `orgs.read` |
-| `users` | Users | `users.read` |
-| `feedback` | Feedback | `feedback.read` |
+| `users` | Users | `users.read`. Filter: standing accounts |
+| `feedback` | Feedback | `feedback.read`. Ack and Close |
 | `legal` | Legal | `legal.read` |
-| `billing` | Billing | `billing.read` |
+| `billing` | Billing | `billing.read`. Issue an MSA invoice with `billing.write` |
 | `audit` | Audit | `audit.read` |
-| `system` | System | `system.ops` (super only) |
+| `labeling` | Labeling | `audit.read`. Queue, extracts, source checks. No accept |
+| `commitments` | Commitments | `audit.read`. Unreviewed rows. No accept |
+| `reports` | Reports | Index, coverage, filing-to-score, and auth events (`audit.read`); seat and agent use (`billing.read`); trust (`legal.read`) |
+| `pilot-requests` | Pilot requests | `pilot.manage` |
+| `system` | System | `system.ops` (super only). Job status, flags, test-tenant cleanup. Demo reset stays off this page |
 
 Non-admins see an access-denied screen with a link back to Desk.
 
@@ -113,11 +117,23 @@ Returns current platform role, flat permission list, and UI section map.
 
 ### `GET /api/admin/portal/orgs`
 
-Lists all org snapshots (plan, seats, account type). Requires `orgs.read`.
+Lists all org snapshots (plan, seats, account type) plus `members` (the logins on each seat), `deletable`, and `delete_block`. Requires `orgs.read`. A recorded `owner_email` with no matching member has not taken a seat.
+
+### `DELETE /api/admin/portal/orgs/{org_id}`
+
+Deletes an empty organisation, its pilot checklist, org API keys, and outstanding invites. Requires `orgs.write`. Standing desks (`demo`, `retail`, `onestop-demo`, `citealpha-team`, and any org marked `protected`) return 400. An organisation that still has a seat holder returns 409. A pilot request that named the desk is left in place.
+
+### `POST /api/admin/portal/orgs/{org_id}/owner-invite`
+
+Emails the address stored as `owner_email` a one-time link to join that desk as admin. Requires `pilot.manage`. The seat is taken when they accept. No recorded email returns 400. An email that already has a login returns 409. Use this to send the link again after an approved request, including a desk that was approved before the invite was sent. Approving a pilot request sends the same invite. The seat stays until the user is deleted.
 
 ### `GET /api/admin/portal/users`
 
-Lists registered users (no password fields). Requires `users.read`.
+Lists registered users (no password fields), including `protected`. Requires `users.read`.
+
+### `DELETE /api/admin/portal/users/{user_id}`
+
+Deletes the login, ends its sessions, and frees the seat. Requires `users.write` (super). A standing team account, and the account the caller is signed in with, return 400.
 
 ### `PATCH /api/admin/portal/users/{user_id}/platform-role`
 
@@ -172,6 +188,20 @@ All invoices (cross-org). Requires `billing.read`.
 ### `GET /api/admin/portal/audit`
 
 Aggregate counters: orgs, users, open feedback, reviews, pending extracts. Requires `audit.read`.
+
+### Work board, queues, and reports
+
+| Method | Path | Permission |
+|---|---|---|
+| GET | `/api/admin/portal/board` | Any platform role. Omits rows the role cannot open |
+| GET | `/api/admin/portal/labeling` | `audit.read` |
+| GET | `/api/admin/portal/commitments` | `audit.read` |
+| GET | `/api/admin/portal/system` | `system.ops` |
+| GET | `/api/admin/portal/reports` | Catalog for the caller |
+| GET | `/api/admin/portal/reports/{id}` | See the table above. `audit-events?format=csv` downloads that page |
+| POST | `/api/admin/portal/billing/invoices` | `billing.write`. Body `org_id`, `plan`, `seats`, optional `amount_inr`, `po_number`, `signer_email` |
+
+The portal reads stored files. It does not recalculate a GCI, accept a label, or accept a commitment.
 
 ### `POST /api/admin/portal/pilot`
 

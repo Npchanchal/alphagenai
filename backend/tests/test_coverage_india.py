@@ -267,9 +267,10 @@ def test_roll_cohort_fixture_clears_listed_only():
         live=False,
         fixture_text=empty,
     )
+    # The model is off in tests, so the filing stays unread and is not "no guidance".
     assert report["listed_only"] == 0
     for cid in ids:
-        assert coverage_status_for(cid) == NO_QUANTIFIED_GUIDANCE
+        assert coverage_status_for(cid) == FILING_IN_REVIEW
 
 
 def test_live_without_any_filing_stays_listed_only(monkeypatch):
@@ -716,6 +717,32 @@ def test_web_search_document_is_stored_undated(monkeypatch):
     assert doc["date"] == ""
 
 
+def test_company_ingest_writes_the_index_once(monkeypatch):
+    from app.services import exchange_filings as ef
+
+    monkeypatch.setenv("INTELLENS_FILING_FETCH_INTERVAL_SEC", "0")
+    leads = [
+        {"url": f"https://www.tatasteel.com/media/q{i}-transcript.pdf", "category": "concall",
+         "title": f"Q{i} transcript", "date": "2025-05-0{}".format(i), "rank": 0}
+        for i in range(1, 5)
+    ]
+    monkeypatch.setattr(ef, "discover_nse_filings", lambda company_id, **kw: leads)
+    monkeypatch.setattr(ef, "discover_nse_annual_reports", lambda company_id, **kw: [])
+    monkeypatch.setattr(ef, "discover_via_web_search", lambda company_id, **kw: [])
+    monkeypatch.setattr(ef, "_outcome_urls", lambda cid: [])
+    monkeypatch.setattr(
+        ef, "fetch_bytes",
+        lambda u, company_id=None, **kw: b"<html>" + f"{u} We expect EBITDA per tonne to improve in FY27. ".encode() * 5 + b"</html>",
+    )
+    writes = []
+    real_save = doc_store.save
+    monkeypatch.setattr(doc_store, "save", lambda: writes.append(1) or real_save())
+    out = ef.ingest_company_urls("tatasteel", live=True, discover=True)
+    assert sum(1 for r in out["results"] if r.get("action") == "upserted") == 4
+    assert len(writes) == 1
+    assert {d["url"] for d in doc_store.list_documents(company_id="tatasteel")} >= {l["url"] for l in leads}
+
+
 def test_annual_report_and_agm_count_as_guidance_documents():
     from app.services.exchange_filings import GUIDANCE_DOC_TYPES
 
@@ -772,9 +799,17 @@ def test_discovered_transcript_completes_lookback(monkeypatch):
         "date": "2026-05-12",
         "rank": 0,
     }
+    from app.services import disclosures
+
     monkeypatch.setattr(ef, "discover_nse_filings", lambda company_id, **kw: [transcript])
     monkeypatch.setattr(ef, "discover_nse_annual_reports", lambda company_id, **kw: [])
     monkeypatch.setattr(ef, "fetch_bytes", lambda url, company_id=None, **kw: b"<html>Management discussed the quarter. No numeric outlook was given on the call today.</html>")
+    monkeypatch.setattr(disclosures, "enabled", lambda: True)
+    monkeypatch.setattr(
+        disclosures,
+        "process_company",
+        lambda *a, **k: {"budget_out": False, "failed": False, "rows": 0},
+    )
     out = process_company(cid, live=True)
     assert any(r.get("ok") for r in out["ingest"]["results"])
     assert out["coverage_status"] == NO_QUANTIFIED_GUIDANCE
@@ -898,3 +933,66 @@ def test_daily_runner_off_without_flag(monkeypatch):
 
     monkeypatch.delenv("INTELLENS_INDIA_COVERAGE", raising=False)
     assert run_daily_from_env() is None
+
+
+@pytest.mark.parametrize("configured", [True, False])
+def test_model_unavailable_does_not_call_shell_extractor(monkeypatch, configured):
+    from app.services import disclosures, extract_pipeline
+    from app.services.india_coverage import process_company
+
+    calls = []
+    monkeypatch.setattr(disclosures, "enabled", lambda: False)
+    monkeypatch.setattr(disclosures, "configured", lambda: configured)
+    monkeypatch.setattr(extract_pipeline, "extract_company", lambda *a, **k: calls.append("shell") or {})
+    cid = "nse_fixture_unread"
+    data = get_data()
+    data["companies"].append(
+        {"id": cid, "name": "Unread Ltd", "ticker": "UNREAD", "sector": "Equity", "data_quality": "listing_provisional"}
+    )
+    data.setdefault("outcomes", {})[cid] = []
+    save_data()
+    out = process_company(
+        cid,
+        live=False,
+        fixture_text="Investor call. Management discussed the quarter. No numeric band was given.",
+    )
+    assert calls == []
+    assert out["extract"]["budget_out"] is True
+    assert out["extract"]["model_unavailable"] is True
+    assert coverage_status_for(cid) == FILING_IN_REVIEW
+
+
+def test_finished_model_read_with_no_promise_stamps_no_guidance(monkeypatch):
+    from app.services import disclosures
+    from app.services.india_coverage import process_company
+
+    monkeypatch.setattr(disclosures, "enabled", lambda: True)
+    monkeypatch.setattr(
+        disclosures, "process_company", lambda *a, **k: {"budget_out": False, "failed": False, "rows": 0}
+    )
+    cid = "nse_fixture_read"
+    data = get_data()
+    data["companies"].append(
+        {"id": cid, "name": "Read Ltd", "ticker": "READ", "sector": "Equity", "data_quality": "listing_provisional"}
+    )
+    data.setdefault("outcomes", {})[cid] = []
+    save_data()
+    out = process_company(
+        cid,
+        live=False,
+        fixture_text="Investor call. Management discussed the quarter. No numeric band was given.",
+    )
+    assert out["coverage_status"] == NO_QUANTIFIED_GUIDANCE
+
+
+def test_extract_job_walks_disclosures_not_the_shell(monkeypatch):
+    from app.jobs import extract_india_guidance as job
+    from app.services import extract_pipeline
+
+    calls = []
+    monkeypatch.setattr(extract_pipeline, "extract_company", lambda *a, **k: calls.append("shell") or {})
+    monkeypatch.setattr(job, "process_company", lambda cid, **kw: {"company_id": cid})
+    report = job.walk(["fixture_co"])
+    assert calls == []
+    assert report["writer"] == "disclosures"
+    assert "disclosures" in (job.__doc__ or "")

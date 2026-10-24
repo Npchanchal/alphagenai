@@ -36,7 +36,7 @@ export default function GuestPaywallModal({ error, cap = 15 }: Props) {
           <Link className="btn ghost" to="/pilot">
             {t("footer.pilot")}
           </Link>
-          <Link className="btn ghost" to="/package">
+          <Link className="btn ghost" to="/products#plans">
             {t("footer.package")}
           </Link>
         </div>

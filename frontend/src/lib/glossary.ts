@@ -9,22 +9,22 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   gci: {
     id: "gci",
     term: "GCI (Guidance Credibility Index)",
-    tip: "0–100 score of how reliably management delivers quantified guidance. Built from evidence rows (band → actual → label). Not a buy/sell recommendation.",
+    tip: "0–100 score of how reliably management delivers on its quantified guidance, built from evidence rows (guided range, actual, outcome). Not a buy/sell recommendation.",
   },
   tracker: {
     id: "tracker",
     term: "GCI Screener",
-    tip: "Universe screen for Sensex names: GCI level, Δ GCI (YoY/QoQ/PoP), quality badge, peers, and alerts. Open a name for the evidence dossier and charts.",
+    tip: "Screen Sensex companies by GCI level, change in GCI (YoY/QoQ/PoP), data-quality badge, peers and alerts. Open a company for its evidence dossier and charts.",
   },
   desk_sku: {
     id: "desk_sku",
     term: "Analyst Workbench (review & export workspace)",
-    tip: "Review workspace for pilot and paid desks: approve extracted guidance, check evidence, export point-in-time data, and build reports. Requires a pilot or paid seat.",
+    tip: "Review workspace for pilot and paid desks: approve extracted guidance, check evidence, export point-in-time data and build reports. Requires a pilot or paid seat.",
   },
   research_terminal: {
     id: "research_terminal",
     term: "Filing Search",
-    tip: "One company at a time: search its filings and transcripts, ask cite-only questions, and see a snapshot of guidance vs reported numbers. Complements GCI. Not a price feed.",
+    tip: "Search filings and transcripts for one company or all covered companies, ask cite-only questions, and see a company snapshot of guidance vs reported numbers. Complements GCI. Not a price feed.",
   },
   guidance: {
     id: "guidance",
@@ -34,47 +34,52 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   actual: {
     id: "actual",
     term: "Actual",
-    tip: "The reported result for that same metric and period — used to judge whether guidance was delivered.",
+    tip: "The reported result for the same metric and period, used to judge whether the guidance was delivered.",
   },
   band: {
     id: "band",
     term: "Band (guided low–high)",
-    tip: "The range management guided to. Landing inside the band (small tolerance) counts as met.",
+    tip: "The range management guided to. A result inside the range (with a small tolerance) counts as met.",
   },
   evidence: {
     id: "evidence",
     term: "Evidence trail",
-    tip: "Auditable table: period, metric, band, actual, Δ Actual, label, vs-guide delta, and source. Prefer Hand-labeled names when citing.",
+    tip: "The audit table for a company: period, metric, guided range, actual, change in actual, outcome, gap to guidance and source. Use hand-labeled companies when citing.",
   },
   thread: {
     id: "thread",
     term: "Promise thread",
-    tip: "Restatement history of one guidance commitment: first stated, then raised / lowered / reiterated across calls, until it resolves (met / missed / exceeded / dropped). Quiet walk-backs show up here.",
+    tip: "The history of one guidance commitment: first stated, then raised, cut or reiterated across calls until it resolves as met, missed, exceeded or dropped. Quiet walk-backs show up here.",
   },
   met: {
     id: "met",
     term: "Met",
-    tip: "Actual landed in (or near) the guided band. Full contribution (~100 before confidence).",
+    tip: "The actual landed inside (or very near) the guided range. Scores about 100 before the confidence adjustment.",
   },
   exceeded: {
     id: "exceeded",
     term: "Exceeded",
-    tip: "Actual beat above the band. Default scorer v4: a small beat scores close to 100; a beat far above the band still means the guidance was off, so points decay with distance but never below 60. A miss the same distance below always scores lower (γ=1.4). v3 let beats decay toward 0; legacy v2 floors beats ≥85.",
+    tip: "The actual came in above the range. Under the default scorer (v4), a small beat scores close to 100. A beat far above the range still means the guidance was off, so points fall with distance, but never below 60. A miss the same distance below always scores lower (γ=1.4). Scorer v3 let beats fall toward 0; the older v2 set a floor of 85 for beats.",
   },
   missed: {
     id: "missed",
     term: "Missed",
-    tip: "Actual below the band. Score decays with shortfall; large misses can go to 0.",
+    tip: "The actual came in below the range. Points fall with the size of the shortfall, and a large miss can score 0.",
   },
   dropped: {
     id: "dropped",
     term: "Dropped",
-    tip: "Management stopped reiterating guidance. Default scorer v4 (as in v3) excludes the row from the average and applies a company −15 withdrawal deduction. Legacy v2 scored dropped ≈35. Distinct from a miss.",
+    tip: "Management stopped reiterating the guidance. The default scorer v4 (like v3) leaves the row out of the average and applies a −15 withdrawal deduction to the company score. The older v2 scored a dropped row at about 35. Not the same as a miss.",
   },
   pending: {
     id: "pending",
     term: "Pending",
-    tip: "Period still open or no actual yet. Excluded from company GCI until closed.",
+    tip: "The period is still open or no actual has been reported. Left out of the company GCI until it closes.",
+  },
+  basis_mismatch: {
+    id: "basis_mismatch",
+    term: "Different basis",
+    tip: "The actual is on a different reporting basis, unit, or scope from the guidance, so the row stays outside the score.",
   },
   pending_guidance_cite: {
     id: "pending_guidance_cite",
@@ -84,12 +89,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   confidence: {
     id: "confidence",
     term: "Confidence",
-    tip: "Extraction/match certainty (0.5–1.0). Lower confidence pulls the outcome score toward 50.",
+    tip: "How certain the extraction and match are (0.5–1.0). Lower confidence pulls the outcome score toward 50.",
   },
   delta: {
     id: "delta",
     term: "Delta % (vs guide)",
-    tip: "Relative gap between actual and guided midpoint (or band edge) for that outcome.",
+    tip: "The relative gap between the actual and the guided midpoint (or the edge of the range).",
   },
   contribution: {
     id: "contribution",
@@ -109,17 +114,17 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   trend: {
     id: "trend",
     term: "GCI trend",
-    tip: "Period-by-period company GCI with a line chart — shows credibility improving or eroding. Read level and Δ together.",
+    tip: "Company GCI period by period on a line chart, showing whether credibility is improving or eroding. Read the level and the change together.",
   },
   change_trend: {
     id: "change_trend",
     term: "MoM / QoQ / YoY change",
-    tip: "Incremental % vs the prior comparable period. On desks, change trends usually matter more than absolute levels alone.",
+    tip: "Percentage change against the prior comparable period. Desks often read the change before the level.",
   },
   pit: {
     id: "pit",
     term: "PIT history",
-    tip: "Point-in-time GCI as of past dates for backtests — no look-ahead. Shown as a table and path chart with Δ vs prior.",
+    tip: "GCI as it stood on past dates, for backtests with no look-ahead. Shown as a table and a chart, with the change from the prior point.",
   },
   alerts: {
     id: "alerts",
@@ -134,7 +139,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   listing_master: {
     id: "listing_master",
     term: "NSE / BSE listing",
-    tip: "Real exchange equity master row. GCI stays blank until guidance vs actuals are labeled — we never invent actuals.",
+    tip: "A row from the exchange's equity list. The GCI stays blank until guidance and actuals are labeled; we never invent actuals.",
   },
   nse_bse: {
     id: "nse_bse",
@@ -149,27 +154,27 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   source: {
     id: "source",
     term: "Source",
-    tip: "Where the guidance came from (transcript, filing, IR) so every outcome stays auditable.",
+    tip: "Where the guidance came from (transcript, filing or IR material), so every outcome can be audited.",
   },
   source_policy: {
     id: "source_policy",
     term: "Source policy",
-    tip: "GCI uses text: transcripts, filings, IR, PPT text, ASR→transcript, reported actuals. Raw audio/video, technicals, and shenanigans do not score GCI.",
+    tip: "GCI uses text only: transcripts, filings, IR pages, presentation text, speech-to-text transcripts and reported actuals. Raw audio or video, technicals and shenanigans do not feed the score.",
   },
   review: {
     id: "review",
     term: "Review",
-    tip: "Analyst Accept keeps the outcome; Reject marks it for exclusion/follow-up.",
+    tip: "Accept keeps the outcome; Reject excludes it and flags it for follow-up.",
   },
   extract: {
     id: "extract",
     term: "Extract",
-    tip: "Pulls candidate guidance statements from transcript text into a needs-review queue before they enter GCI.",
+    tip: "Pulls candidate guidance statements from transcript text into a review queue. Nothing enters the GCI until it is reviewed.",
   },
   sentiment: {
     id: "sentiment",
     term: "Wordmap (context)",
-    tip: "Entity vs industry tone themes for context only. Not part of GCI math.",
+    tip: "Tone themes for a company against its industry, for context only. Not part of the GCI calculation.",
   },
   label: {
     id: "label",
@@ -184,7 +189,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   gci_parameter: {
     id: "gci_parameter",
     term: "GCI parameter",
-    tip: "A catalog metric management quantified for a period (~16 core + sector). Only these enter GCI — see Desk → Parameters charts.",
+    tip: "A catalog metric that management quantified for a period (about 16 core metrics plus sector-specific ones). Only these enter the GCI; see the Parameters tab in the Analyst Workbench.",
   },
   period: {
     id: "period",
@@ -194,102 +199,102 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   alphahunter: {
     id: "alphahunter",
     term: "Facts import",
-    tip: "Paste catalog-aligned facts JSON and merge into a company trail. Not a live vendor connector.",
+    tip: "Paste facts JSON that matches the metric catalog and merge it into a company's record. Not a live vendor connector.",
   },
   labeling_queue: {
     id: "labeling_queue",
     term: "Labeling priority queue",
-    tip: "Enterprise backlog for hand-label priority. Queues a company for analyst labeling — does not invent actuals.",
+    tip: "Enterprise backlog for priority hand-labeling. Queues a company for analyst labeling; no actuals are invented.",
   },
   one_stop: {
     id: "one_stop",
     term: "Enterprise platform",
-    tip: "Single contract for GCI Screener + evidence + API + facts import + Wordmap + vernacular + customer success. Guidance accountability only — keep your market terminal for prices.",
+    tip: "One contract covering the GCI Screener, evidence, API, facts import, Wordmap, vernacular summaries and customer success. Guidance delivery only; keep your market terminal for prices.",
   },
   csm: {
     id: "csm",
     term: "Customer success",
-    tip: "Named customer-success contact and quarterly reviews — included on Enterprise. The Workbench shows your pilot organisation.",
+    tip: "Named customer-success contact and quarterly reviews, included on Enterprise. The Workbench shows your pilot organisation.",
   },
   charts: {
     id: "charts",
     term: "Charts",
-    tip: "Line, bar, and donut visuals for GCI path, metric Δ, parameter usage, and Wordmap. Levels stay in tables; charts highlight change.",
+    tip: "Line, bar and donut charts for GCI over time, metric changes, parameter usage and Wordmap. Levels stay in tables; charts show change.",
   },
   language_selector: {
     id: "language_selector",
     term: "Language selector",
-    tip: "Header control for UI chrome (Indian + global languages). Persists to localStorage and account preferences when logged in. Does not change GCI math. Glossary remains EN for now.",
+    tip: "Sets the interface language (Indian and global languages). Saved in this browser, and to your account when you are signed in. Does not change the GCI. The glossary is in English only for now.",
   },
   guest: {
     id: "guest",
     term: "Guest session",
-    tip: "One-click ephemeral identity with preferences. Register to sync language, market, index, and watchlist across devices. Auth does not imply investment-advice entitlement.",
+    tip: "A temporary one-click identity that keeps your preferences. Register to sync language, market, index and watchlist across devices. Signing in does not entitle you to investment advice.",
   },
   market: {
     id: "market",
     term: "Market",
-    tip: "Exchange region (IN, US, JP, …). India remains the deep GCI path; other markets ship index constituent lists with honest quality badges.",
+    tip: "Exchange region (IN, US, JP, …). Only India is scored in depth; other markets show index constituent lists with data-quality badges.",
   },
   index: {
     id: "index",
     term: "Index",
-    tip: "Flagship benchmark within a market (e.g. SENSEX, Nifty 50, S&P 500). Filters the universe table. Full GCI labeling is India-first.",
+    tip: "Flagship benchmark within a market (e.g. SENSEX, Nifty 50, S&P 500). Filters the universe table. Full GCI labeling covers India first.",
   },
   tier1: {
     id: "tier1",
     term: "Tier 1 foundation",
-    tip: "Ingest → structure → search → cite. Auto IR corpus, period doc types (transcript/results/IR), and citeable citation ids. Without this, analytics stay experimental.",
+    tip: "Ingestion, structure, search and citation: automatic collection of IR documents, each period's transcript, results and IR material, and a citation ID for every citeable item. Without this layer, analytics stay experimental.",
   },
   citability: {
     id: "citability",
     term: "Citeable",
-    tip: "Hand-labeled outcome with source URL + quote (+ bound doc). Provisional/demo scores are never citeable — reports exclude them.",
+    tip: "A hand-labeled outcome with a source URL and quote (and a linked document). Provisional and demo scores are never citeable, and reports leave them out.",
   },
   granger: {
     id: "granger",
     term: "Granger precedence",
-    tip: "LASSO variable selection then Granger F-test on PIT series (≥12 quarters). Predictive precedence ≠ causation; not a forecast or investment advice.",
+    tip: "LASSO variable selection, then a Granger F-test on point-in-time series of at least 12 quarters. Predictive precedence is not causation, and this is not a forecast or investment advice.",
   },
   corpus_status: {
     id: "corpus_status",
     term: "Corpus status",
-    tip: "gci_citeable = hand-labeled with sources; gci_available = scored/docs present; listed_not_in_corpus = exchange listing only.",
+    tip: "Citeable: hand-labeled with sources. In corpus: scored, or documents are present. Filings not yet read: an exchange listing whose filings since 2022 have not been read yet.",
   },
   sights: {
     id: "sights",
     term: "Disclosure Explorer",
-    tip: "Compare disclosures across Indian companies: search, cite-only Ask, boards, compare grid, and desk agents over public IR and labeled evidence. Complements GCI — not a price terminal.",
+    tip: "Compare disclosures across Indian companies: search, cite-only Ask, boards, compare grid and desk agents over public IR material and labeled evidence. Complements the GCI; not a price terminal.",
   },
   score_sku: {
     id: "score_sku",
     term: "CiteAlpha Score",
-    tip: "GCI 0–100 plus peer delivery benchmarks. The brand wedge — management promises vs delivery.",
+    tip: "GCI 0–100 plus peer delivery comparisons. The core product: what management promised against what it delivered.",
   },
   radar: {
     id: "radar",
     term: "CiteAlpha Radar",
-    tip: "Feed of guidance changes, misses, drops, and withdrawals — for PMs, risk, and IR-watch. Not a news ticker.",
+    tip: "A feed of guidance changes, misses, drops and withdrawals for PMs, risk teams and IR watchers. Not a news ticker.",
   },
   ledger: {
     id: "ledger",
     term: "CiteAlpha Ledger",
-    tip: "Promise ledger: what was committed, by whom, when, and status. For compliance, credit, IR, and board packs.",
+    tip: "What was committed, by whom and when, and where it stands. For compliance, credit, IR and board packs.",
   },
   data_sku: {
     id: "data_sku",
     term: "CiteAlpha Data",
-    tip: "Point-in-time guidance-outcome dataset and factor export. Backtestable series — no look-ahead.",
+    tip: "Point-in-time dataset of guidance outcomes, with factor export. The series can be backtested with no look-ahead.",
   },
   rankings: {
     id: "rankings",
     term: "Public Snapshot",
-    tip: "Public, no-login snapshot of citeable GCI names. Evidence-linked scores, not recommendations.",
+    tip: "A public snapshot of citeable GCI companies, no login needed. Each score links to its evidence. Not recommendations.",
   },
   trust_center: {
     id: "trust_center",
     term: "Trust Center",
-    tip: "Public security, legal, and citation posture for procurement. Honest runtime flags — not marketing claims.",
+    tip: "Security, legal and citation practices for procurement teams, with live configuration status rather than marketing claims.",
   },
 };
 
@@ -332,7 +337,7 @@ export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
   },
   {
     title: "Outcome labels",
-    ids: ["met", "exceeded", "missed", "dropped", "pending", "pending_guidance_cite"],
+    ids: ["met", "exceeded", "missed", "dropped", "pending", "pending_guidance_cite", "basis_mismatch"],
   },
   {
     title: "How the score is built",

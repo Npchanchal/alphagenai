@@ -136,6 +136,46 @@ def run_gci_refresh(
     except Exception as exc:  # noqa: BLE001 — refresh must not die on verify
         report["source_verification"] = {"ok": False, "error": type(exc).__name__}
 
+    try:
+        from app.services import event_filings
+
+        if event_filings.enabled():
+            from app.services.agent import monitors as _mon
+
+            covered: list = []
+            for m in _mon.list_monitors():
+                covered += [c for c in _mon.companies_for(m) if c not in covered]
+            done = [event_filings.ingest_events(c) for c in covered[:15]]
+            report["analyst_event_filings"] = {
+                "companies": len(done),
+                "ingested": sum(1 for d in done for r in d["results"] if r.get("action") == "upserted"),
+            }
+    except Exception as exc:  # noqa: BLE001 — refresh must not die on event discovery
+        report["analyst_event_filings"] = {"ok": False, "error": type(exc).__name__}
+
+    try:
+        from app.services.feature_flags import analyst_monitors_enabled
+
+        if analyst_monitors_enabled():
+            from app.services.agent.monitors import process_new_documents
+
+            mon = process_new_documents()
+            report["analyst_monitors"] = {
+                k: mon.get(k) for k in ("baselined", "processed", "pending")
+            } | {"runs": len(mon.get("runs") or [])}
+    except Exception as exc:  # noqa: BLE001 — refresh must not die on monitors
+        report["analyst_monitors"] = {"ok": False, "error": type(exc).__name__}
+
+    try:
+        from app.services.feature_flags import analyst_monitors_enabled
+
+        if analyst_monitors_enabled():
+            from app.services.agent.digest import send_due_digests
+
+            report["analyst_digest"] = send_due_digests()
+    except Exception as exc:  # noqa: BLE001 — refresh must not die on digests
+        report["analyst_digest"] = {"ok": False, "error": type(exc).__name__}
+
     state = load_state()
     state["last_refresh"] = {
         "as_of": crawl.get("as_of"),

@@ -76,15 +76,20 @@ def row_gaps(outcome: object) -> List[str]:
 
 
 _GENERIC_TOKENS = frozenset(
-    {"growth", "margin", "percent", "guidance", "pct", "spend", "value", "rate", "and", "the", "of"}
+    {"growth", "margin", "percent", "guidance", "pct", "spend", "value", "rate", "and", "the", "of",
+     "usd", "gaap", "non"}
 )
-_SHORT_TOKENS = frozenset({"cc", "nim", "ape", "vnb", "arpu", "fcf", "pat", "sss"})
+_SHORT_TOKENS = frozenset({"cc", "nim", "ape", "vnb", "arpu", "fcf", "pat", "sss", "eps"})
 _UNIT_CUES = {
     "inr_cr": ("crore", " cr", "₹", " rs", "inr"),
     "days": ("day",),
     "mmt": ("mmt", "million tonne", " mt"),
     "units": ("unit", "vehicle"),
+    "usd_mn": ("$", "usd", "dollar"),
+    "usd": ("$", "usd", "per share", "eps"),
 }
+#: A US$-million figure may be written in billions in the filing.
+_SCALED_UNITS = {"usd_mn": ((1.0, ("million", "mn", "$")), (0.001, ("billion", "bn")))}
 
 
 def metric_rule(metric_id: Any) -> Optional[Dict[str, Any]]:
@@ -142,7 +147,16 @@ def _number_in_text(value: float, text: str) -> bool:
 
 
 def _number_with_unit(value: float, text: str, unit: str) -> bool:
-    """A percent metric must sit next to % or 'percent'. A crore metric must say crore, Rs, or INR."""
+    """A percent metric must sit next to % or 'percent'. A crore metric must say crore, Rs, or INR.
+
+    A US$-million metric matches the figure in millions or in billions with the scale word.
+    """
+    if unit in _SCALED_UNITS:
+        lowered = (text or "").lower()
+        return any(
+            _number_in_text(round(value * factor, 6), text) and any(w in lowered for w in words)
+            for factor, words in _SCALED_UNITS[unit]
+        )
     if not _number_in_text(value, text):
         return False
     body = (text or "").replace(",", "")
@@ -503,6 +517,20 @@ def _read_stamp() -> Dict[str, Any]:
         return {}
 
 
+def last_stamp() -> Dict[str, Any]:
+    """Last completed daily review. Read from the stamp file. Does not run the job."""
+    stamp = _read_stamp()
+    if not stamp:
+        return {"ran": False, "market_id": None, "date": None, "at": None, "bound_rows": None}
+    return {
+        "ran": True,
+        "market_id": stamp.get("market_id"),
+        "date": stamp.get("date"),
+        "at": stamp.get("at"),
+        "bound_rows": stamp.get("bound_rows"),
+    }
+
+
 def _write_stamp(day: date, market_id: str, queued: int) -> None:
     _stamp_path().write_text(
         json.dumps(
@@ -651,7 +679,12 @@ def changelog_entries() -> List[Dict[str, Any]]:
     return entries
 
 
-def _append_changelog(day: date, moves: List[Any]) -> None:
+def _append_changelog(
+    day: date,
+    moves: List[Any],
+    *,
+    lead: str = "Daily guidance review copied quotes from accepted filings.",
+) -> None:
     path = changelog_write_path()
     payload: Dict[str, Any] = {"entries": []}
     if path.exists():
@@ -666,7 +699,7 @@ def _append_changelog(day: date, moves: List[Any]) -> None:
             "date": day.isoformat(),
             "reason": "new_filing",
             "companies": [row.company_id for row in moves],
-            "change": "Daily guidance review copied quotes from accepted filings. " + "; ".join(bits) + ".",
+            "change": f"{lead} " + "; ".join(bits) + ".",
         },
     )
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

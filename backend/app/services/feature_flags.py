@@ -64,11 +64,6 @@ def allow_demo_street() -> bool:
     return _flag("ALLOW_DEMO_STREET", False)
 
 
-def radar_digest_enabled() -> bool:
-    """Radar email / webhook digest — off by default."""
-    return _flag("RADAR_DIGEST", False)
-
-
 def ir_mirror_enabled() -> bool:
     """Corporate IR Mirror ledger mode."""
     return _flag("IR_MIRROR", False)
@@ -97,13 +92,19 @@ def sights_advanced_enabled() -> bool:
     return _flag("SIGHTS_ADVANCED", False)
 
 
-def sights_agents_enabled() -> bool:
-    return _flag("SIGHTS_AGENTS", True)
-
-
 def sights_web_assist_enabled() -> bool:
     """Open-web assist beside IR corpus — off until quality gates."""
     return _flag("SIGHTS_WEB_ASSIST", False)
+
+
+def analyst_llm_enabled() -> bool:
+    """CiteAlpha Analyst: optional model-written summary (still verified) — off by default."""
+    return _flag("ANALYST_LLM", False)
+
+
+def analyst_monitors_enabled() -> bool:
+    """CiteAlpha Analyst: process new filings for Monitors after each refresh — on by default."""
+    return _flag("ANALYST_MONITORS", True)
 
 
 def gci_version() -> str:
@@ -111,6 +112,21 @@ def gci_version() -> str:
     from app.services.gci_scoring import scorer_version
 
     return scorer_version()
+
+
+def operator_flags() -> list:
+    """Jobs a platform operator can see. Labels only — no environment variable names."""
+    return [
+        {"id": "india_coverage", "label": "India coverage roll", "on": _flag("INTELLENS_INDIA_COVERAGE")},
+        {"id": "filing_fetch", "label": "Live filing fetch", "on": _flag("INTELLENS_FILING_LIVE")},
+        {"id": "us_coverage", "label": "US coverage roll", "on": _flag("INTELLENS_US_COVERAGE")},
+        {"id": "guidance_review", "label": "Guidance review", "on": _flag("INTELLENS_GUIDANCE_REVIEW")},
+        {"id": "source_verification", "label": "Source verification", "on": _flag("INTELLENS_VERIFY_SOURCES")},
+        {"id": "analyst_monitors", "label": "Analyst monitors", "on": analyst_monitors_enabled()},
+        {"id": "event_filings", "label": "Event filings", "on": _flag("ANALYST_EVENT_FILINGS")},
+        {"id": "sights_grid", "label": "Compare grid", "on": sights_grid_enabled()},
+        {"id": "sights_deep_dive", "label": "Deep dive", "on": sights_deep_dive_enabled()},
+    ]
 
 
 def flags_dict() -> dict:
@@ -127,14 +143,14 @@ def flags_dict() -> dict:
         "ANALYTICS_GRANGER_V1": analytics_granger_v1_enabled(),
         "ANALYTICS_EXPERIMENTAL_UI": analytics_experimental_ui(),
         "ALLOW_DEMO_STREET": allow_demo_street(),
-        "RADAR_DIGEST": radar_digest_enabled(),
         "IR_MIRROR": ir_mirror_enabled(),
         "PORTFOLIO_STRETCH": portfolio_stretch_enabled(),
         "SIGHTS": sights_enabled(),
         "SIGHTS_DEEP_DIVE": sights_deep_dive_enabled(),
         "SIGHTS_GRID": sights_grid_enabled(),
         "SIGHTS_ADVANCED": sights_advanced_enabled(),
-        "SIGHTS_AGENTS": sights_agents_enabled(),
         "SIGHTS_WEB_ASSIST": sights_web_assist_enabled(),
+        "ANALYST_LLM": analyst_llm_enabled(),
+        "ANALYST_MONITORS": analyst_monitors_enabled(),
         "INTELLENS_GCI_VERSION": gci_version(),
     }

@@ -35,7 +35,9 @@ def test_sights_meta():
     body = r.json()
     assert body["product"] == "CiteAlpha Sights"
     assert body["enabled"] is True
-    assert "Sights Search" in body["brand_map"].values()
+    assert "Compare Grid" in body["brand_map"].values()
+    assert body["moved"]["search"] == "/research?scope=all"
+    assert "/sights/agents" not in body["ui"]
     assert any("broker" in x.lower() for x in body["refuse"])
     assert "Not investment advice" in body["disclaimer"]
 
@@ -121,28 +123,36 @@ def test_sights_deep_dive_empty_topic():
     assert r.json()["refused"] is True
 
 
-def test_sights_fundamentals_agents_export_hooks_enterprise():
+def test_sights_fundamentals_and_enterprise():
     cid = _sample_company_id()
     fund = client.get(f"/api/sights/fundamentals/{cid}")
     assert fund.status_code == 200
-    agents = client.get("/api/sights/agents")
-    assert agents.status_code == 200
-    assert len(agents.json()["templates"]) >= 4
-    run = client.post(
-        "/api/sights/agents/run",
-        json={"template_id": "earnings_prep", "company_id": cid},
-    )
-    assert run.status_code == 200
-    assert run.json()["refused"] is False
-    exp = client.get(f"/api/sights/export/{cid}", params={"format": "markdown"})
-    assert exp.status_code == 200
-    assert "# Cite Export" in exp.json()["content"]
-    hooks = client.get("/api/sights/hooks")
-    assert hooks.status_code == 200
-    assert "email_digest" in {c["id"] for c in hooks.json()["channels"]}
     ent = client.get("/api/sights/enterprise")
     assert ent.status_code == 200
     assert ent.json()["links"]["trust_center"] == "/trust"
+
+
+def test_retired_sights_tools_point_to_analyst():
+    cid = _sample_company_id()
+    for method, path, moved in (
+        ("get", "/api/sights/agents", "/api/analyst/skills"),
+        ("post", "/api/sights/agents/run", "/api/analyst/run"),
+        ("get", "/api/sights/hooks", "/api/analyst/destinations"),
+        ("get", f"/api/sights/export/{cid}", "/api/analyst/runs/{run_id}/export"),
+    ):
+        r = getattr(client, method)(path)
+        assert r.status_code == 410, path
+        assert r.json()["moved_to"] == moved
+
+
+def test_filing_search_expands_and_spans_all_companies():
+    r = client.get("/api/research/search", params={"q": "revenue guidance", "expand": "true", "limit": 10})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["expanded_query"] != body["original_query"]
+    assert len({d["company_id"] for d in body["results"]}) > 1
+    plain = client.get("/api/research/search", params={"q": "revenue guidance"}).json()
+    assert "expanded_query" not in plain
 
 
 def test_sights_lexicon_expand_unit():

@@ -4,17 +4,12 @@ import { useI18n } from "../../i18n";
 
 const PRIMARY: { to: string; label: string; end?: boolean }[] = [
   { to: "/sights", label: "ui.SightsLayout.nav.hub", end: true },
-  { to: "/sights/search", label: "ui.SightsLayout.nav.search" },
-  { to: "/sights/ask", label: "ui.SightsLayout.nav.ask" },
-  { to: "/sights/boards", label: "ui.SightsLayout.nav.boards" },
   { to: "/sights/themes", label: "ui.SightsLayout.nav.themes" },
   { to: "/sights/street", label: "ui.SightsLayout.nav.street" },
   { to: "/sights/field", label: "ui.SightsLayout.nav.field" },
   { to: "/sights/grid", label: "ui.SightsLayout.nav.grid" },
   { to: "/sights/deep-dive", label: "ui.SightsLayout.nav.deepDive" },
   { to: "/sights/fundamentals", label: "ui.SightsLayout.nav.fundamentals" },
-  { to: "/sights/agents", label: "ui.SightsLayout.nav.agents" },
-  { to: "/sights/export", label: "ui.SightsLayout.nav.export" },
   { to: "/sights/settings", label: "ui.SightsLayout.nav.settings" },
 ];
 

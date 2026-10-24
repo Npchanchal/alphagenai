@@ -1,0 +1,17 @@
+{
+  "id": "company_ramp",
+  "version": "1.0.0",
+  "title": "Company Ramp",
+  "audience": "Analyst picking up a new name",
+  "description": "A single-session read of a company from its own disclosures: delivery record, open and closed commitments, management's stated strategy, and evidence that cuts against the read.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "record", "title": "Delivery record", "builder": "delivery_record"},
+    {"id": "commitments_open", "title": "Open commitments", "builder": "commitments_open"},
+    {"id": "commitments_closed", "title": "Closed commitments", "builder": "commitments_closed"},
+    {"id": "strategy", "title": "Strategy in management's words", "builder": "filing_quotes",
+     "args": {"queries": ["strategy priorities", "capex capacity expansion", "debt balance sheet", "demand outlook", "margin outlook"]}},
+    {"id": "peers", "title": "Sector peers' delivery", "builder": "peers"}
+  ],
+  "disproof": {"queries": ["delay deferred postponed", "litigation penalty order", "downgrade revised lower", "resignation auditor"]}
+}

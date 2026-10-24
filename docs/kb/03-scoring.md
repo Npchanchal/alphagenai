@@ -18,6 +18,13 @@ Company GCI = scored closed outcomes aggregated to **0–100**. Higher = better 
 
 Public mirror: `/changelog` ← `GET /api/v1/index/changelog` (source `backend/app/data/score_changelog.json`, plus entries the daily guidance review appends under `INTELLENS_DATA_DIR` when that volume is set). Every moved number also has a row in `backend/app/data/score_ledger.jsonl` (`GET /api/v1/index/ledger?company_id=`; job `python -m app.jobs.snapshot_scores --write --reason … --by …`).
 
+| 2026-10-19 | methodology | **Filing walk start date moved to January 2024.** Production reads filings dated on or after 2024-01-01 (was 2022-01-01; set to 2025-01-01 for about 20 minutes the same day) to cut model cost. Rows already read from 2022–2023 filings stay and still reconcile; no new 2022–2023 filings are read. Most companies will have two closed fiscal years (India FY25 and FY26, US FY2024 and FY2025) plus quarters; automated scores stay provisional. Published (hand-labeled) levels unchanged. |
+| 2026-10-24 | new_filing | **Infosys FY24 operating margin.** Guided 20%–22% (13 Apr 2023 results release), actual 20.7% (18 Apr 2024 results release), inside the band. One closed margin period, so the row is context and the composite stays **76.5**. Evidence breadth moves provisional → **deep**. Infosys can be ranked. |
+| 2026-10-24 | methodology | **Reporting basis on the outcome.** A row now stores reporting basis, unit, and scope on the guidance and on the actual. When both sides are filled and they differ, the row stays outside the score. A blank side is unknown and still scores, so published levels are unchanged. Infosys FY24 constant-currency revenue (guided 4–7%, actual 1.4% CC; January band 1.5–2%) remains a miss. Reported INR growth of 4.7% cannot close that constant-currency row. |
+| 2026-10-19 | methodology | **Filing reader model and piece size.** The filing walk now reads filings with Gemini 3.8 Flash (Flex tier, standard on the last retry) in 48,000-character pieces, in place of Gemini 3.5 Flash on 12,000-character pieces. Scoring, quote checks and matching are unchanged. On eight sample filings (Chambal Fertilisers, CG Power, AbbVie, 3M) the new reader found the same three guidance statements and 40 checked rows against 21, at about a quarter of the cost. Filings already fully read are not read again. Provisional numbers can move as more results are matched; each move is written to the ledger and changelog by `disclosures.log_moves`. Published (hand-labeled) levels unchanged. |
+| 2026-10-18 | data_correction | **Ledger correction after the v4.2 deploy.** The startup step that logs a methodology release (`score_ledger.record_methodology_release`) read scores while `seed.get_data()` was still applying stored guidance citations, and booked Axis Bank, Adani Ports, Apollo Hospitals and HDFC Life as withdrawn (`gci: null`, by `job:methodology_release`). The site never withdrew them. `get_data()` now publishes the dataset only after citations are applied (lock), and `correct_release_withdrawals()` appends `data_correction` rows restoring Axis Bank 90.7 (v4.2), Adani Ports 58.7, Apollo Hospitals 60.4, HDFC Life 87.8. |
+| 2026-10-18 | methodology | **Filing walk v2, India + US.** Extraction now reads results as well as guidance, takes the period from the filing (the old reader defaulted every row to FY26), requires the whole quote verbatim with the number and unit inside it, and matches each promise to the first result filed after the period ends (within 550 days). The earliest pre-period promise is the opening band; later bands are revisions. Universe: Nifty 500 and S&P 500 (SEC results 8-Ks, Ex 99.1, since Jan 2022). US metrics: revenue, GAAP and adjusted EPS, adjusted EBITDA, FCF, capex (US$). Rows matched by the job are `reviewed_by = job:disclosure_reconcile` → `extracted_verified`, provisional, never ranked. Companies with no number carry `coverage_reason` (one sentence) in place of "Open period" / "Listed only". Moves from each run are written to the ledger and changelog by `disclosures.log_moves`. Published levels unchanged at release. See [18-filing-walk](18-filing-walk.md). |
+| 2026-10-18 | methodology (v4.2) | **Metric direction and width floor.** Each catalogue metric has a `direction`: `higher` (default), `lower` (`wc_days`: below the range is the beat) or `two_sided` (`capex_guidance`, `rd_spend_pct_of_revenue`: outside the range either way is a miss). Every band gets a minimum half-width before scoring and labelling: `max(2% of midpoint, 0.1 pp)` for percentage metrics, 2% of midpoint for levels. Previously only point guidance got a band (±2%, no absolute floor). Spec v2.0 proposed 0.5 pp for margins; rejected because it scores Axis Bank's 18 bp NIM beat as in-band. **Moved (production):** Axis Bank 83.8 → **90.7** (FY25 NIM point 3.80%, actual 3.98%). Infosys 76.5, Cipla 65.5, Adani Ports 58.7, Apollo Hospitals 60.4, HDFC Life 87.8 unchanged. Locally only Infosys and Cipla score; neither moved. Ledger: run `snapshot_scores --write --reason methodology --by analyst:<id>` on the production volume after deploy. Dossier gains `guidance_profile` (descriptive, not in GCI). `ALGORITHM_REVISION` = "v4.2 width floor + metric direction". |
 | 2026-10-02 | methodology | **India coverage status + extracted_verified.** Every NSE/BSE listing returns `coverage_status` (`scored` / `open_period` / `filing_in_review` / `no_quantified_guidance` / `listed_only`). A number still requires dual citation. `extracted_verified` may publish a provisional GCI when both quotes verify in stored filings; it cannot be ranked. Exchange filing ingest (`python -m app.jobs.ingest_india_filings`) and extract/classify jobs walk Nifty → IN1000 → NSE → BSE. Lookback without a metric+number promise is a coverage finding, not a miss. Published levels unchanged (Infosys 76.5, Cipla 65.5, Axis Bank 83.8, Adani Ports 58.7, Apollo Hospitals 60.4, HDFC Life 87.8). |
 | 2026-10-01 | new_filing | **India guidance citations filed from stored filings where the promise is distinct from the result.** Axis Bank none → **83.8 provisional** (FY25 NIM guided 3.80%, actual 3.98%). Adani Ports none → **58.7 provisional** (FY25 cargo band 460–480 MMT, actual 450). Apollo Hospitals none → **60.4 provisional** (FY24 ARPOB band 6–7%, actual 11%). HDFC Life none → **87.8 provisional** (operating RoEV bands across FY24–FY25). Rows whose guided figure is the same number as the reported actual stay unscored. Infosys 76.5 and Cipla 65.5 unchanged. Ledger reason `new_filing`, by `job:guidance_review`. |
 | 2026-10-01 | display_fix | **Filing check is the gate.** A closed row counts when a fetch of the guidance filing and the results filing both contain the recorded quotes. The dossier stamp is the check date. A missing quote drops the row and is not queued for a person. The 31 March 2027 Sensex / Nifty 50 coverage date is withdrawn; the homepage shows the live verified set. Methodology gains a limitations section (short history, current listings, design-choice constants, ±2% single-point band, unscored relative guidance). Revision count, direction, and average move render from stored revisions and are not part of GCI. Published levels unchanged (Infosys 76.5, Cipla 65.5). |
@@ -48,7 +55,8 @@ Public mirror: `/changelog` ← `GET /api/v1/index/changelog` (source `backend/a
 
 ### v3 / v4 highlights
 
-- Point guidance → synthetic ±2% band (`W = 0.02 · \|G_mid\|`).
+- **Width floor (v4.2):** `W* = max(W, floor)`, floor = `max(0.02·|G_mid|, RATE_FLOOR_PP=0.1)` for `unit: pct` metrics, `0.02·|G_mid|` for levels. Applies to point guidance and to narrow ranges. The label tolerance in `classify_outcome` widens to the same floor so label and score agree.
+- **Direction (v4.2):** `metric_catalog` `direction` = `higher` | `lower` | `two_sided`. Beat/miss, the beat floor and `normalized_surprise` (s* = σ·(A − M)/W*) all follow it. Unknown metrics default to `higher`.
 - Miss below band: γ = 1.4; beat / in-band: γ = 1.0.
 - v4 scores **promise-keeping**: a small beat scores near 100, a large beat decays toward 60 and never below it. A beat always outscores a miss of equal distance (beat − miss = 100 − S ≥ 0). Public copy names this as a design choice (promise-keeping discipline, separate from forecast accuracy) and states the δ = 1 points: a miss scores about 59, a beat about 88. Cross-metric comparability is half-width of each range; there is no sector adjustment. A wide range reaches 100 more easily than a tight one.
 - Recency: `w_t = e^{-0.15(t-1)}` (t=1 most recent).
@@ -56,6 +64,42 @@ Public mirror: `/changelog` ← `GET /api/v1/index/changelog` (source `backend/a
 - `N < 4` periods → `low_confidence` (informational). Sector shrinkage removed 2026-09-28 (D5); `sector_mean` is accepted and ignored.
 - **Composite (v4.1):** weight per metric = `min(closed periods, 5)`; metrics with < 2 closed periods are `context_metrics` (not in the composite) when a deeper metric exists. `score_meta()` in `guidance_flags.py` returns `confidence_tier`, `closed_periods`, `metrics_scored`, `as_of`, `algorithm_id`, `composite_weights`.
 - Forensic “shenanigans engines” remain out of scope — only analyst-set audit flags.
+
+## Layers
+
+Evidence (stored filings, quotes, hashes, `ingested_at`) → measurement (band, floor, direction, s*) → GCI composite → delivery (dossier, Screener, ledger, index files). The **guidance profile** sits beside the GCI and reads only from measurement. Nothing in the profile, the Commitment Record or any pilot construct feeds the GCI (`test_profile_does_not_move_gci`, `test_commitments_do_not_change_gci`).
+
+## Guidance profile (`services/guidance_profile.py`)
+
+Descriptive, on `CompanyGCIDetail.guidance_profile`. Uses only rows the GCI could use (dual-cited, reviewed, closed).
+
+| Part | Always | Label from 6 closed figures |
+|---|---|---|
+| Results vs range | Counts above / within / below, one sentence | `bias_index = 100·(above − below)/n`; ≥ 20 `usually_above`, ≤ −20 `usually_below`, else `balanced` |
+| In-year revisions | Revised count, toward weaker / stronger (direction-aware) | `mixed` (both ≥ 25%), `walk_down` / `walk_up` (≥ 30%), `stable` (< 20% revised) |
+| Divergences | Same-period revenue vs EBITDA/operating/net margin on opposite sides of their ranges, both sources | n/a |
+
+Label text is neutral ("Results tend to land above the guided range"). Not used: spec v2.0's "over-promising", "financial engineering", "working capital strain". `surprise_spread` (1.4826 × MAD of s*) is computed for pilots and the gates job; it is not in the public payload.
+
+Rejected from spec v2.0 (2026-10-18 review): 2-adic period distance (measures divisibility, not nesting; no time decay), cyclotomic phase vectors (no timing input; zero for steady delivery), market-calibrated loss L(δ) (sign error; turns GCI into a price model), bias-normalised revision lift, Loughran-McDonald hedging density, the long version's gate thresholds and ARR model.
+
+## Validation gates (`python -m app.jobs.validation_gates`)
+
+| Gate | Test | Pass |
+|---|---|---|
+| 2 Label stability | Drop the latest period; profile labels must not change | < 5% of labelled companies flip |
+| 3 Floor sensitivity | Levels under rate floors 0.05–0.5 pp × level floors 1–2% | Reviewed by a person; any adopted change → ledger |
+| 4 Extraction audit | Double review of ≥ 200 stratified rows in `app/data/extraction_audit.json` (`guided_match`, `actual_match`) | ≥ 95% exact |
+| 7 Point in time | Promise dated before result; revisions in between; review after result; no document ingested before its filing date | Zero violations (`--strict` exits 1) |
+
+Gates 5 (event study) and 6 (out-of-sample lift for any advanced construct) wait for enough established-tier companies. An advanced construct ships only if it beats the plain measurement on gate 6.
+
+## Evidence hashes and point in time
+
+- Each `OutcomeView` carries `evidence_hashes`: SHA-256 of the guidance quote and results quote (exact UTF-8, same as Analyst citations), the stored filing's `content_hash`, and its `ingested_at`.
+- `GET /api/v1/index/evidence?checksum=<sha256>` → filing metadata (no text).
+- `GET /api/v1/index/ledger?as_of=YYYY-MM-DD` and `GET /api/v1/index/levels?as_of=YYYY-MM-DD` rebuild what was published on a date from the append-only ledger.
+- Documents ingested before 2026-10-18 have no `ingested_at`; gate 7 skips them.
 
 ## Bands
 

@@ -9,22 +9,23 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0e1a16;
-      --bg-2: #15241e;
-      --panel: #1a2c25;
-      --ink: #f4f7f5;
-      --muted: #9aada4;
-      --line: #2d453c;
-      --accent: #2ec4a7;
-      --accent-dim: #0b6b5f;
-      --warn: #e0b35a;
+      --stage: #d7dbd4;
+      --paper: #f7f6f2;
+      --ink: #14211c;
+      --muted: #4e5c55;
+      --line: #d5dbd6;
+      --line-strong: #b7c2bb;
+      --accent: #0b6b5f;
+      --accent-soft: #e5f1ee;
+      --warn: #8a5a12;
+      --bad: #8b2e2e;
       --serif: "Source Serif 4", Georgia, serif;
       --sans: "IBM Plex Sans", system-ui, sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
-      background: var(--bg);
+      background: var(--stage);
       color: var(--ink);
       font-family: var(--sans);
       overflow: hidden;
@@ -32,185 +33,243 @@
     .deck {
       height: 100%;
       width: 100%;
-      position: relative;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 22px 24px 68px;
     }
     .slide {
       display: none;
-      height: 100%;
-      padding: clamp(28px, 5vh, 56px) clamp(32px, 6vw, 80px);
-      background:
-        radial-gradient(ellipse 70% 50% at 0% 0%, rgba(46, 196, 167, 0.12), transparent 55%),
-        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(224, 179, 90, 0.06), transparent 50%),
-        linear-gradient(160deg, var(--bg) 0%, var(--bg-2) 100%);
+      flex: 0 0 auto;
+      align-self: center;
+      width: min(1180px, 100%);
+      height: min(680px, calc(100vh - 90px));
+      min-height: 0;
+      max-height: calc(100vh - 90px);
+      aspect-ratio: 16 / 9;
+      background: var(--paper);
+      border: 1px solid #c5ccc6;
+      box-shadow: 0 16px 40px rgba(20, 33, 28, 0.08);
+      padding: 28px 40px 36px;
       flex-direction: column;
-      justify-content: center;
-      gap: 18px;
-      animation: fade 0.35s ease;
+      justify-content: flex-start;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
     }
     .slide.active { display: flex; }
-    @keyframes fade {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: none; }
+    .slide::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--accent);
     }
+    .chrome {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      margin-bottom: 2px;
+    }
+    .chrome b { color: var(--ink); font-weight: 600; letter-spacing: 0.14em; }
     .brand {
-      font-size: 13px;
-      letter-spacing: 0.14em;
+      font-size: 12px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--accent);
       font-weight: 600;
     }
     h1 {
       font-family: var(--serif);
-      font-size: clamp(2.2rem, 5vw, 3.6rem);
-      font-weight: 700;
+      font-size: clamp(2rem, 3.6vw, 2.9rem);
+      font-weight: 600;
       line-height: 1.12;
+      letter-spacing: -0.02em;
       max-width: 18ch;
     }
     h2 {
       font-family: var(--serif);
-      font-size: clamp(1.7rem, 3.5vw, 2.6rem);
-      font-weight: 700;
-      line-height: 1.15;
+      font-size: clamp(1.55rem, 2.6vw, 2.15rem);
+      font-weight: 600;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      max-width: 28ch;
     }
     .lede {
-      font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+      font-size: 1.02rem;
       color: var(--muted);
       max-width: 42rem;
       line-height: 1.5;
     }
     .tag {
       display: inline-block;
-      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--line-strong);
       color: var(--muted);
-      padding: 6px 12px;
-      border-radius: 999px;
+      padding: 0 0 2px;
       font-size: 12px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
     .grid {
       display: grid;
-      gap: 14px;
-      margin-top: 8px;
+      gap: 12px;
+      margin-top: 4px;
     }
-    .grid.2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid.3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .grid.4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     @media (max-width: 900px) {
-      .grid.2, .grid.3, .grid.4 { grid-template-columns: 1fr; }
+      .grid.cols-2, .grid.cols-3, .grid.cols-4, .split { grid-template-columns: 1fr; }
       body { overflow: auto; }
-      .slide { min-height: 100vh; height: auto; }
+      .deck { display: block; padding: 0; }
+      .slide { width: 100%; height: auto; min-height: 100vh; max-height: none; aspect-ratio: auto; box-shadow: none; overflow: visible; }
     }
     .card {
-      background: rgba(26, 44, 37, 0.85);
+      background: #fff;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px 18px;
+      border-radius: 2px;
+      padding: 14px 16px;
     }
     .card h3 {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 600;
       margin-bottom: 6px;
-      color: var(--accent);
+      color: var(--ink);
+      letter-spacing: -0.01em;
     }
     .card p, .card li {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       color: var(--muted);
       line-height: 1.45;
     }
-    .card ul { padding-left: 1.1rem; }
-    .card li { margin: 4px 0; }
+    .card ul { padding-left: 1.05rem; }
+    .card li { margin: 3px 0; }
     .big-num {
       font-family: var(--serif);
-      font-size: clamp(2rem, 4vw, 3rem);
+      font-size: clamp(1.6rem, 2.6vw, 2.15rem);
       color: var(--accent);
+      font-weight: 600;
       line-height: 1;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.92rem;
-      margin-top: 6px;
+      font-size: 0.88rem;
+      font-variant-numeric: tabular-nums;
     }
     th, td {
       text-align: left;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--line);
       color: var(--muted);
+      vertical-align: top;
     }
-    th { color: var(--ink); font-weight: 600; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    td strong { color: var(--ink); }
+    th {
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--accent-soft);
+      border-bottom: 1px solid #c5ddd7;
+    }
+    td strong { color: var(--ink); font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
     .nav {
       position: fixed;
-      bottom: 18px;
-      right: 24px;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
       z-index: 10;
-      font-size: 13px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
       color: var(--muted);
+      background: rgba(247, 246, 242, 0.92);
+      border: 1px solid #c5ccc6;
+      padding: 6px 8px 6px 12px;
     }
     .nav button {
-      background: var(--panel);
-      border: 1px solid var(--line);
+      background: transparent;
+      border: 1px solid var(--line-strong);
       color: var(--ink);
-      padding: 8px 14px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
       cursor: pointer;
       font: inherit;
     }
     .nav button:hover { border-color: var(--accent); color: var(--accent); }
     .progress {
       position: fixed;
-      top: 0; left: 0; height: 3px;
+      top: 0; left: 0; height: 2px;
       background: var(--accent);
       z-index: 20;
-      transition: width 0.25s ease;
     }
     .footnote {
       margin-top: auto;
-      padding-top: 18px;
-      font-size: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      font-size: 11px;
       color: var(--muted);
-      opacity: 0.8;
+      letter-spacing: 0.01em;
     }
     .hero-sub {
       font-family: var(--serif);
-      font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+      font-size: clamp(1.15rem, 2vw, 1.45rem);
+      font-weight: 500;
       color: var(--ink);
-      max-width: 28ch;
-      line-height: 1.3;
+      max-width: 34ch;
+      line-height: 1.35;
     }
     .ask-box {
-      border: 1px solid var(--accent-dim);
-      background: rgba(11, 107, 95, 0.2);
-      border-radius: 14px;
-      padding: 22px 24px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 16px 20px;
       max-width: 36rem;
     }
-    .ask-box .big-num { font-size: clamp(2.4rem, 5vw, 3.4rem); }
+    .ask-box .big-num { font-size: clamp(2.1rem, 4vw, 2.8rem); }
     .split {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 28px;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
       align-items: start;
     }
-    @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
     .check { color: var(--accent); }
-    .x { color: #c46b6b; }
+    .x { color: var(--bad); }
     .pitch-logo {
-      height: 44px;
-      width: auto;
-      margin-bottom: 12px;
+      height: 36px;
+      width: 210px;
+      max-width: 240px;
+      margin: 8px 0 4px;
       display: block;
+      align-self: flex-start;
+      object-fit: contain;
+      object-position: left center;
     }
     kbd {
       font-family: inherit;
-      border: 1px solid var(--line);
-      padding: 2px 6px;
-      border-radius: 4px;
+      border: 1px solid var(--line-strong);
+      padding: 1px 5px;
       font-size: 11px;
+      background: #fff;
+    }
+    [data-title="Title"],
+    [data-title="Close"] {
+      justify-content: flex-start;
+    }
+    [data-title="Title"] .pitch-logo,
+    [data-title="Close"] .pitch-logo {
+      margin-top: 18px;
     }
   </style>
 </head>
@@ -232,7 +291,7 @@
     <section class="slide" data-title="Problem">
       <p class="brand">The problem</p>
       <h2>Analysts remember guidance. Markets punish missed promises.</h2>
-      <div class="grid 3">
+      <div class="grid cols-3">
         <div class="card">
           <h3>Anecdotal memory</h3>
           <p>Buy- and sell-side track “management always guides high” in notebooks and Slack — not in a longitudinal, auditable score.</p>
@@ -254,7 +313,7 @@
       <p class="brand">Solution</p>
       <h2>Guidance Credibility Index (GCI)</h2>
       <p class="lede">Extract quantified promises → match to actuals → score 0–100 with a full evidence trail.</p>
-      <div class="grid 4">
+      <div class="grid cols-4">
         <div class="card"><div class="big-num">01</div><h3>Extract</h3><p>Metric, band, period, speaker from filings &amp; concalls.</p></div>
         <div class="card"><div class="big-num">02</div><h3>Match</h3><p>Link each statement to subsequent reported actuals.</p></div>
         <div class="card"><div class="big-num">03</div><h3>Score</h3><p>Met / exceeded / missed / dropped / pending → company GCI.</p></div>
@@ -296,7 +355,7 @@
     <section class="slide" data-title="Product">
       <p class="brand">Product (shipped)</p>
       <h2>Analyst workbench + API — not a dashboard toy</h2>
-      <div class="grid 2">
+      <div class="grid cols-2">
         <div class="card">
           <h3>Guidance Tracker</h3>
           <ul>
@@ -325,7 +384,7 @@
     <section class="slide" data-title="Moat">
       <p class="brand">Moat</p>
       <h2>Compounding India-labeled guidance outcomes</h2>
-      <div class="grid 3">
+      <div class="grid cols-3">
         <div class="card">
           <h3>Labeled history</h3>
           <p>Hand-labeled Sensex cohort + analyst corrections become the scarce asset — hard to recreate from a generic LLM alone.</p>
@@ -357,7 +416,7 @@
           <tr><td><strong>Trendlyne / Screener / …</strong></td><td>Sentiment, fundamentals, screens</td><td>Crowded; we refuse that red ocean</td></tr>
         </tbody>
       </table>
-      <div class="grid 2" style="margin-top:14px">
+      <div class="grid cols-2" style="margin-top:14px">
         <div class="card"><h3 class="check">We ship</h3><p>Factual GCI, evidence, threads, review loop, API.</p></div>
         <div class="card"><h3 class="x">We refuse (MVP)</h3><p>Buy/Hold/Sell, retail trading app, standalone “trust badge” as the product.</p></div>
       </div>
@@ -367,7 +426,7 @@
     <section class="slide" data-title="Business model">
       <p class="brand">Business model</p>
       <h2>Seats now. Data licenses next. Badge later.</h2>
-      <div class="grid 2">
+      <div class="grid cols-2">
         <div>
           <table>
             <thead><tr><th>Stream</th><th>Illustrative price</th></tr></thead>
@@ -397,7 +456,7 @@
     <section class="slide" data-title="GTM">
       <p class="brand">Go-to-market</p>
       <h2>India institutional beachhead → EM API export</h2>
-      <div class="grid 4">
+      <div class="grid cols-4">
         <div class="card"><div class="big-num">0–1</div><h3>Sensex depth</h3><p>Hand-label quality → extraction automation.</p></div>
         <div class="card"><div class="big-num">2</div><h3>Pilot desks</h3><p>15–20 analysts; prove weekly habit + cite in notes.</p></div>
         <div class="card"><div class="big-num">3</div><h3>Paid + API</h3><p>Desk seats + 1–2 data licenses.</p></div>
@@ -410,7 +469,7 @@
     <section class="slide" data-title="Traction">
       <p class="brand">Traction &amp; readiness</p>
       <h2>Product-market-shaped MVP — ready for pilots</h2>
-      <div class="grid 3">
+      <div class="grid cols-3">
         <div class="card"><div class="big-num">30</div><h3>Sensex companies</h3><p>Hand-labeled path in product store; Infosys on official guidance-vs-actuals table.</p></div>
         <div class="card"><div class="big-num">88</div><h3>Research docs</h3><p>Cite-only chat corpus; extract → review → commit loop live in Desk.</p></div>
         <div class="card"><div class="big-num">CI</div><h3>Ship discipline</h3><p>Pytest + Playwright + Docker + Jenkinsfile + AWS Fargate deploy.</p></div>
@@ -463,7 +522,7 @@
           Illustrative seed (~$350–600k) · 18-month runway to paid seats + first API contracts.
         </p>
       </div>
-      <div class="grid 3" style="margin-top:8px">
+      <div class="grid cols-3" style="margin-top:8px">
         <div class="card"><h3>~45% Labeling &amp; NLP</h3><p>Sensex depth → Nifty; LLM extract + analyst review at scale.</p></div>
         <div class="card"><h3>~35% GTM</h3><p>Pilot desks, enterprise sales, CSM, conferences.</p></div>
         <div class="card"><h3>~20% Infra &amp; ops</h3><p>Cloud, security, SSO, counsel, contingency.</p></div>
@@ -492,7 +551,7 @@
       <img src="citealpha-logo.svg" alt="CiteAlpha" class="pitch-logo" width="220" height="44" />
       <h1>Keep your terminal for prices. Use CiteAlpha for delivery.</h1>
       <p class="lede">India-first GCI · evidence-linked · API-ready · built lean with Cursor AI · ready for institutional pilots.</p>
-      <div class="grid 2" style="max-width:40rem">
+      <div class="grid cols-2" style="max-width:40rem">
         <div class="card"><h3>Next step</h3><p>Pilot org (5 seats, Sensex) · walkthrough of Promise Threads + Review Queue · data-quality review on hand-labeled cohort.</p></div>
         <div class="card"><h3>Contact</h3><p>sales@citealpha.com<br />Product: Package page in-app · Docs: BUSINESS_PLAN.md</p></div>
       </div>
@@ -505,11 +564,16 @@
     <span id="counter">1 / 14</span>
     <button type="button" id="prev" aria-label="Previous">←</button>
     <button type="button" id="next" aria-label="Next">→</button>
-    <span style="opacity:0.6"><kbd>←</kbd> <kbd>→</kbd> · <kbd>F</kbd> fullscreen</span>
   </div>
 
   <script>
     const slides = [...document.querySelectorAll(".slide")];
+    slides.forEach((slide, idx) => {
+      const bar = document.createElement("div");
+      bar.className = "chrome";
+      bar.innerHTML = `<b>CiteAlpha</b><span>${String(idx + 1).padStart(2, "0")}  /  ${String(slides.length).padStart(2, "0")}</span>`;
+      slide.prepend(bar);
+    });
     let i = 0;
     const counter = document.getElementById("counter");
     const progress = document.getElementById("progress");

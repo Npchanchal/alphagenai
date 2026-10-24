@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import threading
 import time
 from datetime import date
 from typing import List, Optional
@@ -21,17 +22,43 @@ from typing import List, Optional
 from app.services.guidance_review import run_daily, seconds_until_next_run
 
 
-def serve() -> None:
-    """Roll India filing coverage, run today's market, then sleep until 02:30 IST each day."""
-    while True:
-        try:
-            from app.services.india_coverage import run_daily_from_env
+def _india_walk() -> None:
+    try:
+        from app.services.india_coverage import run_daily_from_env
 
-            coverage = run_daily_from_env()
-            if coverage is not None:
-                print(json.dumps({"india_coverage": coverage}), flush=True)
-        except Exception as exc:  # noqa: BLE001 — coverage roll must not stop the review
-            print(json.dumps({"india_coverage": "error", "detail": type(exc).__name__}), flush=True)
+        coverage = run_daily_from_env()
+        if coverage is not None:
+            print(json.dumps({"india_coverage": coverage}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — coverage roll must not stop the review
+        print(json.dumps({"india_coverage": "error", "detail": type(exc).__name__}), flush=True)
+
+
+def _us_walk() -> None:
+    try:
+        from app.services.us_coverage import run_daily_from_env as run_us
+
+        us = run_us()
+        if us is not None:
+            print(json.dumps({"us_coverage": us}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — the US walk must not stop the review
+        print(json.dumps({"us_coverage": "error", "detail": type(exc).__name__}), flush=True)
+
+
+def serve() -> None:
+    """Walk India and US filings side by side, run today's market, then sleep until 02:30 IST each day."""
+    try:
+        from app.services.score_ledger import correct_release_withdrawals, record_methodology_release
+
+        print(json.dumps({"ledger_corrections": correct_release_withdrawals()}), flush=True)
+        print(json.dumps({"methodology_release": record_methodology_release()}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — the ledger step must not stop the walks
+        print(json.dumps({"methodology_release": "error", "detail": type(exc).__name__}), flush=True)
+    while True:
+        # The two walks run side by side; shared stores are guarded by app.data.store_lock.
+        us_walk = threading.Thread(target=_us_walk, name="us-coverage", daemon=True)
+        us_walk.start()
+        _india_walk()
+        us_walk.join()
         try:
             report = run_daily()
         except Exception as exc:  # noqa: BLE001 — keep the daily loop alive

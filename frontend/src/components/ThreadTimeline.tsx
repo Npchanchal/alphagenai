@@ -1,7 +1,8 @@
 import InfoTip from "./InfoTip";
 import { useI18n } from "../i18n";
-import type { OutcomeView } from "../lib/api";
+import type { GuidanceRevision, OutcomeView } from "../lib/api";
 import { formatOutcomeLabel, tipForLabel } from "../lib/glossary";
+import { metricDisplayName } from "../lib/score";
 
 type Props = {
   threads: Record<string, OutcomeView[]>;
@@ -30,6 +31,10 @@ const DIRECTION_KEY: Record<Direction, string> = {
   lowered: "ui.ThreadTimeline.dir.lowered",
   reiterated: "ui.ThreadTimeline.dir.reiterated",
 };
+
+function revisionBand(rev: GuidanceRevision): string {
+  return `${rev.guided_low}–${rev.guided_high}`;
+}
 
 function direction(prev: OutcomeView | null, cur: OutcomeView): Direction {
   if (!prev) return "stated";
@@ -69,8 +74,7 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
         return (
           <div className="thread-row" key={id} data-testid={`thread-${id}`}>
             <div className="thread-head">
-              <span className="thread-metric">{last.metric.replaceAll("_", " ")}</span>
-              <span className="muted thread-id">{id}</span>
+              <span className="thread-metric">{metricDisplayName(last.metric)}</span>
               <span className={`pill ${last.label}`}>
                 {formatOutcomeLabel(last.label)}
               </span>{" "}
@@ -84,7 +88,7 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
                     {i > 0 && <span className="thread-arrow" aria-hidden="true">→</span>}
                     <div className={`thread-node ${dir}`}>
                       <div className="thread-node-period">
-                        {o.as_of ? o.as_of.slice(0, 7) : o.period}
+                        {o.guidance_as_of ? o.guidance_as_of.slice(0, 7) : o.period}
                       </div>
                       <div className="thread-node-band">{bandText(o)}</div>
                       <span className={`thread-dir ${dir}`}>{t(DIRECTION_KEY[dir])}</span>
@@ -99,13 +103,61 @@ export default function ThreadTimeline({ threads, testId = "thread-timeline" }: 
                   <div className="thread-node-band">
                     {last.actual_value != null
                       ? t("ui.ThreadTimeline.actual", { value: last.actual_value })
-                      : t("ui.ThreadTimeline.noActual")}
+                      : t("ui.ThreadTimeline.periodOpen")}
                   </div>
-                  <span className={`pill ${last.label}`}>{last.label}</span>
+                  <span className={`pill ${last.label}`}>{formatOutcomeLabel(last.label)}</span>
                 </div>
               </div>
             </div>
-            <p className="muted thread-quote">{last.guided_text}</p>
+            {rows.map((o) => {
+              const promise = o.guidance_quote || o.guided_text;
+              return (
+                <div key={`${o.period}-cites`} className="thread-cites">
+                  {promise ? (
+                    <blockquote className="thread-quote" data-testid="thread-promise">
+                      {o.guidance_source_url ? (
+                        <a href={o.guidance_source_url} target="_blank" rel="noopener noreferrer">
+                          {o.guidance_as_of || o.period}
+                        </a>
+                      ) : (
+                        <span>{o.guidance_as_of || o.period}</span>
+                      )}
+                      {" · "}“{promise}”
+                    </blockquote>
+                  ) : null}
+                  {(o.revisions || []).map((rev, i) => (
+                    <p key={`${o.period}-rev-${i}`} className="muted thread-quote" data-testid="thread-revision">
+                      {rev.source_url ? (
+                        <a href={rev.source_url} target="_blank" rel="noopener noreferrer">
+                          {rev.as_of}
+                        </a>
+                      ) : (
+                        rev.as_of
+                      )}
+                      {" · "}
+                      {t("ui.ThreadTimeline.revision", { band: revisionBand(rev) })}
+                      {rev.quote ? ` · “${rev.quote}”` : ""}
+                    </p>
+                  ))}
+                  {o.actual_value != null && o.quote_span ? (
+                    <blockquote className="thread-quote" data-testid="thread-actual">
+                      {o.source_url ? (
+                        <a href={o.source_url} target="_blank" rel="noopener noreferrer">
+                          {o.as_of || o.period}
+                        </a>
+                      ) : (
+                        <span>{o.as_of || o.period}</span>
+                      )}
+                      {" · "}“{o.quote_span}”
+                    </blockquote>
+                  ) : (
+                    <p className="muted thread-quote" data-testid="thread-open">
+                      {t("ui.ThreadTimeline.periodOpen")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         );
       })}

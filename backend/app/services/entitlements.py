@@ -16,6 +16,7 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
     "viewer": {"tracker", "research", "read_api", "feedback"},
     "analyst": {
         "tracker",
+        "analyst_agent",
         "research",
         "research_chat",
         "sights_ask",
@@ -30,6 +31,8 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
         "wordmap",
         "badge",
         "analytics_experimental",
+        "holdings",
+        "ninja",
     },
     "labeler": {
         "tracker",
@@ -41,6 +44,7 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
     },
     "reviewer": {
         "tracker",
+        "analyst_agent",
         "research",
         "research_chat",
         "sights_ask",
@@ -56,6 +60,8 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
         "wordmap",
         "badge",
         "analytics_experimental",
+        "holdings",
+        "ninja",
     },
     "admin": set(),  # filled below — all plan features
     "owner": set(),
@@ -130,6 +136,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "account_type": snap.get("account_type") or user.get("account_type"),
         "org": str(oid),
         "key": None,
+        "platform_admin_role": user.get("platform_admin_role"),
     }
 
 
@@ -156,6 +163,7 @@ def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
         "source": "api_key",
         "key": key_row.get("key"),
         "org": oid,
+        "platform_admin_role": key_row.get("platform_admin_role"),
     }
 
 
@@ -169,6 +177,8 @@ def _skus_for(features: Set[str]) -> list[str]:
         skus.append("ledger")
     if "em_export" in features:
         skus.append("data")
+    if "holdings" in features:
+        skus.append("holdings")
     if "sights_ask" in features or "research" in features:
         skus.append("sights")
     return skus
@@ -219,6 +229,14 @@ def require_feature(feature: str, *, allow_guest: bool = False):
                 )
             raise HTTPException(status_code=401, detail="Authentication required")
         if not has_feature(ent, feature):
+            if ent.get("plan") == "pilot":
+                from app.services.pilot_checklist import pilot_evaluation_ended
+
+                if pilot_evaluation_ended(str(ent.get("org_id") or "")):
+                    raise HTTPException(
+                        status_code=403,
+                        detail="This evaluation has ended. A paid desk keeps this module.",
+                    )
             raise HTTPException(
                 status_code=403,
                 detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks {feature}",

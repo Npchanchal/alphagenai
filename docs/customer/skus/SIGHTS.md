@@ -20,16 +20,13 @@ Parallel to Score / Cite / Radar / Ledger / Data. The Research Terminal (`/resea
 
 | Surface | Job |
 |---|---|
-| Sights Search + Business Lexicon | India IR search with synonym expand |
-| Sights Ask | Cite-only Q&A (Web Assist flagged, off by default) |
 | Delivery Themes | met / miss / drop / pending clusters — not sentiment |
 | Street Context | Management vs street consensus + public filing snippets |
 | Field Evidence | Hand-labeled outcomes + citation trail |
 | Compare Grid / Deep Dive | Multi-prompt / multi-step cite synthesis |
 | Fundamentals Strip | MoM/QoQ/YoY desk snapshot reuse |
-| Desk Agents | Earnings prep, promise brief, peers, IC footnotes |
-| Cite Export / Notify Hooks | Markdown/CSV + Radar email/webhook |
-| Sights Boards | Watchlist + saved queries |
+
+Search and cite-only questions across all covered companies (with India IR synonyms), saved searches and the watchlist are in **Filing Search** (`/research?scope=all`). Templated briefs, exports and Slack/Teams/webhook delivery are **CiteAlpha Analyst** Skills, exports and destinations (`/analyst`).
 
 ## Content posture (what Sights is *not*)
 
@@ -37,7 +34,7 @@ Parallel to Score / Cite / Radar / Ledger / Data. The Research Terminal (`/resea
 |---|---|
 | **Street Context** — public filings + licensed consensus APIs CiteAlpha pays for | Sell-side broker research PDF libraries or note redistribution |
 | **Field Evidence** — CiteAlpha-labeled guidance↔actual rows + primary citations | Expert-interview marketplace, expert-call brokerage, or third-party expert transcript firehose |
-| **Sights Ask / Deep Dive / Compare Grid** — cite-only over India disclosure corpus | Open generative chat that invents actuals or claims a global document firehose |
+| **Deep Dive / Compare Grid** (and Filing Search answers) — cite-only over India disclosure corpus | Open generative chat that invents actuals or claims a global document firehose |
 | **Delivery Themes** — met / miss / drop / pending | Retail sentiment heatmaps |
 | **India Equity Desk** packaging | Multi-industry “market intel OS” vertical packs |
 

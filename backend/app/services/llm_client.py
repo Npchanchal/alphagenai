@@ -126,6 +126,8 @@ def chat_completion(
     max_tokens: int = 1200,
     wait: bool = True,
     reasoning: Optional[str] = None,
+    timeout: float = 45.0,
+    service_tier: Optional[str] = None,
 ) -> str:
     """``max_tokens`` budgets the answer; Gemini's hidden reasoning gets its own headroom."""
     payload: Dict[str, Any] = {
@@ -139,7 +141,9 @@ def chat_completion(
             payload["reasoning_effort"] = reasoning
         if reasoning not in ("none", "minimal", "low"):
             payload["max_tokens"] = max_tokens + GEMINI_THINKING_HEADROOM
-    doc = _post_json("/chat/completions", payload, wait=wait)
+        if service_tier:
+            payload["service_tier"] = service_tier
+    doc = _post_json("/chat/completions", payload, timeout=timeout, wait=wait)
     choices = doc.get("choices") or []
     if not choices:
         raise RuntimeError("LLM returned no choices")

@@ -22,6 +22,14 @@ If `@citealpha.com` mailboxes stay on Hostinger, set `hostinger_mail_dns = true`
 
 Do **not** copy Hostinger’s apex A (`2.57.x`) or their `www` CNAME — apex/`www` remain ALB aliases.
 
+SES (`enable_ses`, default on) adds, and does not replace, the Hostinger records:
+
+- Three CNAMEs `*._domainkey.citealpha.com` → `*.dkim.amazonses.com`
+- MX and SPF on `ses.citealpha.com` (the envelope domain)
+- `include:amazonses.com` added to the apex SPF TXT. The Google site-verification TXT stays in that same record set.
+
+Leave `hostingermail1._domainkey` in place. That selector is the company mailbox.
+
 Verify:
 
 ```bash
@@ -37,14 +45,14 @@ dig TXT _dmarc.citealpha.com +short
 
 Hostinger **must** use custom nameservers pointing at Route53. If you see Hostinger’s purple “Parked Domain” page, nameservers were reverted to `horizon.dns-parking.com` / `orbit.dns-parking.com`.
 
-**Fix:** hPanel → Domains → `citealpha.com` → Nameservers → **Change** → Custom DNS:
+**Fix:** hPanel → Domains → `citealpha.com` → Nameservers → **Change** → Custom DNS. The live set is `terraform output route53_nameservers`:
 
 | Nameserver |
 |---|
-| `ns-1455.awsdns-53.org` |
-| `ns-2044.awsdns-63.co.uk` |
-| `ns-424.awsdns-53.com` |
-| `ns-718.awsdns-25.net` |
+| `ns-1337.awsdns-39.org` |
+| `ns-2040.awsdns-63.co.uk` |
+| `ns-454.awsdns-56.com` |
+| `ns-802.awsdns-36.net` |
 
 Verify (must show **only** `awsdns`, no `dns-parking`):
 

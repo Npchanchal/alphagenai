@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -33,6 +33,10 @@ class CompanySummary(BaseModel):
     coverage_status: Optional[str] = Field(
         default=None,
         description="scored | open_period | filing_in_review | no_quantified_guidance | listed_only",
+    )
+    coverage_reason: Optional[str] = Field(
+        default=None,
+        description="Plain sentence shown instead of a number, e.g. 'First guided year (FY27) closes Mar 2027'",
     )
 
 
@@ -171,6 +175,10 @@ class PilotRequestCreate(BaseModel):
 class PilotRequestReview(BaseModel):
     action: str = Field(description="approve or reject")
     note: str = Field(default="", max_length=1000)
+    term_days: Optional[int] = Field(
+        default=None,
+        description="Required on approve: 30, 45, or 60",
+    )
 
 
 class SetAuditFlagRequest(BaseModel):
@@ -266,6 +274,20 @@ class OutcomeView(BaseModel):
     span_end: Optional[int] = None
     reviewed_by: Optional[str] = None
     reviewed_at: Optional[str] = None
+    reporting_basis: Optional[str] = None
+    actual_reporting_basis: Optional[str] = None
+    unit: Optional[str] = None
+    actual_unit: Optional[str] = None
+    scope: Optional[str] = None
+    actual_scope: Optional[str] = None
+    evidence_hashes: Dict[str, Optional[str]] = Field(
+        default_factory=dict,
+        description=(
+            "SHA-256 of the guidance quote, the results quote and the stored filing, "
+            "plus when we ingested the filing. Look up a filing by hash at "
+            "/api/v1/index/evidence."
+        ),
+    )
 
 
 class CompanyGCIDetail(BaseModel):
@@ -297,6 +319,7 @@ class CompanyGCIDetail(BaseModel):
     as_of: Optional[str] = None
     algorithm_id: Optional[str] = None
     coverage_status: Optional[str] = None
+    coverage_reason: Optional[str] = None
     reviewed_at: Optional[str] = None
     gci_change_horizon: Optional[str] = None
     by_metric_changes: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
@@ -309,6 +332,13 @@ class CompanyGCIDetail(BaseModel):
     revision_summaries: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="In-year revision count, direction, and average move. Not part of GCI.",
+    )
+    guidance_profile: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "Results vs guided range, in-year revision pattern, revenue/margin divergences. "
+            "Counts always; labels from 6 closed figures. Not part of GCI."
+        ),
     )
     audit_note: Optional[str] = None
 
@@ -323,6 +353,115 @@ class ExtractRequest(BaseModel):
     text: Optional[str] = None
     period: str = "FY26"
     source_ref: str = "upload"
+
+
+class AnalystRunRequest(BaseModel):
+    skill_id: str
+    company_id: str
+    include_unreviewed: bool = False
+    project_id: Optional[str] = None
+
+
+class AnalystProjectRequest(BaseModel):
+    name: str = Field(..., max_length=120)
+    company_ids: List[str] = Field(default_factory=list)
+
+
+class AnalystProjectPatch(BaseModel):
+    name: Optional[str] = Field(None, max_length=120)
+    company_ids: Optional[List[str]] = None
+
+
+class AnalystMemoryRequest(BaseModel):
+    text: str = Field(..., max_length=500)
+
+
+class AnalystUploadRequest(BaseModel):
+    filename: str = Field(..., max_length=200)
+    content_base64: str = Field(..., max_length=14_500_000)
+
+
+class AnalystOrgKeyRequest(BaseModel):
+    label: str = Field("API key", max_length=80)
+    role: Literal["analyst", "viewer"] = "analyst"
+
+
+class AnalystDestinationRequest(BaseModel):
+    kind: Literal["webhook", "slack", "teams"]
+    url: str = Field(..., max_length=2000)
+    events: List[str] = Field(default_factory=lambda: ["monitor.run", "digest.weekly"])
+    label: Optional[str] = Field(None, max_length=80)
+
+
+class PublicRunRequest(BaseModel):
+    skill_id: str
+    company_id: str
+    project_id: Optional[str] = None
+
+
+class AnalystHouseStyleRequest(BaseModel):
+    firm_name: str = Field("", max_length=80)
+    primary_color: str = Field("#0B3D5C", pattern=r"^#[0-9A-Fa-f]{6}$")
+    accent_color: str = Field("#C8102E", pattern=r"^#[0-9A-Fa-f]{6}$")
+    font: Literal["Arial", "Calibri", "Georgia", "Helvetica", "Times New Roman", "Verdana"] = "Arial"
+    footer: str = Field("", max_length=160)
+    classification: str = Field("", max_length=60)
+    logo_base64: Optional[str] = Field(None, max_length=700_000)
+
+
+class AnalystHouseTemplateRequest(BaseModel):
+    filename: str = Field(..., max_length=200, pattern=r"(?i)\.(pptx|potx)$")
+    content_base64: str = Field(..., max_length=7_000_000)
+
+
+class AnalystDigestRequest(BaseModel):
+    enabled: bool = True
+    emails: List[str] = Field(default_factory=list, max_length=10)
+
+
+class AnalystMonitorRequest(BaseModel):
+    skill_id: str
+    scope: Literal["company", "watchlist", "project"] = "company"
+    company_id: Optional[str] = None
+    project_id: Optional[str] = None
+    email: Optional[str] = Field(None, max_length=254)
+
+
+class CommitmentProposal(BaseModel):
+    company_id: str
+    type: str
+    subject: str
+    outcome: str
+    due_period: str
+    quote: str
+    source_url: str
+    as_of: str
+    doc_id: Optional[str] = None
+    speaker: Optional[str] = None
+
+
+class CommitmentProposeRequest(BaseModel):
+    commitments: List[CommitmentProposal]
+
+
+class CommitmentExtractRequest(BaseModel):
+    doc_id: Optional[str] = None
+    company_id: Optional[str] = None
+    text: Optional[str] = None
+    source_url: Optional[str] = None
+    as_of: Optional[str] = None
+    use_llm: Optional[bool] = None
+
+
+class CommitmentReviewRequest(BaseModel):
+    decision: str = Field(description="accepted | rejected")
+    edits: Dict[str, Any] = Field(default_factory=dict)
+    note: str = ""
+
+
+class CommitmentTransitionRequest(BaseModel):
+    new_state: str
+    proof: Dict[str, Any] = Field(default_factory=dict)
 
 
 class MatchRequest(BaseModel):
@@ -380,6 +519,7 @@ class PitPoint(BaseModel):
 class ResearchChatRequest(BaseModel):
     question: str
     company_id: Optional[str] = None
+    expand: bool = False
 
 
 class SightsAskRequest(BaseModel):
@@ -396,11 +536,6 @@ class SightsGridRequest(BaseModel):
 class SightsDeepDiveRequest(BaseModel):
     topic: str
     company_id: Optional[str] = None
-
-
-class SightsAgentRunRequest(BaseModel):
-    template_id: str
-    company_id: str
 
 
 class IngestPasteRequest(BaseModel):

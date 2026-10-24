@@ -1,0 +1,23 @@
+{
+  "id": "usfda_watch",
+  "version": "1.0.0",
+  "title": "USFDA Watch",
+  "audience": "Pharma analysts, quality and compliance teams, independent directors",
+  "description": "USFDA inspection outcomes the company has disclosed (Form 483 observations, warning letters, import alerts, establishment inspection reports), product approvals, remediation steps, and the plant and launch commitments those events touch.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "inspections", "title": "Inspection outcomes disclosed", "builder": "passages",
+     "args": {"terms": ["form 483", "observations", "warning letter", "import alert", "establishment inspection report",
+                        "official action indicated", "voluntary action indicated", "no action indicated"],
+              "limit": 6, "empty": "No USFDA inspection outcome in the filings on record."}},
+    {"id": "approvals", "title": "Product approvals", "builder": "passages",
+     "args": {"terms": ["anda", "final approval", "tentative approval", "nda approval", "approval from the usfda", "approval from usfda"],
+              "limit": 5, "empty": "No USFDA product approval in the filings on record."}},
+    {"id": "remediation", "title": "Remediation and re-inspection", "builder": "passages",
+     "args": {"terms": ["remediation", "corrective action", "capa", "re-inspection", "reinspection", "resolution of", "close-out", "closure of"],
+              "limit": 5, "empty": "No remediation or re-inspection statement in the filings on record."}},
+    {"id": "commitments", "title": "Plant and launch commitments these events touch", "builder": "linked_commitments",
+     "args": {"types": ["capacity", "launch"], "terms": ["plant", "facility", "usfda", "us market", "launch"]}}
+  ],
+  "disproof": {"queries": ["warning letter import alert", "delay in approval"]}
+}

@@ -63,6 +63,7 @@ See `services/feature_flags.py` — research LLM, consensus import, SSO stubs.
 |---|---|
 | Full architecture & design | `docs/ARCHITECTURE_AND_DESIGN.md` |
 | Pipeline | [04-pipeline](04-pipeline.md) |
+| Reuse owners; read a source once | [19-reuse-and-source-once](19-reuse-and-source-once.md) |
 | Scoring | [03-scoring](03-scoring.md) |
 | AWS | [11-deploy-aws](11-deploy-aws.md) |
 | UX | [06-frontend-ux](06-frontend-ux.md) |

@@ -62,7 +62,7 @@ def test_pilot_checklist_flow():
     created = client.post(
         "/api/orgs/pilot",
         headers=KEY,
-        json={"name": "Test Pilot Desk", "seats": 5},
+        json={"name": "Test Pilot Desk", "seats": 5, "term_days": 45},
     )
     assert created.status_code == 200
     assert created.json()["org"]["plan"] == "pilot"
@@ -81,7 +81,8 @@ def test_public_gci_rankings_citeable_only():
         assert row["confidence_tier"] in ("established", "deep")
     rows = {r["company_id"]: r for r in body["top"] + body["bottom"]}
     if not rows:
-        assert body["universe_n"] == 0
+        assert body["mode"] == "record"
+        assert body["universe_n"] < body["ranked_threshold"]
         return
     for cid, row in rows.items():
         dossier = client.get(f"/api/companies/{cid}/gci").json()

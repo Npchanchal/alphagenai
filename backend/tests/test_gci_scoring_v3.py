@@ -91,6 +91,12 @@ def test_v3_point_estimate_synthetic_band():
     assert outcome_score_v3(o) == 100.0
 
 
+def test_level_metric_point_band_stays_two_percent():
+    o = _o("FY24", "production_volume_mmt", 460.0, 465.0)
+    _gmin, _gmax, _gmid, w = effective_band(o)
+    assert abs(w - 9.2) < 1e-9
+
+
 def test_v3_miss_uses_gamma_and_exp():
     o = _o("FY24", "revenue_growth_pct", 6.0, 4.0, low=5.0, high=7.0)
     delta = normalized_deviation(o)

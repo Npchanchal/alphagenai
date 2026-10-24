@@ -24,7 +24,7 @@ export const DESK_GUIDES: DeskGuide[] = [
     skus: ["Score", "Radar"],
     primary: { to: "/tracker", label: "Open GCI Screener" },
     links: [
-      { to: "/products#radar", label: "Radar feed" },
+      { to: "/tracker", label: "Radar alerts in the GCI Screener" },
       { to: "/rankings", label: "Public Snapshot" },
     ],
   },
@@ -39,7 +39,7 @@ export const DESK_GUIDES: DeskGuide[] = [
     links: [
       { to: "/sights", label: "Disclosure Explorer" },
       { to: "/tracker", label: "GCI Screener" },
-      { to: "/products", label: "Cite packaging" },
+      { to: "/analyst", label: "CiteAlpha Analyst" },
     ],
   },
   {
@@ -49,9 +49,9 @@ export const DESK_GUIDES: DeskGuide[] = [
     blurb:
       "Point-in-time guidance outcomes and factor export — backtestable, not a tip sheet.",
     skus: ["Data", "Score"],
-    primary: { to: "/products#data", label: "Data catalog" },
+    primary: { to: "/developers", label: "API and data exports" },
     links: [
-      { to: "/package", label: "Enterprise API" },
+      { to: "/products#plans", label: "Enterprise API plan" },
       { to: "/help", label: "API help" },
     ],
   },
@@ -62,9 +62,9 @@ export const DESK_GUIDES: DeskGuide[] = [
     blurb:
       "Promise ledger and IR Mirror — what was committed, status, and peer context. A subscription never changes how a company is scored or when its score updates.",
     skus: ["Ledger", "Radar"],
-    primary: { to: "/products#ledger", label: "Ledger" },
+    primary: { to: "/tracker", label: "Open a company ledger from the GCI Screener" },
     links: [
-      { to: "/products#radar", label: "Radar" },
+      { to: "/analyst", label: "Monitors in CiteAlpha Analyst" },
       { to: "/trust", label: "Trust Center" },
     ],
   },

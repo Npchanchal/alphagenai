@@ -40,20 +40,15 @@ export const BLOG_SLUGS = [
 
 export const SIGHTS_ROUTES: RouteSpec[] = [
   { path: "/sights", testId: "sights-hub" },
-  { path: "/sights/search", testId: "sights-search" },
-  { path: "/sights/ask", testId: "sights-ask" },
+  { path: "/sights/themes", testId: "sights-themes" },
   { path: "/sights/grid", testId: "sights-grid" },
 ];
 
 export const SIGHTS_ADVANCED_ROUTES: RouteSpec[] = [
-  { path: "/sights/boards", testId: "sights-boards" },
-  { path: "/sights/themes", testId: "sights-themes" },
   { path: "/sights/street", testId: "sights-street" },
   { path: "/sights/field", testId: "sights-field" },
   { path: "/sights/deep-dive", testId: "sights-deep-dive" },
   { path: "/sights/fundamentals", testId: "sights-fundamentals" },
-  { path: "/sights/agents", testId: "sights-agents" },
-  { path: "/sights/export", testId: "sights-export" },
   { path: "/sights/settings", testId: "sights-settings" },
 ];
 
@@ -66,11 +61,9 @@ export const CORE_ROUTES: RouteSpec[] = [
   { path: "/products", testId: "products-page" },
   { path: "/developers", testId: "developers-page" },
   { path: "/status", testId: "status-page" },
-  { path: "/package", testId: "package-page" },
   { path: "/pilot", testId: "pilot-request-page" },
   { path: "/rankings", testId: "gci-rankings-page" },
   { path: "/about", testId: "about-page" },
-  { path: "/about/tiers", testId: "tier-features-page" },
   { path: "/blog", testId: "blog-index" },
   { path: "/help", testId: "help-page" },
   { path: "/trust", testId: "trust-page" },
@@ -88,7 +81,7 @@ export const CORE_ROUTES: RouteSpec[] = [
   { path: "/admin", testId: "admin-access-denied", timeout: 35_000 },
 ];
 
-export const RESEARCH_TABS = ["search", "chat", "desk", "sectors", "news", "watch"] as const;
+export const RESEARCH_TABS = ["search", "chat", "desk", "news", "watch"] as const;
 
 export const DESK_TABS = [
   { id: "console", testId: "desk-console" },

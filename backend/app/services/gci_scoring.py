@@ -25,7 +25,13 @@ MIN_PERIODS_FULL_CONF = 4
 MIN_CLOSED_PERIODS_PER_METRIC = 2
 METRIC_WEIGHT_CAP = 5
 #: Methodology revision inside the gci_scoring_v4 family (ledger / changelog note).
-ALGORITHM_REVISION = "v4.1 evidence-weighted composite (2026-09-28)"
+ALGORITHM_REVISION = "v4.2 width floor + metric direction (2026-10-18)"
+
+# --- v4.2 width floor: a band narrower than this is widened around its midpoint ---
+LEVEL_FLOOR_FRAC = POINT_BAND_FRAC
+#: Percentage-point metrics (margins, growth, NIM) never get a half-width below one
+#: reporting step (0.1 pp). The spec's 0.5 pp would score an 18 bp NIM beat as in-band.
+RATE_FLOOR_PP = 0.10
 
 # --- v4: beats decay from 100 toward this floor instead of toward 0 ---
 GCI_BEAT_FLOOR = 60.0
@@ -45,6 +51,7 @@ class OutcomeLabel(str, Enum):
     PENDING = "pending"
     UNMAPPED = "unmapped"
     PENDING_GUIDANCE_CITE = "pending_guidance_cite"
+    BASIS_MISMATCH = "basis_mismatch"
 
 
 @dataclass(frozen=True)
@@ -83,6 +90,14 @@ class GuidanceOutcome:
     # W2.7: explicit False when a live fetch showed the quote is not on the URL.
     citeable: Optional[bool] = None
     source_verified: Optional[bool] = None
+    # Comparability. A side left blank is unknown and still scores. Both sides
+    # filled and different means the actual is not the figure that was guided.
+    reporting_basis: Optional[str] = None
+    actual_reporting_basis: Optional[str] = None
+    unit: Optional[str] = None
+    actual_unit: Optional[str] = None
+    scope: Optional[str] = None
+    actual_scope: Optional[str] = None
 
 
 @dataclass
@@ -122,6 +137,33 @@ def _band(outcome: GuidanceOutcome) -> Tuple[float, float]:
     return low, high
 
 
+def metric_direction(metric: str) -> str:
+    """higher | lower | two_sided — which side of the range is good news."""
+    from app.data.metric_catalog import metric_direction as _direction
+
+    return _direction(metric)
+
+
+def band_floor(metric: str, midpoint: float) -> float:
+    """Smallest half-width a band may have before scoring (spec v2.0 §3.2, recalibrated)."""
+    from app.data.metric_catalog import metric_is_rate
+
+    relative = LEVEL_FLOOR_FRAC * abs(midpoint)
+    if metric_is_rate(metric):
+        return max(relative, RATE_FLOOR_PP)
+    return max(relative, GCI_EPS)
+
+
+def _is_favorable(metric: str, actual: float, low: float, high: float) -> bool:
+    """True when an out-of-band actual landed on the good-news side."""
+    direction = metric_direction(metric)
+    if direction == "lower":
+        return actual < low
+    if direction == "two_sided":
+        return False
+    return actual > high
+
+
 def classify_outcome(outcome: GuidanceOutcome) -> OutcomeLabel:
     from app.services.score_policy import is_pending_guidance_cite
 
@@ -133,15 +175,21 @@ def classify_outcome(outcome: GuidanceOutcome) -> OutcomeLabel:
         return OutcomeLabel.PENDING
     if is_pending_guidance_cite(outcome):
         return OutcomeLabel.PENDING_GUIDANCE_CITE
+    from app.services.score_policy import is_basis_mismatch
+
+    if is_basis_mismatch(outcome):
+        return OutcomeLabel.BASIS_MISMATCH
     low, high = _band(outcome)
     actual = outcome.actual_value
-    # 2% tolerance around band for "met"
+    # 2% tolerance around band for "met", or the width floor where that is wider.
     pad = max(abs(outcome.guided_value) * 0.02, 0.05)
-    if actual > high + pad:
+    shortfall = band_floor(outcome.metric, (low + high) / 2.0) - (high - low) / 2.0
+    pad = max(pad, shortfall)
+    if low - pad <= actual <= high + pad:
+        return OutcomeLabel.MET
+    if _is_favorable(outcome.metric, actual, low - pad, high + pad):
         return OutcomeLabel.EXCEEDED
-    if actual < low - pad:
-        return OutcomeLabel.MISSED
-    return OutcomeLabel.MET
+    return OutcomeLabel.MISSED
 
 
 def final_band(outcome: GuidanceOutcome) -> Optional[Tuple[float, float]]:
@@ -208,25 +256,23 @@ def outcome_score_v2(outcome: GuidanceOutcome) -> Optional[float]:
         OutcomeLabel.PENDING,
         OutcomeLabel.UNMAPPED,
         OutcomeLabel.PENDING_GUIDANCE_CITE,
+        OutcomeLabel.BASIS_MISMATCH,
     ):
         return None
     if label == OutcomeLabel.DROPPED:
         raw = 35.0
     elif label == OutcomeLabel.MET:
         raw = 100.0
-    elif label == OutcomeLabel.EXCEEDED:
+    else:
         low, high = _band(outcome)
         actual = float(outcome.actual_value)
-        overshoot = (actual - high) / max(abs(high), 1e-6)
-        raw = max(85.0, 100.0 - min(overshoot, 1.0) * 15.0)
-    else:  # MISSED
-        low, _high = _band(outcome)
-        actual = float(outcome.actual_value)
-        if low == 0:
-            rel_err = abs(actual - low)
-        else:
-            rel_err = abs(actual - low) / abs(low)
-        raw = max(0.0, 100.0 * (1.0 - min(rel_err / 0.5, 1.0)))
+        edge = high if actual > high else low
+        if label == OutcomeLabel.EXCEEDED:
+            overshoot = abs(actual - edge) / max(abs(edge), 1e-6)
+            raw = max(85.0, 100.0 - min(overshoot, 1.0) * 15.0)
+        else:  # MISSED
+            rel_err = abs(actual - edge) if edge == 0 else abs(actual - edge) / abs(edge)
+            raw = max(0.0, 100.0 * (1.0 - min(rel_err / 0.5, 1.0)))
 
     weight = min(max(outcome.confidence, 0.5), 1.0)
     return raw * weight + (1.0 - weight) * 50.0
@@ -252,23 +298,39 @@ def compute_company_gci_v2(outcomes: List[GuidanceOutcome]) -> Optional[float]:
 
 
 def effective_band(outcome: GuidanceOutcome) -> Tuple[float, float, float, float]:
-    """Return (G_min, G_max, G_mid, W) with synthetic ±2% band for point estimates."""
+    """Return (G_min, G_max, G_mid, W*) with the band widened to the metric's floor."""
     low, high = _band(outcome)
     gmid = (low + high) / 2.0
-    if abs(high - low) < GCI_EPS:
-        w = max(POINT_BAND_FRAC * abs(gmid), GCI_EPS)
+    w = max((high - low) / 2.0, band_floor(outcome.metric, gmid))
+    if w > (high - low) / 2.0:
         return gmid - w, gmid + w, gmid, w
-    w = (high - low) / 2.0
     return low, high, gmid, w
+
+
+def normalized_surprise(outcome: GuidanceOutcome) -> Optional[float]:
+    """s* = σ·(A − M)/W*: positive is good news, ±1 is the band edge. None if not closed.
+
+    Two-sided metrics report −|A − M|/W*, so any deviation reads as a shortfall.
+    """
+    if outcome.unmapped or outcome.dropped or outcome.actual_value is None:
+        return None
+    _gmin, _gmax, gmid, w = effective_band(outcome)
+    gap = (float(outcome.actual_value) - gmid) / (w + GCI_EPS)
+    direction = metric_direction(outcome.metric)
+    if direction == "lower":
+        return -gap
+    if direction == "two_sided":
+        return -abs(gap)
+    return gap
 
 
 def normalized_deviation(outcome: GuidanceOutcome) -> Optional[float]:
     """Out-of-band δ_t; 0 inside band; None if period excluded."""
-    from app.services.score_policy import is_pending_guidance_cite, is_unreviewed
+    from app.services.score_policy import excluded_from_score
 
     if outcome.unmapped or outcome.dropped or outcome.actual_value is None:
         return None
-    if is_pending_guidance_cite(outcome) or is_unreviewed(outcome):
+    if excluded_from_score(outcome):
         return None
     gmin, gmax, gmid, w = effective_band(outcome)
     actual = float(outcome.actual_value)
@@ -292,7 +354,7 @@ def _outcome_score_exp(outcome: GuidanceOutcome, beat_floor: float) -> Optional[
     # Guard negative base for fractional β on tiny float noise
     delta = max(0.0, delta)
     decay = math.exp(-GCI_ALPHA * (delta**GCI_BETA))
-    if actual > gmax:
+    if _is_favorable(outcome.metric, actual, gmin, gmax):
         return beat_floor + (100.0 - beat_floor) * decay
     return max(0.0, 100.0 - GCI_GAMMA_MISS * (100.0 - 100.0 * decay))
 
@@ -555,6 +617,8 @@ def label_counts(outcomes: List[GuidanceOutcome]) -> Dict[str, int]:
     counts = {label.value: 0 for label in OutcomeLabel}
     for o in outcomes:
         counts[classify_outcome(o).value] += 1
+    if counts.get(OutcomeLabel.BASIS_MISMATCH.value) == 0:
+        counts.pop(OutcomeLabel.BASIS_MISMATCH.value, None)
     return counts
 
 

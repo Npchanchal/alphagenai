@@ -1,47 +1,49 @@
 # CiteAlpha — https://citealpha.com
+# Public pages may be indexed and quoted.
+# Sign-in, billing, account, and admin pages are noindex in their HTML.
+# Do not Disallow those URLs: a robots block stops Google from seeing noindex
+# and Search Console reports them as "Blocked by robots.txt".
+# search = search indexes. ai-input = live answers grounded on these pages. ai-train = model training.
+# A named User-agent group replaces the * group, so the same limits are repeated below.
+
 User-agent: *
+Content-signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
-Disallow: /billing
-Disallow: /accept-invite
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /verify-email
-Disallow: /login
-Disallow: /register
-Disallow: /admin
-Disallow: /app-shell
-Disallow: /account
-Disallow: /org/
 
-# AI crawlers — public marketing and definitions may be indexed; auth routes disallowed above.
+# Search indexes and answer engines (ChatGPT, Claude, Perplexity, Gemini, Copilot, Apple Intelligence).
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
 User-agent: GPTBot
-Allow: /
-Disallow: /login
-Disallow: /register
-Disallow: /billing
-Disallow: /admin
-
+User-agent: Claude-SearchBot
+User-agent: Claude-User
 User-agent: ClaudeBot
-Allow: /
-Disallow: /login
-Disallow: /register
-Disallow: /billing
-Disallow: /admin
-
+User-agent: anthropic-ai
 User-agent: PerplexityBot
-Allow: /
-Disallow: /login
-Disallow: /register
-Disallow: /billing
-Disallow: /admin
-
+User-agent: Perplexity-User
+User-agent: Googlebot
+User-agent: Google-InspectionTool
+User-agent: Googlebot-Image
+User-agent: Googlebot-News
+User-agent: Googlebot-Video
 User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: Google-NotebookLM
+User-agent: Storebot-Google
+User-agent: AdsBot-Google
+User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Amazonbot
+User-agent: CCBot
+Content-signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
 
-# LLM / AI discovery
+# LLM discovery
 # llms.txt: https://citealpha.com/llms.txt
+# llms-full.txt: https://citealpha.com/llms-full.txt
 # ai.txt: https://citealpha.com/ai.txt
+# ai-catalog: https://citealpha.com/.well-known/ai-catalog.json
 
 Sitemap: https://citealpha.com/sitemap.xml
 Sitemap: https://citealpha.com/sitemap-images.xml
-# RSS: https://citealpha.com/rss.xml

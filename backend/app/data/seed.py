@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from app.data.store_lock import STORE_LOCK, locked
 from app.data.universe import SENSEX_30
 from app.services.gci_scoring import GuidanceOutcome
 
@@ -408,6 +409,12 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
         source_verified=None
         if d.get("source_verified") is None
         else bool(d.get("source_verified")),
+        reporting_basis=d.get("reporting_basis"),
+        actual_reporting_basis=d.get("actual_reporting_basis"),
+        unit=d.get("unit"),
+        actual_unit=d.get("actual_unit"),
+        scope=d.get("scope"),
+        actual_scope=d.get("actual_scope"),
     )
 
 
@@ -477,20 +484,29 @@ def _persist_tenant_state(data: Dict[str, Any]) -> None:
         _TENANT_SAVED[key] = blob
 
 
+_DATA_LOCK = STORE_LOCK
+
+
 def get_data() -> Dict[str, Any]:
     global _DATA
-    if _DATA is None:
-        fresh = not _PATH.exists()
-        _DATA = build_dataset() if fresh else json.loads(_PATH.read_text())
-        _restore_tenant_state(_DATA)
-        from app.services.guidance_review import apply_stored_binds
-        from app.services.extract_pipeline import apply_extracted_outcomes
+    if _DATA is not None:
+        return _DATA
+    # Published only once the stored citations are applied: a thread that reads a
+    # half-loaded dataset sees promised rows without their quotes and scores them as None.
+    with _DATA_LOCK:
+        if _DATA is None:
+            fresh = not _PATH.exists()
+            data = build_dataset() if fresh else json.loads(_PATH.read_text())
+            _restore_tenant_state(data)
+            from app.services.guidance_review import apply_stored_binds
+            from app.services.extract_pipeline import apply_extracted_outcomes
 
-        apply_stored_binds(_DATA)
-        apply_extracted_outcomes(_DATA)
-        if fresh:
-            save_data()
-        _ensure_nifty_seed_rows(_DATA)
+            apply_stored_binds(data)
+            apply_extracted_outcomes(data)
+            _ensure_nifty_seed_rows(data)
+            _DATA = data
+            if fresh:
+                save_data()
     return _DATA
 
 
@@ -512,6 +528,7 @@ def _ensure_nifty_seed_rows(data: Dict[str, Any]) -> None:
         _PATH.write_text(json.dumps(data, indent=2))
 
 
+@locked
 def save_data() -> None:
     data = get_data()
     _PATH.write_text(json.dumps(data, indent=2))

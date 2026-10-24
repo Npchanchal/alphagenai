@@ -90,7 +90,7 @@ export default function BillingPage() {
             <Link to="/login" className="btn primary">
               {t("common.login")}
             </Link>
-            <Link to="/package" className="btn">
+            <Link to="/products#plans" className="btn">
               {t("billing.viewPlans")}
             </Link>
           </p>

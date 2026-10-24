@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+from app.data.store_lock import locked
+
 SCORED = "scored"
 OPEN_PERIOD = "open_period"
 FILING_IN_REVIEW = "filing_in_review"
@@ -26,13 +28,14 @@ COVERAGE_STATUSES = frozenset(
     {SCORED, OPEN_PERIOD, FILING_IN_REVIEW, NO_QUANTIFIED_GUIDANCE, LISTED_ONLY}
 )
 
-# Public labels — plain finance English (rule public-copy-voice).
+# Public labels — plain finance English (rule public-copy-voice). A per-company
+# sentence from coverage_reason() replaces these wherever one can be built.
 COVERAGE_LABELS = {
     SCORED: "Scored",
-    OPEN_PERIOD: "Open period",
-    FILING_IN_REVIEW: "Filing in review",
-    NO_QUANTIFIED_GUIDANCE: "No quantified guidance",
-    LISTED_ONLY: "Listed only",
+    OPEN_PERIOD: "Guided year not yet closed",
+    FILING_IN_REVIEW: "Filings being checked",
+    NO_QUANTIFIED_GUIDANCE: "No numeric guidance found",
+    LISTED_ONLY: "Filings not yet read",
 }
 
 _CACHE: Optional[Dict[str, Any]] = None
@@ -45,6 +48,7 @@ def _store_path() -> Path:
     return base / "coverage_status.json"
 
 
+@locked
 def load_coverage(*, force: bool = False) -> Dict[str, Any]:
     global _CACHE
     if _CACHE is not None and not force:
@@ -61,6 +65,7 @@ def load_coverage(*, force: bool = False) -> Dict[str, Any]:
     return _CACHE
 
 
+@locked
 def save_coverage(data: Optional[Dict[str, Any]] = None) -> None:
     global _CACHE
     blob = data if data is not None else load_coverage()
@@ -74,6 +79,7 @@ def clear_coverage_memory() -> None:
     _CACHE = None
 
 
+@locked
 def reset_coverage() -> None:
     """Wipe persisted coverage stamps (tests)."""
     global _CACHE
@@ -82,6 +88,7 @@ def reset_coverage() -> None:
     path.write_text('{"companies": {}}\n', encoding="utf-8")
 
 
+@locked
 def stamp_coverage(
     company_id: str,
     status: str,
@@ -99,18 +106,23 @@ def stamp_coverage(
         "lookback_complete": lookback_complete,
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
-    if prior.get("last_discovery"):
-        row["last_discovery"] = prior["last_discovery"]
+    for key in ("last_discovery", "lookback_since"):
+        if prior.get(key):
+            row[key] = prior[key]
     blob["companies"][company_id] = row
     save_coverage(blob)
     return row
 
 
-def note_discovery(company_id: str) -> None:
-    """Record that filings were searched today; keeps any stamped status."""
+@locked
+def note_discovery(company_id: str, *, since: Optional[str] = None) -> None:
+    """Record that filings were searched today, back to ``since``; keeps any stamped status."""
     blob = load_coverage()
     row = blob["companies"].setdefault(company_id, {"status": LISTED_ONLY})
     row["last_discovery"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if since:
+        prior = str(row.get("lookback_since") or "")
+        row["lookback_since"] = min(prior, since) if prior else since
     save_coverage(blob)
 
 
@@ -237,6 +249,88 @@ def coverage_status_for(
 
 def coverage_label(status: Optional[str]) -> str:
     return COVERAGE_LABELS.get(status or "", COVERAGE_LABELS[LISTED_ONLY])
+
+
+def _month_year(iso: str) -> str:
+    try:
+        return datetime.strptime(iso[:10], "%Y-%m-%d").strftime("%b %Y")
+    except ValueError:
+        return iso
+
+
+def _is_us(company_id: str) -> bool:
+    try:
+        from app.data.us_listings import find_us_listing
+
+        return find_us_listing(company_id) is not None
+    except Exception:
+        return False
+
+
+def _row_period_end(row: Any, us: bool) -> Optional[str]:
+    g = row.get if isinstance(row, dict) else lambda k, d=None: getattr(row, k, d)
+    end = str(g("period_end") or "").strip()
+    if end:
+        return end[:10]
+    if us:
+        return None
+    from app.services.commitments import period_end
+
+    return period_end(str(g("period") or ""))
+
+
+def _window_start() -> str:
+    from app.services.exchange_filings import discovery_since
+
+    return discovery_since()
+
+
+def coverage_reason(
+    company_id: str,
+    status: Optional[str],
+    *,
+    outcomes: Optional[Iterable[Any]] = None,
+    today: Optional[str] = None,
+) -> Optional[str]:
+    """One plain sentence for a company with no number: why, and until when. Never a score."""
+    if not status or status == SCORED:
+        return None
+    us = _is_us(company_id)
+    persisted = persisted_row(company_id)
+    since = _month_year(str(persisted.get("lookback_since") or _window_start()))
+    if status == OPEN_PERIOD:
+        now = today or datetime.now(timezone.utc).date().isoformat()
+        open_rows = []
+        for row in _outcomes_for(company_id, outcomes):
+            g = row.get if isinstance(row, dict) else lambda k, d=None, r=row: getattr(r, k, d)
+            if g("actual_value") is not None or (g("guided_value") is None and g("guided_low") is None):
+                continue
+            end = _row_period_end(row, us)
+            if end:
+                open_rows.append((end, str(g("period") or "")))
+        upcoming = sorted(r for r in open_rows if r[0] >= now)
+        if upcoming:
+            end, period = upcoming[0]
+            span = "quarter" if period.upper().startswith("Q") else "year"
+            return f"First guided {span} ({period}) closes {_month_year(end)}"
+        if open_rows:
+            end, period = max(open_rows)
+            return f"{period} result not yet matched to a filing"
+        return COVERAGE_LABELS[OPEN_PERIOD]
+    if status == FILING_IN_REVIEW:
+        guided = any(
+            (row.get("guided_value") if isinstance(row, dict) else getattr(row, "guided_value", None)) is not None
+            for row in _outcomes_for(company_id, outcomes)
+        )
+        if guided:
+            return "Guidance found, being checked against results"
+        where = "SEC results releases" if us else "Filings"
+        return f"{where} since {since} held, being read"
+    if status == NO_QUANTIFIED_GUIDANCE:
+        where = "SEC results releases" if us else "exchange filings"
+        return f"No numeric guidance in {where} since {since}"
+    where = "SEC results releases" if us else "Filings"
+    return f"{where} since {_month_year(_window_start())} not yet read"
 
 
 def coverage_counts(company_ids: Iterable[str]) -> Dict[str, int]:

@@ -1,0 +1,13 @@
+{
+  "id": "peer_delivery_grid",
+  "version": "1.0.0",
+  "title": "Peer Delivery Grid",
+  "audience": "Sector analysts and PMs comparing management teams",
+  "description": "How often each company in the sector met or beat its own guidance, counted over closed periods with both the guidance and the result filing cited. A record of delivery, not a ranking.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "grid", "title": "Delivery against own guidance, by company", "builder": "peer_grid", "args": {"limit": 6}},
+    {"id": "peers", "title": "Published GCI for the same companies", "builder": "peers"}
+  ],
+  "disproof": {"queries": []}
+}

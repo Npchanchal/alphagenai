@@ -72,8 +72,28 @@ export default function SeoHead() {
 
     document.title = seo.title;
 
+    const existingRobots =
+      document.head.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "";
+    const canonicalNow =
+      document.head.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? "";
+    const expectedUrl = `${SITE}${seo.path === "/" ? "/" : seo.path}`;
+    const sameDocument = canonicalNow === expectedUrl || canonicalNow === `${expectedUrl}/`;
+    let robots = seo.robots ?? "index,follow";
+    // Prerendered dossiers are index,follow in the first HTML byte. Do not stamp noindex
+    // over that tag before the company payload arrives — Google keeps the rendered robots tag.
+    if (
+      !(over && over.path === pathname) &&
+      sameDocument &&
+      pathname.startsWith("/companies/") &&
+      existingRobots.includes("index,follow") &&
+      !existingRobots.includes("noindex") &&
+      robots.includes("noindex")
+    ) {
+      robots = "index,follow";
+    }
+
     upsertMeta("name", "description", seo.description);
-    upsertMeta("name", "robots", seo.robots ?? "index,follow");
+    upsertMeta("name", "robots", robots);
     upsertMeta("property", "og:type", seo.type ?? "website");
     upsertMeta("property", "og:site_name", "CiteAlpha");
     upsertMeta("property", "og:title", seo.title);

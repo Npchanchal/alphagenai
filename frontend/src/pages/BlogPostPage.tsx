@@ -60,7 +60,7 @@ export default function BlogPostPage() {
           <Link to="/tracker" className="btn primary">
             {t("ui.BlogPostPage.openTracker")}
           </Link>
-          <Link to="/package" className="btn">
+          <Link to="/products#plans" className="btn">
             {t("ui.BlogPostPage.packagePricing")}
           </Link>
           <Link to="/blog" className="btn ghost">

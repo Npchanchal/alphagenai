@@ -28,6 +28,14 @@ def auth_rate_limit_rpm() -> int:
         return 20
 
 
+def public_api_rpm() -> int:
+    """Per-key limit on the public API (/api/v1) and MCP server."""
+    try:
+        return max(5, int(os.environ.get("PUBLIC_API_RPM", "60")))
+    except ValueError:
+        return 60
+
+
 def public_api_keys() -> frozenset[str]:
     """Keys shipped in the browser bundle — shared by every visitor, so they are bucketed per IP."""
     extra = os.environ.get("PUBLIC_API_KEYS", "")
@@ -63,11 +71,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _key(self, request: Request) -> str:
         api_key = request.headers.get("x-api-key")
+        bearer = (request.headers.get("authorization") or "").removeprefix("Bearer ").strip()
+        if not api_key and bearer.startswith("ca_live_"):
+            api_key = bearer
         if api_key and api_key not in public_api_keys():
             return f"key:{api_key}"
         return f"ip:{client_ip(request)}"
 
     def _limit_for(self, path: str, method: str = "GET") -> Tuple[int, str]:
+        if path.startswith("/api/v1/analyst/") or path == "/api/mcp":
+            return public_api_rpm(), "public_api"
         if path == "/api/pilot-request":
             return self.auth_rpm, "auth"
         # Only credential / account-creation writes are abuse-prone; session reads such as

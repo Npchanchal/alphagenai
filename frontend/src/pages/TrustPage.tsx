@@ -282,7 +282,7 @@ export default function TrustPage() {
             <p>{data.compliance.posture}</p>
             <p className="muted">{data.compliance.sebi}</p>
             <p>
-              <Link to="/package">{t("footer.package")}</Link>
+              <Link to="/products#plans">{t("footer.package")}</Link>
             </p>
           </article>
 

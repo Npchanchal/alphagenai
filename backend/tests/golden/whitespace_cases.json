@@ -1,0 +1,80 @@
+{
+  "extract": [
+    {
+      "id": "reported_growth",
+      "text": "We expect revenue growth of 10% to 12% for FY25.",
+      "item": {
+        "metric": "revenue_growth_pct",
+        "period": "FY25",
+        "low": 10,
+        "high": 12,
+        "quote": "We expect revenue growth of 10% to 12% for FY25."
+      },
+      "keep": true
+    },
+    {
+      "id": "constant_currency",
+      "text": "We expect constant currency revenue growth of 4% to 6% for FY25.",
+      "item": {
+        "metric": "revenue_growth_cc_pct",
+        "period": "FY25",
+        "low": 4,
+        "high": 6,
+        "quote": "We expect constant currency revenue growth of 4% to 6% for FY25."
+      },
+      "keep": true
+    },
+    {
+      "id": "operating_margin",
+      "text": "We expect operating margin of 21.0% to 22.0% for FY25.",
+      "item": {
+        "metric": "operating_margin_pct",
+        "period": "FY25",
+        "low": 21,
+        "high": 22,
+        "quote": "We expect operating margin of 21.0% to 22.0% for FY25."
+      },
+      "keep": true
+    },
+    {
+      "id": "point_band",
+      "text": "We expect revenue growth of 8%, plus or minus 2%, for FY25.",
+      "item": {
+        "metric": "revenue_growth_pct",
+        "period": "FY25",
+        "low": 8,
+        "high": 8,
+        "pm_pct": 2,
+        "quote": "We expect revenue growth of 8%, plus or minus 2%, for FY25."
+      },
+      "keep": true,
+      "band": [7.84, 8.16]
+    },
+    {
+      "id": "qualitative",
+      "text": "We expect a healthy year of broad-based growth ahead for the business.",
+      "item": {
+        "metric": "revenue_growth_pct",
+        "period": "FY25",
+        "low": 10,
+        "high": 12,
+        "quote": "We expect a healthy year of broad-based growth ahead for the business."
+      },
+      "keep": false,
+      "reason": "number_not_in_quote"
+    },
+    {
+      "id": "unknown_metric",
+      "text": "We expect revenue growth of 10% to 12% for FY25.",
+      "item": {
+        "metric": "made_up_metric",
+        "period": "FY25",
+        "low": 10,
+        "high": 12,
+        "quote": "We expect revenue growth of 10% to 12% for FY25."
+      },
+      "keep": false,
+      "reason": "unknown_metric"
+    }
+  ]
+}

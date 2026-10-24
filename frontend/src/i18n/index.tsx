@@ -15,44 +15,28 @@ import {
 } from "./languages";
 
 import en from "./locales/en.json";
-import hi from "./locales/hi.json";
-import ta from "./locales/ta.json";
-import te from "./locales/te.json";
-import kn from "./locales/kn.json";
-import ml from "./locales/ml.json";
-import mr from "./locales/mr.json";
-import gu from "./locales/gu.json";
-import bn from "./locales/bn.json";
-import pa from "./locales/pa.json";
-import ja from "./locales/ja.json";
-import zh from "./locales/zh.json";
-import ar from "./locales/ar.json";
-import es from "./locales/es.json";
-import fr from "./locales/fr.json";
-import de from "./locales/de.json";
-import pt from "./locales/pt.json";
 
 type Dict = Record<string, string>;
+type LocaleModule = { default: Dict };
 
-const LOCALES: Record<LangCode, Dict> = {
-  en: en as Dict,
-  hi: hi as Dict,
-  ta: ta as Dict,
-  te: te as Dict,
-  kn: kn as Dict,
-  ml: ml as Dict,
-  mr: mr as Dict,
-  gu: gu as Dict,
-  bn: bn as Dict,
-  pa: pa as Dict,
-  ja: ja as Dict,
-  zh: zh as Dict,
-  ar: ar as Dict,
-  es: es as Dict,
-  fr: fr as Dict,
-  de: de as Dict,
-  pt: pt as Dict,
-};
+const EN = en as Dict;
+const cache = new Map<LangCode, Dict>([["en", EN]]);
+const inflight = new Map<LangCode, Promise<Dict>>();
+
+function loadLocale(code: LangCode): Promise<Dict> {
+  const held = cache.get(code);
+  if (held) return Promise.resolve(held);
+  const pending = inflight.get(code);
+  if (pending) return pending;
+  const request = import(`./locales/${code}.json`).then((mod: LocaleModule) => {
+    const dict = mod.default;
+    cache.set(code, dict);
+    inflight.delete(code);
+    return dict;
+  });
+  inflight.set(code, request);
+  return request;
+}
 
 type I18nCtx = {
   lang: LangCode;
@@ -81,6 +65,7 @@ function applyDocumentLang(code: LangCode) {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<LangCode>(resolveInitial);
+  const [dict, setDict] = useState<Dict>(() => cache.get(resolveInitial()) ?? EN);
 
   useEffect(() => {
     applyDocumentLang(lang);
@@ -89,6 +74,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    let cancelled = false;
+    void loadLocale(lang).then((next) => {
+      if (!cancelled) setDict(next);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [lang]);
 
   const setLang = useCallback((code: LangCode) => {
@@ -97,8 +89,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) => {
-      const dict = LOCALES[lang] ?? LOCALES.en;
-      let text = dict[key] ?? LOCALES.en[key] ?? key;
+      let text = dict[key] ?? EN[key] ?? key;
       if (vars) {
         for (const [k, v] of Object.entries(vars)) {
           text = text.split(`{${k}}`).join(String(v));
@@ -106,7 +97,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
       return text;
     },
-    [lang],
+    [dict],
   );
 
   const dir: "ltr" | "rtl" =

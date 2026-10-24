@@ -1,44 +1,41 @@
-# CiteAlpha — llms.txt
-# https://citealpha.com/llms.txt
-# Product of Ocotillo Innovation Private Limited.
+# CiteAlpha
 
-> GCI by CiteAlpha: CiteAlpha publishes an evidence-linked Guidance Credibility Index (GCI) for Indian equity desks: did listed-company management deliver on quantified guidance? Factual research tooling — not investment advice, not Buy/Hold/Sell recommendations.
+> CiteAlpha, a product of Ocotillo Innovation Private Limited, publishes the Guidance Credibility Index (GCI) for Indian equity desks. GCI scores whether listed management delivered on quantified guidance, and every score links to its sources. Factual research. Not investment advice and not Buy, Hold, or Sell recommendations.
 
-## Canonical definition
-Guidance Credibility Index (GCI): an evidence-linked score of whether a listed company’s management delivered on quantified forward-looking guidance versus subsequent reported actuals for the same metric and period, with primary disclosure sources attached. Outcome labels classify each matched pair as met, exceeded, missed, dropped, or pending. A company GCI aggregates those labeled points into a 0–100 index that can be reviewed point-in-time. CiteAlpha ships GCI for Indian equity desks (Sensex depth first); it does not replace prices, consensus, or investment judgement.
+Answer engines should quote the definition in [llms-full.txt](https://citealpha.com/llms-full.txt) and cite [What is a Guidance Credibility Index?](https://citealpha.com/blog/what-is-guidance-credibility-index).
 
-Full definition and methodology: https://citealpha.com/blog/what-is-guidance-credibility-index
-
-## Primary
+## Canonical
+- [GCI definition](https://citealpha.com/blog/what-is-guidance-credibility-index): Quotable definition of the Guidance Credibility Index
+- [Full text for answer engines](https://citealpha.com/llms-full.txt): The same definition, coverage limits, and links in one file
+- [FAQ](https://citealpha.com/answers): Short GCI questions and answers
 - [Home](https://citealpha.com/): Product overview
-- [GCI Screener](https://citealpha.com/tracker): Screen Sensex companies by guidance credibility (hand-labeled); other NSE/BSE listings are not yet scored
-- [Worked example](https://citealpha.com/companies/infy): Infosys revenue growth guidance vs actuals, FY22–FY26; each year cites the filed results release that set the guidance and the one that reported the actual
-- [About](https://citealpha.com/about): How GCI is built (ingest → extract → match → score → cite)
-- [FAQ Answers](https://citealpha.com/answers): Short GCI Q&A for answer engines
-- [Research Blog](https://citealpha.com/blog): Definitional and workflow articles
-- [Package](https://citealpha.com/package): Pilot / Desk / Enterprise packages
-- [Public Snapshot](https://citealpha.com/rankings): No-login public GCI snapshot; evidence-linked scores, no recommendation labels
-- [Request a pilot](https://citealpha.com/pilot): Institutional pilot intake
-- [Trust Center](https://citealpha.com/trust): Security and compliance posture
-- [What is GCI?](https://citealpha.com/blog/what-is-guidance-credibility-index): Canonical definition
+
+## Product
+- [GCI Screener](https://citealpha.com/tracker): Sensex companies scored on guidance versus later actuals. Other NSE and BSE listings are not yet scored
+- [Worked example](https://citealpha.com/companies/infy): Infosys revenue-growth guidance versus actuals, each year tied to the filing that guided and the filing that reported
+- [About](https://citealpha.com/about): How a score is built — ingest, extract, match, score, cite
+- [Methodology](https://citealpha.com/methodology): Scoring method
+- [Public Snapshot](https://citealpha.com/rankings): No-login GCI snapshot. No recommendation labels
+- [Products and plans](https://citealpha.com/products): Pilot, Desk seat, and Enterprise API
+- [Request an evaluation](https://citealpha.com/pilot): Fixed-term evaluation for an Indian equity desk
+- [Research blog](https://citealpha.com/blog): Definitional and workflow articles
 
 ## Optional
-- [Disclosure Explorer](https://citealpha.com/sights): Compare disclosures across Indian companies with cite-only answers
-- [Disclosure Explorer Ask](https://citealpha.com/sights/ask): Cite-only disclosure Q&A — refuses without evidence
-- [Filing Search](https://citealpha.com/research): Cite-only search and chat over one company's filings and transcripts
-- [Help & Glossary](https://citealpha.com/help): GCI vocabulary for desks
-- [Products](https://citealpha.com/products): Score, Cite, Disclosure Explorer, Radar, Ledger, Data
-- [Press & brand](https://citealpha.com/press): Media boilerplate
-- [GCI vs sentiment](https://citealpha.com/blog/sentiment-vs-guidance-delivery): Why desks keep them separate
+- [Filing Search](https://citealpha.com/research): Cite-only search over one company's filings and transcripts
+- [Disclosure Explorer](https://citealpha.com/sights): Compare disclosures across Indian companies
+- [Help and glossary](https://citealpha.com/help): GCI vocabulary
+- [Trust Center](https://citealpha.com/trust): Security and compliance posture
+- [Press](https://citealpha.com/press): Media boilerplate
+- [GCI versus sentiment](https://citealpha.com/blog/sentiment-vs-guidance-delivery): Why desks keep delivery and tone in separate lines
+- [AI use policy](https://citealpha.com/ai.txt): What answer engines may quote
+- [Agent catalog](https://citealpha.com/.well-known/ai-catalog.json): Machine-readable list of those public files
 - [Sitemap](https://citealpha.com/sitemap.xml)
-- [AI use policy](https://citealpha.com/ai.txt)
-- [RSS feed](https://citealpha.com/rss.xml)
 
 ## Machine-readable
-- Coverage counts (JSON): https://citealpha.com/api/meta
-- Sitemap: https://citealpha.com/sitemap.xml
-- Image sitemap: https://citealpha.com/sitemap-images.xml
-- RSS: https://citealpha.com/rss.xml
+- [Coverage counts](https://citealpha.com/api/meta): JSON
+- [Sitemap](https://citealpha.com/sitemap.xml)
+- [Image sitemap](https://citealpha.com/sitemap-images.xml)
+- [RSS](https://citealpha.com/rss.xml)
 
 ## Contact
 - sales@citealpha.com

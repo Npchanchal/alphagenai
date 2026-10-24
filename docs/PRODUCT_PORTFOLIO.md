@@ -23,6 +23,7 @@ Every SKU must:
 | **CiteAlpha Ledger** | Promise ledger / accountability dossier | Compliance, credit, IR, board | Partial (`promise_brief`) · expand |
 | **CiteAlpha Data** | PIT guidance-outcome dataset + factor export | Quant / alt-data | Live PIT · license packaging |
 | **CiteAlpha Sights** | India disclosure research OS (search, cite GenAI, grids, agents) | India equity desks | Live · `/sights` |
+| **CiteAlpha Holdings** | Holdings-weighted published GCI, coverage, residual assets | MF, PMS, AIF, pension | Live · `/holdings` · admin-approved 30/45/60 day pilot, then a paid seat |
 
 One-pagers: [`docs/customer/skus/`](customer/skus/).
 

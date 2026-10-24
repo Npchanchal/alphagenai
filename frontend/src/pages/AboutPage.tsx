@@ -71,7 +71,7 @@ export default function AboutPage() {
         <a href="#why">{t("about.toc.why")}</a>
         <a href="#how">{t("about.toc.how")}</a>
         <a href="#layers">{t("about.toc.layers")}</a>
-        <Link to="/about/tiers">{t("about.toc.tiers")}</Link>
+        <Link to="/products#features">{t("about.toc.tiers")}</Link>
         <a href="#who">{t("about.toc.who")}</a>
         <a href="#also">{t("about.toc.also")}</a>
       </nav>
@@ -143,9 +143,9 @@ export default function AboutPage() {
         </h2>
         <p className="muted" style={{ marginTop: 0 }}>
           {t("about.layers.lede")}{" "}
-          <Link to="/package">{t("footer.package")}</Link>
+          <Link to="/products#plans">{t("footer.package")}</Link>
           {" · "}
-          <Link to="/about/tiers">{t("about.toc.tiers")}</Link>.
+          <Link to="/products#features">{t("about.toc.tiers")}</Link>.
         </p>
         <div className="about-why-grid">
           <div>

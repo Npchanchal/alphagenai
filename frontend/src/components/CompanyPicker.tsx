@@ -6,6 +6,7 @@ type Props = {
   onChange: (id: string) => void;
   label?: string;
   testId?: string;
+  allLabel?: string;
 };
 
 export default function CompanyPicker({
@@ -14,6 +15,7 @@ export default function CompanyPicker({
   onChange,
   label = "Company",
   testId,
+  allLabel,
 }: Props) {
   return (
     <label className="company-picker">
@@ -23,6 +25,7 @@ export default function CompanyPicker({
         onChange={(e) => onChange(e.target.value)}
         data-testid={testId}
       >
+        {allLabel && <option value="">{allLabel}</option>}
         {companies.map((c) => (
           <option key={c.id} value={c.id}>
             {c.ticker} — {c.name}

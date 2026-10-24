@@ -49,6 +49,8 @@
 
 ## Related
 
+Investor-specific packs (deck + application, October 2026): [fundraising/README.md](fundraising/README.md). Claims those packs may use are locked in [fundraising/FACTS.md](fundraising/FACTS.md).
+
 - [Business plan](BUSINESS_PLAN.md)
 - [Competitive landscape](COMPETITIVE_LANDSCAPE.md)
 - [Pricing](customer/PRICING.md)

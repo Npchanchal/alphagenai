@@ -1,0 +1,22 @@
+{
+  "id": "rating_tracker",
+  "version": "1.0.0",
+  "title": "Credit-Rating Rationale Tracker",
+  "audience": "Credit analysts, treasury teams and equity analysts following leverage",
+  "description": "Rating actions disclosed by the company, the drivers and sensitivities the agency cited, and the capex and balance-sheet commitments management made on the same points, so the agency's read and management's promises sit side by side.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "actions", "title": "Rating actions disclosed", "builder": "passages",
+     "args": {"terms": ["reaffirmed", "upgraded", "downgraded", "assigned", "revised", "rating watch", "credit watch", "outlook"],
+              "kinds": ["credit_rating"], "limit": 6, "empty": "No credit-rating action in the filings on record."}},
+    {"id": "drivers", "title": "What the agency cited", "builder": "passages",
+     "args": {"terms": ["key rating drivers", "rating sensitivities", "strengths", "weaknesses", "leverage", "debt", "liquidity", "capex", "coverage"],
+              "kinds": ["credit_rating"], "limit": 6, "empty": "No rating rationale in the filings on record."}},
+    {"id": "management", "title": "What management said on the same drivers", "builder": "passages",
+     "args": {"terms": ["net debt", "deleverag", "debt reduction", "capex", "leverage"], "figures": true, "limit": 5,
+              "empty": "No management statement on debt or capex in the filings on record."}},
+    {"id": "commitments", "title": "Capex and balance-sheet commitments", "builder": "linked_commitments",
+     "args": {"types": ["capex", "balance_sheet"]}}
+  ],
+  "disproof": {"queries": ["downgrade negative outlook", "covenant breach default"]}
+}

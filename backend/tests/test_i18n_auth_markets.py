@@ -38,12 +38,12 @@ def test_index_constituents_and_companies_filter():
     assert sensex["gci_deep"] is True
 
     spx = client.get("/api/indexes/SPX/constituents").json()
-    assert spx["count"] == 1000
-    assert spx["constituents"][0]["data_quality"] in ("market_scaffold", "demo_structured")
+    assert 495 <= spx["count"] <= 510
+    assert spx["constituents"][0]["data_quality"] in ("market_scaffold", "demo_structured", "listing_master")
 
     # pagination
     page = client.get("/api/indexes/SPX/constituents?limit=50&offset=0").json()
-    assert page["count"] == 1000
+    assert page["count"] == spx["count"]
     assert page["returned"] == 50
 
     rows = client.get("/api/companies?market=US&index=SPX&limit=100").json()
@@ -51,10 +51,12 @@ def test_index_constituents_and_companies_filter():
     assert all(r.get("gci_score") is None for r in rows)
 
     full = client.get("/api/companies/count?market=US&index=SPX").json()
-    assert full["count"] == 1000
+    assert full["count"] == spx["count"]
 
-    # Non-India markets: deterministic top-1000 scaffold
-    for mid in ["US", "GB", "JP", "HK", "CN", "EU", "SG", "AU", "KR", "BR", "CA"]:
+    # US: the S&P 500 listing master (SEC CIKs). Other markets: deterministic top-1000 scaffold.
+    us = client.get("/api/companies/count?market=US").json()["count"]
+    assert us == spx["count"]
+    for mid in ["GB", "JP", "HK", "CN", "EU", "SG", "AU", "KR", "BR", "CA"]:
         n = client.get(f"/api/companies/count?market={mid}").json()["count"]
         assert n == 1000, mid
 

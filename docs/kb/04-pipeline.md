@@ -3,12 +3,14 @@
 ## Stages
 
 1. **Ingest** — paste / text / URL allowlist / **Sensex IR crawl** / media→ASR stub (`/api/ingest/*`)
-2. **Extract** — structured statements (metric, band, period, speaker, confidence); default **pending**
+2. **Extract** — `disclosures.read_documents` on stored filings (verbatim metric, band, period, quote). A paused model leaves the filing unread
 3. **Review** — Accept / Edit / Reject; corrections append to `reviews[]` (moat)
 4. **Commit** — `POST /api/extract/commit` accepted indices → outcomes
-5. **Match** — key `(company_id, period, metric)` only
+5. **Match** — `disclosures.reconcile` pairs a promise with the later filing. `matching.match_actuals` joins a figure the caller already supplied
 6. **Score** — pure GCI (`INTELLENS_GCI_VERSION=v4` default; `v3` or legacy `v2` selectable)
 7. **Import paths** — AlphaHunter JSON, actuals import, consensus import (flags)
+
+India numeric guidance from stored filings is read and matched in `services/disclosures.py` ([18-filing-walk](18-filing-walk.md)). Stage 5 is the import join (`matching.match_actuals`) for a figure the caller already has. Programme: `docs/PLAN_WHITESPACE.md`.
 
 ## Sensex IR crawl (keep pages fresh)
 

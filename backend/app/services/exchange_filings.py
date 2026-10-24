@@ -434,6 +434,7 @@ def ingest_url(
     dry_run: bool = False,
     text: Optional[str] = None,
     undated: bool = False,
+    persist: bool = True,
 ) -> Dict[str, Any]:
     """Ingest one filing. ``text`` skips the network (tests / fixtures).
 
@@ -470,6 +471,7 @@ def ingest_url(
         date=date or ("" if undated else datetime.now(timezone.utc).strftime("%Y-%m-%d")),
         source="exchange_filing",
         review_status=review_status,
+        persist=persist,
     )
     return {
         "ok": True,
@@ -570,6 +572,38 @@ def discovery_max_docs() -> int:
     return int(os.environ.get("INTELLENS_FILING_DISCOVERY_MAX_DOCS", "6"))
 
 
+def discovery_since() -> str:
+    """First filing date the walk reads (ISO). A promise made in 2022 closes in FY23 or later."""
+    raw = os.environ.get("INTELLENS_FILING_DISCOVERY_SINCE", "").strip()
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except ValueError:
+        return "2022-01-01"
+
+
+def discovery_docs_per_year() -> int:
+    return int(os.environ.get("INTELLENS_FILING_DISCOVERY_DOCS_PER_YEAR", "6"))
+
+
+def _india_fy(iso_date: Optional[str]) -> int:
+    """Indian fiscal year a filing date falls in (Apr–Mar); 0 when undated."""
+    try:
+        d = datetime.strptime(str(iso_date or "")[:10], "%Y-%m-%d")
+    except ValueError:
+        return 0
+    return d.year + 1 if d.month >= 4 else d.year
+
+
+def _best_per_year(picked: List[Dict[str, Any]], per_year: int) -> List[Dict[str, Any]]:
+    by_year: Dict[int, List[Dict[str, Any]]] = {}
+    for row in picked:
+        by_year.setdefault(_india_fy(row.get("date")), []).append(row)
+    out: List[Dict[str, Any]] = []
+    for year in sorted(by_year, reverse=True):
+        out.extend(by_year[year][:per_year])
+    return out
+
+
 def discover_nse_filings(
     company_id: str,
     *,
@@ -579,16 +613,22 @@ def discover_nse_filings(
 ) -> List[Dict[str, Any]]:
     """Guidance-bearing NSE announcements (PDF links) for one company, best first.
 
+    Default: every filing since :func:`discovery_since`, the best few per fiscal
+    year, so a 2022 promise and the result that closed it are both read.
+    ``months`` / ``max_docs`` keep the older rolling window and flat cap.
     ``payload`` is the NSE JSON list (tests); otherwise one live API call.
     """
-    months = discovery_months() if months is None else months
+    flat = months is not None or max_docs is not None
     max_docs = discovery_max_docs() if max_docs is None else max_docs
     if payload is None:
         symbol = nse_symbol_for(company_id)
         if not symbol:
             return []
         end = datetime.now(timezone.utc)
-        start = end - timedelta(days=int(months * 30.5))
+        if months is not None:
+            start = end - timedelta(days=int(months * 30.5))
+        else:
+            start = datetime.strptime(discovery_since(), "%Y-%m-%d").replace(tzinfo=timezone.utc)
         url = NSE_ANNOUNCEMENTS.format(
             symbol=quote(symbol, safe=""),
             start=start.strftime("%d-%m-%Y"),
@@ -618,7 +658,7 @@ def discover_nse_filings(
             }
         )
     picked.sort(key=lambda r: (r["rank"], -(int((r["date"] or "0").replace("-", "")))))
-    top = picked[:max_docs]
+    top = picked[:max_docs] if flat else _best_per_year(picked, discovery_docs_per_year())
     # Transcripts fill the cap every quarter; the yearly AGM record would never make it.
     for kind in ("agm", "annual_report"):
         latest = next((r for r in picked if r["category"] == kind), None)
@@ -882,7 +922,28 @@ def ingest_company_urls(
         targets.extend(discovered)
     stored = _stored_texts()
     queued = {doc_store.url_key(t["url"]) for t in targets}
+    try:
+        _ingest_targets(company_id, targets, stored, queued, results, dry_run)
+    finally:
+        # One index write per company: the index holds every filing, so a write per filing is costly.
+        if any(r.get("action") == "upserted" for r in results):
+            doc_store.save()
+    return {
+        "company_id": company_id,
+        "results": results,
+        "urls": urls,
+        "discovered": len(discovered),
+    }
 
+
+def _ingest_targets(
+    company_id: str,
+    targets: List[Dict[str, Any]],
+    stored: Dict[str, str],
+    queued: set,
+    results: List[Dict[str, Any]],
+    dry_run: bool,
+) -> None:
     def follow(target: Dict[str, Any], linked: List[str]) -> None:
         if target.get("linked_from"):
             return
@@ -910,6 +971,7 @@ def ingest_company_urls(
                 category=target.get("category") or "filing",
                 dry_run=dry_run,
                 undated=target.get("found_by") in ("web_search", "ir_crawl"),
+                persist=False,
             )
             if target.get("linked_from"):
                 out["linked_from"] = target["linked_from"]
@@ -922,12 +984,6 @@ def ingest_company_urls(
             break
         except Exception as exc:  # noqa: BLE001 — one URL must not stop the cohort
             results.append({"ok": False, "url": url, "reason": type(exc).__name__})
-    return {
-        "company_id": company_id,
-        "results": results,
-        "urls": urls,
-        "discovered": len(discovered),
-    }
 
 
 def ingest_promise_cohort(

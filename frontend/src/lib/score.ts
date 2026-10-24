@@ -15,10 +15,10 @@ export const NOT_SCORED_LABEL = "Not yet scored";
 
 const COVERAGE_LABELS: Record<string, string> = {
   scored: "Scored",
-  open_period: "Open period",
-  filing_in_review: "Filing in review",
-  no_quantified_guidance: "No quantified guidance",
-  listed_only: "Listed only",
+  open_period: "Guided year not yet closed",
+  filing_in_review: "Filings being checked",
+  no_quantified_guidance: "No numeric guidance found",
+  listed_only: "Filings not yet read",
 };
 
 /** Typed GCI cell when there is no publishable number. */
@@ -27,13 +27,16 @@ export function formatCoverageStatus(status?: string | null): string {
   return COVERAGE_LABELS[status] || NOT_SCORED_LABEL;
 }
 
-/** A company's own GCI: a number, or a coverage status — never an invented score. */
+/** A company's own GCI: a number, or the reason there is none — never an invented score. */
 export function formatCompanyScore(
   score: number | null | undefined,
   digits = 1,
   coverageStatus?: string | null,
+  coverageReason?: string | null,
 ): string {
-  if (score === null || score === undefined) return formatCoverageStatus(coverageStatus);
+  if (score === null || score === undefined) {
+    return coverageReason || formatCoverageStatus(coverageStatus);
+  }
   return score.toFixed(digits);
 }
 
@@ -80,6 +83,13 @@ const METRIC_DISPLAY: Record<string, string> = {
   arpo_growth_pct: "ARPOB growth %",
   production_volume_mmt: "Production / cargo volume (MMT)",
   vehicle_volume_units: "Vehicle sales volume (units)",
+  gross_margin_pct: "Gross margin %",
+  revenue_usd_mn: "Revenue (US$ m)",
+  eps_diluted_usd: "Diluted EPS (GAAP, US$)",
+  eps_adjusted_usd: "Adjusted EPS (non-GAAP, US$)",
+  adjusted_ebitda_usd_mn: "Adjusted EBITDA (US$ m)",
+  fcf_usd_mn: "Free cash flow (US$ m)",
+  capex_usd_mn: "Capex (US$ m)",
 };
 
 const METRIC_UNIT: Record<string, string> = {
@@ -108,7 +118,23 @@ const METRIC_UNIT: Record<string, string> = {
   production_volume_mmt: "mmt",
   vehicle_volume_units: "units",
   wc_days: "days",
+  gross_margin_pct: "pct",
+  revenue_usd_mn: "usd_mn",
+  eps_diluted_usd: "usd",
+  eps_adjusted_usd: "usd",
+  adjusted_ebitda_usd_mn: "usd_mn",
+  fcf_usd_mn: "usd_mn",
+  capex_usd_mn: "usd_mn",
 };
+
+/** Value with its unit: 12.5% · $8,100m · $1.32. */
+export function formatMetricValue(value: number, metricId?: string): string {
+  const unit = metricId ? metricUnit(metricId) : "";
+  if (unit === "pct") return `${value}%`;
+  if (unit === "usd_mn") return `$${value.toLocaleString("en-US", { maximumFractionDigits: 1 })}m`;
+  if (unit === "usd") return `$${value.toFixed(2)}`;
+  return `${value}`;
+}
 
 export function metricDisplayName(metricId: string): string {
   return METRIC_DISPLAY[metricId] || metricId.replace(/_/g, " ");
@@ -133,12 +159,12 @@ export function formatGuidedBand(o: {
   guided_value: number;
   metric?: string;
 }): string {
-  const unit = o.metric && metricUnit(o.metric) === "pct" ? "%" : "";
+  const fmt = (v: number) => formatMetricValue(v, o.metric);
   if (o.guided_low != null && o.guided_high != null) {
-    if (o.guided_low === o.guided_high) return `${o.guided_low}${unit}`;
-    return `${o.guided_low}–${o.guided_high}${unit}`;
+    if (o.guided_low === o.guided_high) return fmt(o.guided_low);
+    return `${fmt(o.guided_low)}–${fmt(o.guided_high)}`;
   }
-  return `${o.guided_value}${unit}`;
+  return fmt(o.guided_value);
 }
 
 export function formatActual(o: {
@@ -146,8 +172,7 @@ export function formatActual(o: {
   metric?: string;
 }): string {
   if (o.actual_value == null) return "—";
-  const unit = o.metric && metricUnit(o.metric) === "pct" ? "%" : "";
-  return `${o.actual_value}${unit}`;
+  return formatMetricValue(o.actual_value, o.metric);
 }
 
 /** Guided-vs-actual gap in the metric's own units (not YoY of a growth rate). */

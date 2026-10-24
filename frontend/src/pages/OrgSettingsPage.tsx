@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import OrgAdminPanel from "../components/OrgAdminPanel";
 import Skeleton from "../components/Skeleton";
-import { fetchOrg, fetchSsoStatus, type OrgPayload } from "../lib/api";
+import { fetchMyOrg, fetchSsoStatus, type OrgPayload } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { LEGAL_ENTITY } from "../lib/legal";
 
@@ -18,14 +18,14 @@ export default function OrgSettingsPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!orgId) {
+    if (!orgId || !token) {
       setOrg(null);
       setLoading(false);
       return;
     }
     setLoading(true);
     Promise.all([
-      fetchOrg(orgId).catch(() => null),
+      fetchMyOrg(token).catch(() => null),
       fetchSsoStatus().catch(() => null),
     ])
       .then(([o, s]) => {
@@ -33,7 +33,7 @@ export default function OrgSettingsPage() {
         setSso(s);
       })
       .finally(() => setLoading(false));
-  }, [authLoading, orgId]);
+  }, [authLoading, orgId, token]);
 
   if (authLoading || loading) {
     return (

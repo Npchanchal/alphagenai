@@ -83,7 +83,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
         </p>
         <p className="muted">
           {t("ui.PilotRequestForm.alsoReview")}{" "}
-          <Link to="/package">{t("ui.PilotRequestForm.packages")}</Link> {t("ui.PilotRequestForm.orOpen")}{" "}
+          <Link to="/products#plans">{t("ui.PilotRequestForm.packages")}</Link> {t("ui.PilotRequestForm.orOpen")}{" "}
           <Link to="/trust">{t("footer.trust")}</Link> {t("ui.PilotRequestForm.whileWait")}
         </p>
         <button type="button" className="btn" onClick={() => setSuccess(false)}>

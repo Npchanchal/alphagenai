@@ -1,0 +1,15 @@
+{
+  "id": "company_note",
+  "version": "1.0.0",
+  "title": "Company note",
+  "audience": "An analyst writing a company note from the delivery record",
+  "description": "Delivery record, open commitments, and recent filing quotes for one company. The sector is the sector already stored on the company.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "record", "title": "Delivery record", "builder": "delivery_record"},
+    {"id": "open", "title": "Commitments still open", "builder": "commitments_open"},
+    {"id": "quotes", "title": "What the filings say", "builder": "filing_quotes", "args": {"queries": ["outlook guidance margin", "capex capacity"]}},
+    {"id": "questions", "title": "Questions the record leaves open", "builder": "questions"}
+  ],
+  "disproof": {"queries": ["revised downward", "delay deferred"]}
+}

@@ -1,0 +1,36 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "CiteAlpha",
+    "documentationUrl": "https://citealpha.com/llms.txt",
+    "logoUrl": "https://citealpha.com/citealpha-logo.png"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:citealpha.com:llms-txt",
+      "displayName": "CiteAlpha llms.txt",
+      "type": "text/plain",
+      "url": "https://citealpha.com/llms.txt",
+      "description": "Map of public CiteAlpha pages for answer engines. Guidance Credibility Index research. Not investment advice.",
+      "representativeQueries": [
+        "What is the Guidance Credibility Index?",
+        "Where does CiteAlpha publish its methodology?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:citealpha.com:llms-full",
+      "displayName": "CiteAlpha product brief",
+      "type": "text/plain",
+      "url": "https://citealpha.com/llms-full.txt",
+      "description": "Public brief of how CiteAlpha scores management guidance against later actuals, with sources attached.",
+      "representativeQueries": [
+        "How does CiteAlpha score management guidance?",
+        "What may an answer engine quote from CiteAlpha?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ]
+}

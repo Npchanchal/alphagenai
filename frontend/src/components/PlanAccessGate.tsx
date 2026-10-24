@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useEntitlements } from "../lib/entitlements";
+import { isIndexingCrawler } from "../lib/indexingCrawler";
 import { useI18n } from "../i18n";
 
 type Props = {
@@ -33,6 +34,12 @@ export default function PlanAccessGate({
   const { user, token } = useAuth();
   const { has, entitlements, loading } = useEntitlements();
 
+  // Google and other indexers render this shell. The seat wall would replace
+  // the page, so Search would store the sign-in prompt instead of the page.
+  if (isIndexingCrawler()) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <section className={variant === "page" ? "plan-access-page" : "plan-access-panel"}>
@@ -62,27 +69,24 @@ export default function PlanAccessGate({
           <Link to="/register" className="btn">
             {t("common.register")}
           </Link>
-          <Link to="/package" className="btn-ghost">
+          <Link to="/products#plans" className="btn-ghost">
             {t("nav.package_plans")}
           </Link>
         </div>
       ) : (
         <div className="plan-access-cta row gap">
-          <Link to="/package" className="btn-primary">
+          <Link to="/products#plans" className="btn-primary">
             {t("nav.package_plans")}
           </Link>
           <Link to="/billing" className="btn">
             {t("nav.billing")}
-          </Link>
-          <Link to="/products" className="btn-ghost">
-            {t("nav.products_overview")}
           </Link>
         </div>
       )}
       {guestOrSignedOut && (
         <p className="muted" style={{ fontSize: 13, marginTop: "0.75rem" }}>
           {t("ui.PlanAccessGate.unlockHint")}{" "}
-          <Link to="/package">{t("nav.package_plans")}</Link>
+          <Link to="/products#plans">{t("nav.package_plans")}</Link>
         </p>
       )}
     </>

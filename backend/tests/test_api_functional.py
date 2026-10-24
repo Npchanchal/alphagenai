@@ -83,7 +83,7 @@ def test_alert_kinds_include_drift_and_stale_threads():
     assert kinds & {"large_miss", "guidance_dropped", "guidance_revised"}
     for a in rows:
         if a["kind"] == "credibility_drift":
-            assert "consecutive" in a["message"]
+            assert "reporting periods" in a["message"]
             assert a["severity"] in ("medium", "high")
         if a["kind"] == "thread_stale":
             assert "reiterated" in a["message"]

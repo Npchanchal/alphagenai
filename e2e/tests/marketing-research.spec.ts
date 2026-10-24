@@ -12,8 +12,6 @@ test.describe("Research Terminal — all tabs", () => {
         await expect(page.getByTestId("research-query")).toBeVisible({ timeout: 15_000 });
       } else if (tab === "chat") {
         await expect(page.getByTestId("research-question")).toBeVisible({ timeout: 15_000 });
-      } else if (tab === "sectors") {
-        await expect(page.getByTestId("research-sectors-tab")).toBeVisible({ timeout: 15_000 });
       } else if (tab === "watch") {
         await expect(page.getByTestId("research-watchlist")).toBeVisible({ timeout: 15_000 });
       } else {
@@ -40,18 +38,21 @@ test.describe("Marketing & portfolio surfaces", () => {
     for (const sku of ["score", "cite", "radar", "ledger", "data"]) {
       await expect(page.getByTestId(`sku-${sku}`)).toBeVisible();
     }
-    await expect(page.getByTestId("radar-section")).toBeVisible();
-    await expect(page.getByTestId("ledger-section")).toBeVisible();
-    await expect(page.getByTestId("data-section")).toBeVisible();
+    await expect(page.getByTestId("plans-section")).toBeVisible();
+    await expect(page.getByTestId("features-section")).toBeVisible();
+    await expect(page.getByTestId("surface-analyst")).toBeVisible();
   });
 
-  test("package page shows plans", async ({ page }) => {
+  test("old package and tier URLs land on Products and plans", async ({ page }) => {
     await page.goto("/package");
     await dismissOverlays(page);
-    await expect(page.getByTestId("package-page")).toBeVisible();
+    await expect(page).toHaveURL(/\/products#plans$/);
     for (const plan of ["pilot", "desk", "enterprise"]) {
       await expect(page.getByTestId(`plan-${plan}`)).toBeVisible();
     }
+    await page.goto("/about/tiers");
+    await expect(page).toHaveURL(/\/products#features$/);
+    await expect(page.getByTestId("tier-feature-ask-1")).toBeVisible();
   });
 
   test("rankings page lists companies", async ({ page }) => {

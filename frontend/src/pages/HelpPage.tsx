@@ -95,12 +95,6 @@ const QUICK = [
     textKey: "help.quick.trust.text",
     tip: "trust_center",
   },
-  {
-    to: "/package",
-    titleKey: "help.quick.package.title",
-    textKey: "help.quick.package.text",
-    tip: "one_stop",
-  },
 ] as const;
 
 export default function HelpPage() {
@@ -145,7 +139,7 @@ export default function HelpPage() {
           {t("help.walkthrough.lede")}
         </p>
         <p>
-          <Link to="/about/tiers">{t("help.walkthrough.link")}</Link>
+          <Link to="/products#features">{t("help.walkthrough.link")}</Link>
         </p>
       </div>
 

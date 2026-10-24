@@ -20,34 +20,42 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | GET | `/api/v1/index/digest` | Weekly ledger-move email preview (W9.6). Send via `python -m app.jobs.ledger_digest` |
 | GET | `/api/companies/count` | Pagination |
 | GET | `/api/entitlements/me` | Plan × role intersection (`features`, `limits`). Guest: `tracker` only |
-| GET | `/api/companies/{id}/gci` | Full dossier payload; guest sessions cap at 15 opens (`403` `guest_dossier_cap` — paywall modal, not GCI change). Carries `coverage_status`, `confidence_tier`, `closed_periods`, `metrics_scored`, `as_of`, `algorithm_id`, `by_metric` (composite) + `context_metrics` (< 2 closed periods). No `sentiment`. |
+| GET | `/api/companies/{id}/gci` | Full dossier payload; guest sessions cap at 15 opens (`403` `guest_dossier_cap` — paywall modal, not GCI change). Carries `coverage_status`, `coverage_reason` (plain sentence when there is no number, e.g. "First guided year (FY27) closes Mar 2027"), `confidence_tier`, `closed_periods`, `metrics_scored`, `as_of`, `algorithm_id`, `by_metric` (composite) + `context_metrics` (< 2 closed periods). No `sentiment`. |
 | GET | `/api/companies/{id}/gci/history` | PIT points + Δ (citeable outcome as-of only) |
 | GET | `/api/companies/{id}/changes` | WoW/MoM/QoQ/YoY — numeric only when `series_kind == "citeable_pit"` (≥ 4 reviewed dates); else `null` + `note` |
 | GET | `/api/companies/{id}/analytics` · `/api/stocks/{id}/history` | **Seat-only** (`analytics_experimental`). Experimental — synthetic inputs; `401`/`403` for guests |
 | GET | `/api/companies/{id}/wordmap` | **Seat-only** (`wordmap`) |
 | GET | `/api/alerts` | Misses / dropped |
-| GET | `/api/products` | Portfolio SKU catalog (Score / Cite / Radar / Ledger / Data / Sights) |
+| GET | `/api/products` | Portfolio SKU catalog (Score / Cite / Radar / Ledger / Data / Sights / Holdings) |
+| POST | `/api/holdings/lookthrough` | Dated holdings file → covered published GCI, gaps, residual, delivery tilt, and scheme change from values in the file. Feature `holdings`: paid desk, or an admin-approved pilot inside 30/45/60 days. An approved term that has ended closes the pilot desk. |
+| GET | `/api/holdings/latest` | Last holdings file for the caller's org |
+| POST | `/api/ninja/worksheets/{template}` | Valuation worksheet from numbers the desk enters. Feature `ninja`. Not a published GCI. |
+| POST | `/api/ninja/observations` | Cited note on accounting, causality, conduct, or execution |
+| GET | `/api/ninja/indices/{company_id}` | Layer index for the caller's desk. Unpublished until three cited notes |
+| GET | `/api/ninja/profile/{company_id}` | Cited layer text for the dossier. No index level. Empty for a guest |
+| GET | `/api/ninja/tests` | Counts on the published delivery record |
+| GET | `/api/ninja/taxonomy` | Sectors already stored on companies |
+| POST | `/api/analyst/projects/{project_id}/models` | Analyst-owned model figure on a project |
 | GET | `/api/radar/feed` | CiteAlpha Radar change feed |
 | GET | `/api/ledger/{company_id}` | CiteAlpha Ledger promise dossier |
 | GET | `/api/data/catalog` | CiteAlpha Data export contracts |
 | GET | `/api/sights/meta` | CiteAlpha Sights catalog + flags + refuse list |
-| GET | `/api/sights/search` | Sights Search (+ Business Lexicon expand) |
-| POST | `/api/sights/ask` | Sights Ask (cite-only) |
+| GET | `/api/sights/search` | Deprecated alias of `/api/research/search?expand=true` (`superseded_by`) |
+| POST | `/api/sights/ask` | Deprecated alias of `/api/research/chat` with `expand` (`superseded_by`) |
 | GET | `/api/sights/themes` | Delivery Themes |
 | GET | `/api/sights/street/{id}` | Street Context (not broker notes) |
 | GET | `/api/sights/field/{id}` | Field Evidence |
 | POST | `/api/sights/grid` | Compare Grid (`SIGHTS_GRID`) |
 | POST | `/api/sights/deep-dive` | Deep Dive (`SIGHTS_DEEP_DIVE`) |
 | GET | `/api/sights/fundamentals/{id}` | Fundamentals Strip |
-| GET | `/api/sights/agents` · POST `/api/sights/agents/run` | Desk Agents |
-| GET | `/api/sights/hooks` | Notify Hooks (Radar reuse) |
-| GET | `/api/sights/export/{id}` | Cite Export markdown/csv/json |
+| GET | `/api/sights/agents` · POST `/api/sights/agents/run` | `410`, `moved_to` `/api/analyst/skills` · `/api/analyst/run` |
+| GET | `/api/sights/hooks` | `410`, `moved_to` `/api/analyst/destinations` |
+| GET | `/api/sights/export/{id}` | `410`, `moved_to` `/api/analyst/runs/{run_id}/export` |
 | GET | `/api/sights/enterprise` | Trust / SSO / billing deep-links |
 | GET | `/api/radar/diff/{company_id}` | QoQ guidance diff brief |
 | GET | `/api/radar/calendar` | Open promise / result windows |
-| GET | `/api/radar/digest/preview` | Weekly digest preview |
-| POST | `/api/radar/digest/send` | Email digest (`RADAR_DIGEST=1`) |
-| POST | `/api/radar/webhooks` | Webhook registration stub |
+| GET · POST | `/api/radar/digest/preview` · `/digest/send` | `410`, `moved_to` `/api/analyst/digest` |
+| POST | `/api/radar/webhooks` | `410`, `moved_to` `/api/analyst/destinations` |
 | GET | `/api/ledger/{company_id}/pdf` | Ledger PDF (API key) |
 | GET | `/api/ledger/mirror/{company_id}` | IR Mirror (`IR_MIRROR=1`) |
 | GET | `/api/cite/tiers` · `/api/cite/usage` | Cite API commercial tiers |
@@ -88,18 +96,29 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | Method | Path | Permission |
 |---|---|---|
 | GET | `/api/admin/portal/me` | any platform role |
-| GET | `/api/admin/portal/orgs` | `orgs.read` |
+| GET | `/api/admin/portal/orgs` | `orgs.read`. Each org includes `members` (seat logins), `deletable`, and `delete_block` |
+| DELETE | `/api/admin/portal/orgs/{id}` | `orgs.write`. Empty organisations only. Standing desks (`demo`, `retail`, `onestop-demo`, `citealpha-team`, `protected`) return 400. Occupied seats return 409 |
 | GET | `/api/admin/portal/users` | `users.read` |
 | PATCH | `/api/admin/portal/users/{id}/platform-role` | `users.write` (super) |
+| DELETE | `/api/admin/portal/users/{id}` | `users.write` (super). Frees the seat. Standing team accounts and the signed-in account return 400 |
 | GET/PATCH | `/api/admin/portal/feedback` | `feedback.read` / `feedback.write` |
 | GET/POST | `/api/admin/portal/legal` · `/legal/attest` | `legal.read` / `legal.write` |
 | GET | `/api/admin/portal/billing` | `billing.read` |
 | GET | `/api/admin/portal/audit` | `audit.read` |
+| GET | `/api/admin/portal/board` | any platform role. Queue counts the role can open |
+| GET | `/api/admin/portal/labeling` | `audit.read`. Open queue, pending extracts, source-check failures |
+| GET | `/api/admin/portal/commitments` | `audit.read`. Unreviewed commitments |
+| GET | `/api/admin/portal/system` | `system.ops` |
+| GET | `/api/admin/portal/reports` | catalog for the caller's permissions |
+| GET | `/api/admin/portal/reports/{id}` | `index`, `coverage`, `sla`, `audit-events` (`audit.read`); `usage` (`billing.read`); `trust` (`legal.read`). `?format=csv` on `audit-events` |
+| POST | `/api/admin/portal/billing/invoices` | `billing.write` |
 | POST | `/api/admin/portal/pilot` | `pilot.manage` |
 
 ## Research
 
 `/api/research/search`, `chat`, `snapshot/{id}`, `estimates/{id}`, `brief/{id}`, `news`, `watchlist`, `transcripts`
+
+`GET /api/research/search?q=&company_id=&expand=` — omit `company_id` to search all covered companies; `expand=true` adds India IR synonyms and returns `original_query` / `expanded_query`. `POST /api/research/chat` takes the same `expand` flag.
 
 | Method | Path | Notes |
 |---|---|---|
@@ -121,7 +140,9 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | `/api/legal/meta` · `/terms` · `/privacy` | Copyright, Terms, Privacy (counsel_status, contact_email) |
 | `/api/export/em-factor/{id}` | Factor export · honest `series_kind` |
 | `/api/v1/pit/contract` · `/companies/{id}/history` · `/bulk` | Design-partner PIT contract (`series_kind_enum`: citeable_pit · citeable_pit_short · hand_labeled_incomplete_citations · not_yet_scored) |
-| `GET /api/v1/index/ledger?company_id=&limit=` | Append-only score ledger (`score_ledger.jsonl`); one row per published level |
+| `GET /api/v1/index/ledger?company_id=&limit=&as_of=` | Append-only score ledger (`score_ledger.jsonl`); one row per published level; `as_of` drops later rows |
+| `GET /api/v1/index/levels?as_of=` | Level per company as published on a date, rebuilt from the ledger |
+| `GET /api/v1/index/evidence?checksum=` | Stored filing metadata for a SHA-256 content hash (no text) |
 | `GET /api/v1/index/changelog?company_id=` | Public changelog (`score_changelog.json`), feeds `/changelog` |
 | `/api/reports/generate` | IC audit dossier markdown/json/pdf |
 | `/api/public/gci-rankings` | Citeable-only public rankings |
@@ -130,11 +151,46 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | `/api/csm/{org_id}` | CSM dashboard + `labeling_audit` (submitter/reviewer ids) |
 | `/api/metrics` | Parameter catalog |
 | `/api/auth/*` | Register (B2B desk + terms; retail 403 until `sebi_retail`), login, guest, verify-email, password-reset, accept-invite, SSO |
-| POST | `/api/pilot-request` | Public pilot intake (abuse challenge; stored as pending for admin review) |
-| GET/PATCH | `/api/admin/portal/pilot-requests` | List / approve / reject inbound pilot requests (`pilot.manage`) |
-| `/api/orgs/{id}/invites` · `/revoke` · `/members` · `/api-keys` · `/oidc` | B2B seat admin |
+| POST | `/api/pilot-request` | Public pilot intake (abuse challenge; stored as pending). Mails `PILOT_REQUEST_TO` via `mailer.send_mail` (SES or SMTP). A mail failure still stores the request |
+| GET/PATCH/DELETE | `/api/admin/portal/pilot-requests` | List / approve / reject / delete inbound pilot requests (`pilot.manage`). Approve requires `term_days` of 30, 45, or 60 and that choice starts the evaluation clock. Reject leaves the request closed. A mail failure still approves. Delete removes the request. A provisioned organisation stays |
+| POST | `/api/admin/portal/orgs/{id}/owner-invite` | `pilot.manage`. Send that link again to the recorded owner. 400 without an email, 409 if that email already has a login |
+| POST | `/api/admin/portal/cleanup-test-tenants` | `system.ops`. Drops `e2e-*` orgs, `@ocotillo.test` users, and guests. `dry_run` defaults on. Approved pilot orgs and `@citealpha.com` accounts stay |
+| `/api/orgs/{id}/invites` · `/revoke` · `/members` · `/api-keys` · `/oidc` | B2B seat admin. Owner appoints `admin`; an admin cannot. Another organisation returns `403` Org mismatch |
 | `/api/infra/postgres` | DB readiness |
 | `/api/markets`, indexes, history | Multi-market scaffold |
+
+## CiteAlpha Analyst + Commitment Record (`backend/app/api/analyst_routes.py`)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/analyst/skills` | Skill specs (`backend/app/skills/*.json`) + tool list. Feature `analyst_agent` |
+| POST | `/api/analyst/run` | `{skill_id, company_id, include_unreviewed?, project_id?}` → cited sections, `not_found`, `citations`, `verifier`, `evidence_receipt`, `markdown`. Run saved per org |
+| GET | `/api/analyst/runs` · `/runs/{run_id}` | Org-scoped history; another org gets `404` |
+| GET | `/api/analyst/runs/{run_id}/export?format=` | `xlsx` (comment + `/c/{id}` link on every sourced cell) · `pptx` (source footers) · `pdf` · `md`; each ends with the Evidence Receipt. Own org only (`404`); bad format `422` |
+| GET | `/api/analyst/feed` | Org's Monitor-triggered runs only, each with `trigger` (new filing title/date) |
+| GET · POST | `/api/analyst/monitors` | List / create `{skill_id, scope: company\|watchlist\|project, company_id?, project_id?, email?}`; 25 per org (`409` over); same target+Skill returns the existing Monitor. Watchlist needs a signed-in user |
+| GET · PUT | `/api/analyst/digest` | Weekly digest settings `{enabled, emails}` (≤ 10) + this week's preview text |
+| POST | `/api/ops/analyst/digest/send?force=` | Write key. Send due digests now |
+| GET · POST · DELETE | `/api/analyst/keys` · `/keys/{key_id}` | Org owner/admin. Create returns the key once |
+| GET · POST · DELETE | `/api/analyst/destinations` · `/{id}` · POST `/{id}/test` | Org owner/admin. `{kind: webhook\|slack\|teams, url, events, label?}`; webhook secret returned once |
+| GET · PUT · DELETE | `/api/analyst/house-style` | Read: any analyst seat. Write/reset: owner/admin |
+| POST · DELETE | `/api/analyst/house-style/template` · `/house-style/{template\|logo}` | `{filename, content_base64}` .pptx/.potx ≤ 5 MB (nginx 15 MB on this path) |
+| GET | `/api/analyst/house-style/preview` | Sample deck in the org's style, no company data |
+| GET · POST | `/api/v1/analyst/skills` · `/companies/{id}/commitments` · `/companies/{id}/search` · `/runs` · `/runs/{id}` · `/runs/{id}/export` | Org API key (`Authorization: Bearer ca_…`); `PUBLIC_API_RPM` per key |
+| GET · POST | `/api/mcp` | MCP server (JSON-RPC, protocol `2025-06-18`) with an org key |
+| DELETE | `/api/analyst/monitors/{monitor_id}` | Own org only (`404` otherwise) |
+| GET · POST | `/api/analyst/projects` | List / create `{name, company_ids}`; 50 per org |
+| GET · PATCH · DELETE | `/api/analyst/projects/{project_id}` | Own org only (`404` otherwise); delete removes its files |
+| POST · DELETE | `/api/analyst/projects/{project_id}/memory` · `…/memory/{memory_id}` | `{text}` up to 500 chars, 100 items |
+| POST | `/api/analyst/projects/{project_id}/uploads` | `{filename, content_base64}`; PDF/DOCX/XLSX/CSV/TXT/MD, 10 MB, 20 per Project; `422` on unreadable files. nginx allows 15 MB on this path only |
+| DELETE | `/api/analyst/projects/{project_id}/uploads/{upload_id}` | Own org only |
+| GET | `/api/ops/analyst/monitors/status` | Write key. Baseline date, seen documents, Monitor count |
+| POST | `/api/ops/analyst/monitors/process?limit=` | Write key. Process new filings now (first call = baseline only). Also runs after each refresh (`ANALYST_MONITORS`) |
+| GET | `/api/commitments/meta` | Types, states, quiet-drop rule |
+| GET | `/api/companies/{id}/commitments` | Accepted rows + plain-count summary. `?include_unreviewed=true` only for seats with `desk` |
+| POST | `/api/commitments/propose` · `/extract` | Feature `labeling`; rows land `unreviewed`. Extract quotes must be verbatim |
+| POST | `/api/commitments/{id}/review` · `/transition` | Reviewer / admin / owner only; transitions need a proof citation |
+| POST | `/api/companies/{id}/commitments/quiet-drop-scan` | Proposals only |
 
 ## Frontend contract
 

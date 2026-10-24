@@ -1,0 +1,15 @@
+{
+  "id": "concall_questions",
+  "version": "1.1.0",
+  "title": "Earnings-Call Question Pack",
+  "audience": "Analysts preparing for an earnings call or analyst meet",
+  "description": "Questions built from missed or dropped guidance, commitments that are overdue or dropped without explanation, and open commitments falling due. Every question cites the filing it comes from.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "questions", "title": "Questions to ask", "builder": "questions"},
+    {"id": "shift", "title": "What changed since the last call", "builder": "language_shift"},
+    {"id": "open", "title": "Guidance at stake", "builder": "open_guidance"},
+    {"id": "commitments", "title": "Commitments falling due", "builder": "commitments_open"}
+  ],
+  "disproof": {"queries": []}
+}

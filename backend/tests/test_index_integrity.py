@@ -135,7 +135,8 @@ def test_dual_citation_required():
     assert op[0]["label"] == "pending_guidance_cite"
     assert op[0]["contribution_score"] is None
     assert "operating_margin_pct" not in (d.get("by_metric") or {})
-    assert "operating_margin_pct" not in (d.get("context_metrics") or {})
+    # FY24 margin is the cited closed row. One period, so it is context, not the composite.
+    assert d.get("context_metrics", {}).get("operating_margin_pct") == 100.0
     assert d["gci_score"] == 76.5
     for r in _companies():
         detail = client.get(f"/api/companies/{r['id']}/gci").json()
@@ -193,8 +194,8 @@ def test_rankings_only_include_rankable_tiers(index: str):
 
 def test_single_period_metric_is_context_only():
     d = client.get("/api/companies/infy/gci").json()
-    # FY25 op-margin is pending_guidance_cite (W2.1) — not a scored context metric.
-    assert "operating_margin_pct" not in (d.get("context_metrics") or {})
+    # FY24 operating margin has one closed period, so it is context. FY25 stays pending.
+    assert d["context_metrics"]["operating_margin_pct"] == 100.0
     assert "operating_margin_pct" not in d["by_metric"]
     assert d["gci_score"] == d["by_metric"]["revenue_growth_cc_pct"]
 
@@ -202,13 +203,13 @@ def test_single_period_metric_is_context_only():
 def test_context_metrics_count_toward_tier_breadth():
     """Decision D-tier: a scored context-only metric still counts as evidence.
 
-    After W2.1 Infosys has five dual-cited revenue years and no second cited
-    metric, so breadth is 1 → provisional. The 76.5 level is unchanged.
+    After the FY24 margin citation, Infosys has five dual-cited revenue years and one
+    closed margin year. Breadth is 2 and the tier is deep. The 76.5 level is unchanged.
     """
     infy = client.get("/api/companies/infy/gci").json()
     assert infy["metrics_scored"] == len(infy["by_metric"]) + len(infy.get("context_metrics") or {})
-    assert infy["metrics_scored"] == 1
-    assert infy["confidence_tier"] == TIER_PROVISIONAL
+    assert infy["metrics_scored"] == 2
+    assert infy["confidence_tier"] == TIER_DEEP
     assert infy["gci_score"] == 76.5
     cipla = client.get("/api/companies/cipla/gci").json()
     if cipla["gci_score"] is not None:
@@ -271,7 +272,7 @@ def test_badge_is_gci_with_tier_and_as_of():
     assert "promoter" not in blob
     assert "trust_score" not in badge
     assert badge["gci_score"] == 76.5
-    assert badge["confidence_tier"] == TIER_PROVISIONAL
+    assert badge["confidence_tier"] == TIER_DEEP
     assert badge["as_of"]
     svg = client.get("/api/badge/INFY/svg").text.lower()
     assert "gci" in svg
@@ -280,3 +281,78 @@ def test_badge_is_gci_with_tier_and_as_of():
     assert badge["as_of"][:4] in svg  # year
     assert badge["confidence_tier"] in svg
 
+
+
+def test_methodology_release_logged_once_per_revision(tmp_path: Path, monkeypatch):
+    from app.services.gci_scoring import ALGORITHM_REVISION
+
+    monkeypatch.setenv("INTELLENS_DATA_DIR", str(tmp_path))
+    calls = []
+
+    def fake_snapshot(**kw):
+        calls.append(kw)
+        return [score_ledger.LedgerRow(
+            company_id="x", as_of="2026-10-18", algorithm_id="gci_scoring_v4", dataset_version="t",
+            gci=90.7, prior_gci=83.8, confidence_tier="provisional", reason=kw["reason"], note=kw["note"], by=kw["by"],
+        )]
+
+    monkeypatch.setattr(score_ledger, "snapshot_rows", fake_snapshot)
+    assert score_ledger.record_methodology_release() == 1
+    assert calls[0]["reason"] == "methodology" and calls[0]["note"] == ALGORITHM_REVISION
+    assert score_ledger.record_methodology_release() == 0
+    assert len(calls) == 1
+    assert (tmp_path / "methodology_release.txt").read_text().strip() == ALGORITHM_REVISION
+
+
+def test_methodology_release_skipped_without_data_volume(monkeypatch):
+    monkeypatch.delenv("INTELLENS_DATA_DIR", raising=False)
+    assert score_ledger.record_methodology_release() == 0
+
+
+def _row(cid, gci, prior, reason, by, version):
+    return score_ledger.LedgerRow(
+        company_id=cid, as_of="2026-10-18", algorithm_id="gci_scoring_v4", dataset_version=version,
+        gci=gci, prior_gci=prior, confidence_tier="provisional" if gci is not None else None,
+        reason=reason, note="t", by=by,
+    )
+
+
+def test_release_withdrawal_contradicted_by_live_score_is_corrected(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("INTELLENS_DATA_DIR", str(tmp_path))
+    (tmp_path / "score_ledger.jsonl").write_text("")
+    score_ledger.append(_row("axisbank", None, 83.8, "methodology", score_ledger.RELEASE_BY, "2026-10-18.1"))
+    score_ledger.append(_row("infy", None, 76.5, "methodology", "analyst:x", "2026-10-18.1"))
+    monkeypatch.setattr(score_ledger, "snapshot_rows", lambda **kw: [
+        _row("axisbank", 90.7, None, kw["reason"], kw["by"], "2026-10-18.2"),
+        _row("infy", 76.5, None, kw["reason"], kw["by"], "2026-10-18.2"),
+    ])
+    assert score_ledger.correct_release_withdrawals() == 1
+    last = score_ledger.latest_for("axisbank")
+    assert last["gci"] == 90.7 and last["reason"] == "data_correction"
+    assert score_ledger.latest_for("infy")["gci"] is None
+    assert score_ledger.correct_release_withdrawals() == 0
+
+
+def test_dataset_is_published_only_after_citations_are_applied(monkeypatch):
+    import threading
+
+    from app.data import seed
+
+    seed._DATA = None
+    started, release = threading.Event(), threading.Event()
+    real = seed._restore_tenant_state
+
+    def slow_restore(data):
+        started.set()
+        release.wait(2)
+        real(data)
+
+    monkeypatch.setattr(seed, "_restore_tenant_state", slow_restore)
+    t = threading.Thread(target=seed.get_data)
+    t.start()
+    started.wait(2)
+    assert seed._DATA is None
+    release.set()
+    t.join(5)
+    assert seed._DATA is not None
+    seed.reset_data()

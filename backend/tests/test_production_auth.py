@@ -300,3 +300,197 @@ def test_owner_mfa_enroll_and_login():
     )
     assert ok.status_code == 200
     assert ok.json()["user"]["mfa_enabled"] is True
+
+
+def _register_desk(email: str, org_name: str) -> dict:
+    res = client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "secret99pass!",
+            "name": org_name,
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_name": org_name,
+        },
+    )
+    assert res.status_code == 200, res.text
+    return res.json()
+
+
+def _accept(token: str, email: str, name: str) -> dict:
+    res = client.post(
+        "/api/auth/accept-invite",
+        json={
+            "token": token,
+            "password": "secret99pass!",
+            "name": name,
+            "accept_terms": True,
+        },
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["user"]["email"] == email
+    return res.json()
+
+
+def test_owner_appoints_admin_and_admin_cannot_appoint_or_remove_admin():
+    owner = _register_desk("owner.ladder@desk.test", "Ladder Desk")
+    token = owner["token"]
+    org_id = owner["user"]["org_id"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    invited = client.post(
+        f"/api/orgs/{org_id}/invites",
+        headers=headers,
+        json={"email": "admin.ladder@desk.test", "role": "admin"},
+    )
+    assert invited.status_code == 200, invited.text
+    admin = _accept(invited.json()["dev_token"], "admin.ladder@desk.test", "Desk Admin")
+    admin_headers = {"Authorization": f"Bearer {admin['token']}"}
+
+    blocked = client.post(
+        f"/api/orgs/{org_id}/invites",
+        headers=admin_headers,
+        json={"email": "second.admin@desk.test", "role": "admin"},
+    )
+    assert blocked.status_code == 403
+    assert "owner" in blocked.json()["detail"].lower()
+
+    unknown = client.post(
+        f"/api/orgs/{org_id}/invites",
+        headers=admin_headers,
+        json={"email": "owner.seat@desk.test", "role": "owner"},
+    )
+    assert unknown.status_code == 400
+
+    analyst_inv = client.post(
+        f"/api/orgs/{org_id}/invites",
+        headers=admin_headers,
+        json={"email": "analyst.ladder@desk.test", "role": "analyst"},
+    )
+    assert analyst_inv.status_code == 200, analyst_inv.text
+    analyst = _accept(analyst_inv.json()["dev_token"], "analyst.ladder@desk.test", "Analyst")
+
+    promote = client.post(
+        f"/api/orgs/{org_id}/members/{analyst['user']['id']}/role",
+        headers=admin_headers,
+        json={"role": "admin"},
+    )
+    assert promote.status_code == 403
+
+    demote_admin = client.post(
+        f"/api/orgs/{org_id}/members/{admin['user']['id']}/role",
+        headers=admin_headers,
+        json={"role": "viewer"},
+    )
+    assert demote_admin.status_code == 403
+
+    revoke_admin = client.post(
+        f"/api/orgs/{org_id}/revoke",
+        headers=admin_headers,
+        json={"user_id": admin["user"]["id"]},
+    )
+    assert revoke_admin.status_code == 403
+
+    appointed = client.post(
+        f"/api/orgs/{org_id}/members/{analyst['user']['id']}/role",
+        headers=headers,
+        json={"role": "admin"},
+    )
+    assert appointed.status_code == 200
+    assert appointed.json()["user"]["role"] == "admin"
+
+    other = _register_desk("other.ladder@desk.test", "Other Desk")
+    foreign = client.get(
+        f"/api/orgs/{org_id}/members",
+        headers={"Authorization": f"Bearer {other['token']}"},
+    )
+    assert foreign.status_code == 403
+
+
+def test_desk_key_cannot_read_another_organisation():
+    owner = _register_desk("owner.iso@desk.test", "Iso Desk")
+    token = owner["token"]
+    org_id = owner["user"]["org_id"]
+    other = _register_desk("other.iso@desk.test", "Other Iso")
+    other_id = other["user"]["org_id"]
+    other_token = other["token"]
+
+    minted = client.post(
+        f"/api/orgs/{org_id}/api-keys",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert minted.status_code == 200, minted.text
+    key = {"X-API-Key": minted.json()["api_key"]}
+
+    for path in (
+        f"/api/orgs/{other_id}",
+        f"/api/csm/{other_id}",
+        f"/api/sla/{other_id}",
+        f"/api/orgs/{other_id}/pilot-checklist",
+        f"/api/audit?org={other_id}",
+        "/api/analytics/events",
+    ):
+        got = client.get(path, headers=key)
+        assert got.status_code == 403, f"{path} -> {got.status_code} {got.text}"
+
+    ticket = client.post(
+        f"/api/csm/{other_id}/tickets",
+        headers=key,
+        json={"subject": "cross desk", "severity": "3", "body": "no"},
+    )
+    assert ticket.status_code == 403
+
+    opened = client.post(
+        "/api/orgs/pilot",
+        headers=key,
+        json={"name": "Should Not Open"},
+    )
+    assert opened.status_code == 403
+
+    own = client.get(f"/api/orgs/{org_id}", headers=key)
+    assert own.status_code == 200
+    assert own.json()["id"] == org_id
+
+    platform = {"X-API-Key": "intellens-admin"}
+    crossed = client.get(f"/api/orgs/{other_id}", headers=platform)
+    assert crossed.status_code == 200
+    assert crossed.json()["id"] == other_id
+
+    demo = client.get(f"/api/orgs/{other_id}", headers={"X-API-Key": "intellens-demo"})
+    assert demo.status_code == 403
+
+    inv = client.post(
+        "/api/billing/msa",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"plan": "desk", "seats": 2},
+    )
+    assert inv.status_code == 200, inv.text
+    signed = client.post(
+        f"/api/billing/msa/{inv.json()['id']}/sign",
+        headers={"Authorization": f"Bearer {other_token}"},
+        json={"signer_email": "other.iso@desk.test"},
+    )
+    assert signed.status_code == 404
+
+    listed = client.get(
+        "/api/billing/invoices",
+        headers={"Authorization": f"Bearer {other_token}"},
+    )
+    assert listed.status_code == 200
+    assert all(row.get("id") != inv.json()["id"] for row in listed.json()["invoices"])
+
+    review = client.post(
+        "/api/review",
+        headers={"X-API-Key": "intellens-demo"},
+        json={
+            "company_id": "infy",
+            "outcome_index": 0,
+            "action": "accept",
+            "comment": "iso-demo-only",
+        },
+    )
+    assert review.status_code == 200, review.text
+    desk_reviews = client.get("/api/reviews", headers={"Authorization": f"Bearer {token}"})
+    assert desk_reviews.status_code == 200
+    assert all(row.get("comment") != "iso-demo-only" for row in desk_reviews.json()["reviews"])

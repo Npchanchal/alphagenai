@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Route, Routes, useLocation, Link } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, Link } from "react-router-dom";
 import BrandLogo from "./components/BrandLogo";
 import SessionMenu from "./components/SessionMenu";
 import SiteFooter from "./components/SiteFooter";
@@ -28,7 +28,6 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const CitationPage = lazy(() => import("./pages/CitationPage"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
-const PackagePage = lazy(() => import("./pages/PackagePage"));
 const PilotRequestPage = lazy(() => import("./pages/PilotRequestPage"));
 const PressPage = lazy(() => import("./pages/PressPage"));
 const AnswersPage = lazy(() => import("./pages/AnswersPage"));
@@ -37,7 +36,9 @@ const DevelopersPage = lazy(() => import("./pages/DevelopersPage"));
 const StatusPage = lazy(() => import("./pages/StatusPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ResearchPage = lazy(() => import("./pages/ResearchPage"));
-const TierFeaturesPage = lazy(() => import("./pages/TierFeaturesPage"));
+const AnalystPage = lazy(() => import("./pages/AnalystPage"));
+const NinjaPage = lazy(() => import("./pages/NinjaPage"));
+const HoldingsPage = lazy(() => import("./pages/HoldingsPage"));
 const RankingsPage = lazy(() => import("./pages/RankingsPage"));
 const AcceptInvitePage = lazy(() => import("./pages/AcceptInvitePage"));
 const BillingPage = lazy(() => import("./pages/BillingPage"));
@@ -45,17 +46,6 @@ import AdminPortalPage from "./pages/AdminPortalPage";
 const TrustPage = lazy(() => import("./pages/TrustPage"));
 const BlogIndexPage = lazy(() => import("./pages/BlogIndexPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
-const SightsBoardsPage = lazy(() => import("./pages/sights/SightsBoardsPage"));
-const SightsSearchAsk = lazy(() =>
-  import("./pages/sights/SightsSearchAsk").then((m) => ({
-    default: m.SightsSearchPage,
-  })),
-);
-const SightsAskPage = lazy(() =>
-  import("./pages/sights/SightsSearchAsk").then((m) => ({
-    default: m.SightsAskPage,
-  })),
-);
 const SightsThemesPage = lazy(() =>
   import("./pages/sights/SightsEvidencePages").then((m) => ({
     default: m.SightsThemesPage,
@@ -84,16 +74,6 @@ const SightsDeepDivePage = lazy(() =>
 const SightsFundamentalsPage = lazy(() =>
   import("./pages/sights/SightsAdvancedPages").then((m) => ({
     default: m.SightsFundamentalsPage,
-  })),
-);
-const SightsAgentsPage = lazy(() =>
-  import("./pages/sights/SightsAdvancedPages").then((m) => ({
-    default: m.SightsAgentsPage,
-  })),
-);
-const SightsExportPage = lazy(() =>
-  import("./pages/sights/SightsAdvancedPages").then((m) => ({
-    default: m.SightsExportPage,
   })),
 );
 const SightsSettingsPage = lazy(() =>
@@ -180,22 +160,27 @@ export default function App() {
             <Route path="/companies/:id" element={<CompanyDetailPage />} />
             <Route path="/desk" element={<DeskPage />} />
             <Route path="/research" element={<ResearchPage />} />
+            <Route path="/analyst" element={<AnalystPage />} />
+            <Route path="/holdings" element={<HoldingsPage />} />
+            <Route path="/ninja" element={<NinjaPage />} />
+            <Route path="/ninja/indices" element={<NinjaPage />} />
+            <Route path="/ninja/tests" element={<NinjaPage />} />
             <Route path="/sights" element={<SightsLayout />}>
               <Route index element={<SightsHubPage />} />
-              <Route path="search" element={<SightsSearchAsk />} />
-              <Route path="ask" element={<SightsAskPage />} />
-              <Route path="boards" element={<SightsBoardsPage />} />
+              <Route path="search" element={<Navigate to="/research?scope=all" replace />} />
+              <Route path="ask" element={<Navigate to="/research?tab=chat&scope=all" replace />} />
+              <Route path="boards" element={<Navigate to="/research?tab=watch" replace />} />
               <Route path="themes" element={<SightsThemesPage />} />
               <Route path="street" element={<SightsStreetPage />} />
               <Route path="field" element={<SightsFieldPage />} />
               <Route path="grid" element={<SightsGridPage />} />
               <Route path="deep-dive" element={<SightsDeepDivePage />} />
               <Route path="fundamentals" element={<SightsFundamentalsPage />} />
-              <Route path="agents" element={<SightsAgentsPage />} />
-              <Route path="export" element={<SightsExportPage />} />
+              <Route path="agents" element={<Navigate to="/analyst" replace />} />
+              <Route path="export" element={<Navigate to="/analyst" replace />} />
               <Route path="settings" element={<SightsSettingsPage />} />
             </Route>
-            <Route path="/package" element={<PackagePage />} />
+            <Route path="/package" element={<Navigate to="/products#plans" replace />} />
             <Route path="/pilot" element={<PilotRequestPage />} />
             <Route path="/answers" element={<AnswersPage />} />
             <Route path="/methodology" element={<MethodologyPage />} />
@@ -206,7 +191,7 @@ export default function App() {
             <Route path="/status" element={<StatusPage />} />
             <Route path="/rankings" element={<RankingsPage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/about/tiers" element={<TierFeaturesPage />} />
+            <Route path="/about/tiers" element={<Navigate to="/products#features" replace />} />
             <Route path="/blog" element={<BlogIndexPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/help" element={<HelpPage />} />

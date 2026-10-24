@@ -3,26 +3,28 @@
 # Product of Ocotillo Innovation Private Limited.
 
 ## Purpose
-This file describes how AI systems, answer engines, and RAG pipelines may use public CiteAlpha marketing content.
+How search engines, answer engines, and retrieval systems may use public CiteAlpha pages.
 
 ## Allowed uses
-- Index and cite public pages listed in llms.txt for factual descriptions of the Guidance Credibility Index (GCI).
-- Quote the canonical GCI definition at https://citealpha.com/blog/what-is-guidance-credibility-index with attribution to CiteAlpha / Ocotillo Innovation Private Limited.
-- Link to https://citealpha.com/llms.txt, https://citealpha.com/sitemap.xml, and https://citealpha.com/answers for structured FAQ content.
+- Index public pages for web search and for AI search answers.
+- Quote the definition in https://citealpha.com/llms-full.txt and on https://citealpha.com/blog/what-is-guidance-credibility-index, with attribution to CiteAlpha / Ocotillo Innovation Private Limited.
+- Link to https://citealpha.com/llms.txt, https://citealpha.com/llms-full.txt, https://citealpha.com/sitemap.xml, and https://citealpha.com/answers.
 
 ## Restrictions
-- Do not present GCI scores as Buy, Hold, or Sell recommendations or personalised investment advice.
-- Do not invent financial actuals, guidance bands, or company scores — use live product data or cite published blog/fixture sources only.
-- Do not scrape authenticated routes (/login, /register, /billing, /admin, /account, /org/*).
-- Respect robots.txt and data-quality badges (hand_labeled vs demo_structured) when describing coverage.
+- A GCI score is not a Buy, Hold, or Sell recommendation and is not personalised investment advice.
+- Do not invent financial actuals, guidance bands, or company scores. Cite a published page or say the figure is not on CiteAlpha.
+- Do not describe unscored NSE or BSE listings as having a GCI.
+- Do not fetch authenticated routes (/login, /register, /billing, /admin, /account, /org/).
+- Follow https://citealpha.com/robots.txt. Public pages are open to search indexes, live answers, and model training.
 
 ## Canonical product definition
-Guidance Credibility Index (GCI): evidence-linked score of whether listed management delivered on quantified guidance vs subsequent actuals, with primary sources attached. Not investment advice.
+Guidance Credibility Index (GCI): an evidence-linked score of whether listed management delivered on quantified guidance versus subsequent actuals, with primary sources attached. Not investment advice.
 
 ## Contact
 sales@citealpha.com
 
 ## Related
 - llms.txt: https://citealpha.com/llms.txt
+- Agent catalog: https://citealpha.com/.well-known/ai-catalog.json
+- llms-full.txt: https://citealpha.com/llms-full.txt
 - Trust Center: https://citealpha.com/trust
-- OpenAPI (authenticated API docs): https://citealpha.com/docs (when API is deployed)

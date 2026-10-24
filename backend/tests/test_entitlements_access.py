@@ -226,6 +226,26 @@ def test_guest_sixteenth_dossier_is_cap():
     assert "retail_marketing_allowed" in detail
 
 
+def test_indexing_crawler_passes_the_guest_dossier_cap():
+    guest = client.post("/api/auth/guest", json={"accept_terms": True})
+    assert guest.status_code == 200
+    token = guest.json()["token"]
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    }
+    for i in range(16):
+        r = client.get("/api/companies/infy/gci", headers=headers)
+        assert r.status_code == 200, f"indexer open {i + 1} should succeed"
+    human_headers = {"Authorization": f"Bearer {token}", "User-Agent": "Mozilla/5.0"}
+    for i in range(15):
+        r = client.get("/api/companies/infy/gci", headers=human_headers)
+        assert r.status_code == 200, f"visitor open {i + 1} should succeed"
+    capped = client.get("/api/companies/infy/gci", headers=human_headers)
+    assert capped.status_code == 403
+    assert (capped.json().get("detail") or {}).get("code") == "guest_dossier_cap"
+
+
 def test_cite_copy_increments_pilot_checklist():
     ping = client.post(
         "/api/activity/cite-copy",

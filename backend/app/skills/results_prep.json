@@ -1,0 +1,18 @@
+{
+  "id": "results_prep",
+  "version": "1.1.0",
+  "title": "Results Prep Pack",
+  "audience": "Buy-side and sell-side analysts ahead of a quarterly result",
+  "description": "What management guided and committed to for the coming print, how often it has delivered before, what it said last time, and how sector peers have delivered.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "record", "title": "Delivery record", "builder": "delivery_record"},
+    {"id": "open", "title": "Guidance at stake this print", "builder": "open_guidance"},
+    {"id": "commitments", "title": "Commitments at stake", "builder": "commitments_open"},
+    {"id": "last_call", "title": "What management said in recent filings", "builder": "filing_quotes",
+     "args": {"queries": ["outlook for the year", "guidance demand margin", "capex expansion plan"]}},
+    {"id": "shift", "title": "What changed since the last call", "builder": "language_shift"},
+    {"id": "peers", "title": "Sector peers' delivery", "builder": "peers"}
+  ],
+  "disproof": {"queries": ["delay deferred postponed", "lower than expected decline", "revised downward headwind"]}
+}

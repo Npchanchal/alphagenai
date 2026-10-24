@@ -5,6 +5,7 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 | User intent | Agent (`.cursor/agents/`) | Skill | Rules (also) | KB |
 |---|---|---|---|---|
 | Implement / continue Round-3 plan (R3-nn, W1–W9) | per workstream owner | `citealpha-worldclass-remediation` | index-integrity, public-copy-voice | `docs/PLAN_WORLDCLASS_GCI.md` |
+| India whitespace: guidance extract, match vs actuals, ranked index (WS0–WS4) | `gci-engineer` (WS0–WS2) · `guidance-reviewer` / `labeling-analyst` (WS3) · `frontend-designer` (WS4) | `citealpha-gci-dev`, `citealpha-guidance-review`, `citealpha-expert-ux` | index-integrity, reuse-before-add, source-once | `docs/PLAN_WHITESPACE.md`, 18 |
 | A published score moved / scorer constant / ledger / changelog / tiers | `index-steward` | `citealpha-index-integrity` | index-integrity, gci-scoring | 03 |
 | Score / GCI API / Screener backend | `gci-engineer` | `citealpha-gci-dev` | gci-scoring, python-backend, api-contracts, index-integrity | 03, 05 |
 | Close gaps G01–G23 / pipeline | `gci-engineer` | `citealpha-close-gaps` | gci-pipeline | 04, GAPS doc |
@@ -21,8 +22,10 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 | Billing / paywall / legal attest | `platform-engineer` | `citealpha-production` | production-monetization, compliance-sebi | 09, 13 |
 | Sights SKU | `sights-engineer` | `citealpha-sights` | sights, compliance-sebi | 14 |
 | Portfolio SKUs (Score/Cite/Radar/Ledger/Data) | `portfolio-engineer` | `citealpha-portfolio` | portfolio, api-contracts | 13, PRODUCT_PORTFOLIO |
-| Platform admin portal | `platform-engineer` | `citealpha-production` | production-monetization | 15, ADMIN_PORTAL |
+| Platform admin portal / super board, workflows, reports | `platform-engineer` | `citealpha-production` | production-monetization, reuse-before-add | 15, ADMIN_PORTAL, `docs/PLAN_SUPER_ADMIN.md` |
+| CiteAlpha Analyst (skills, verifier, runs) / Commitment Record | `gci-engineer` (agent) · `index-steward` (commitment governance) | `citealpha-gci-dev` | index-integrity, public-copy-voice, compliance-sebi | 16, 17, `docs/PLAN_CITEALPHA_ANALYST.md` |
 | Architecture map | `architect` | `citealpha-architecture` | python-backend, frontend | 02 |
+| New feature, route, page, job, or external fetch (NSE, BSE, EDGAR, model) | `architect` | `citealpha-reuse-sources` | reuse-before-add, source-once | 19 |
 | Update this kb | any | `citealpha-kb` | docs-kb | README |
 
 ## Default session
@@ -32,3 +35,4 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 3. Load the matching skill before coding.
 4. Keep changes small and tested.
 5. If a published GCI number changes, finish with the ledger + changelog protocol (`citealpha-index-integrity`).
+6. Before a new module or a source fetch, follow `citealpha-reuse-sources` and `docs/kb/19-reuse-and-source-once.md`. Extend the owner. Read the store before NSE, BSE, EDGAR, or the model.

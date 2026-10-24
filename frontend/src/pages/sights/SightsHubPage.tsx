@@ -8,22 +8,18 @@ const FALLBACK: Pick<SightsMeta, "job"> = {
 };
 
 const QUICK: { to: string; label: string; blurb: string }[] = [
-  { to: "/sights/search", label: "ui.SightsHubPage.quick.search.label", blurb: "ui.SightsHubPage.quick.search.blurb" },
-  { to: "/sights/ask", label: "ui.SightsHubPage.quick.ask.label", blurb: "ui.SightsHubPage.quick.ask.blurb" },
+  { to: "/sights/themes", label: "ui.SightsHubPage.quick.themes.label", blurb: "ui.SightsHubPage.quick.themes.blurb" },
+  { to: "/sights/deep-dive", label: "ui.SightsHubPage.quick.deepDive.label", blurb: "ui.SightsHubPage.quick.deepDive.blurb" },
   { to: "/sights/grid", label: "ui.SightsHubPage.quick.grid.label", blurb: "ui.SightsHubPage.quick.grid.blurb" },
 ];
 
 const BRAND_LINKS: Record<string, string> = {
-  search: "/sights/search",
-  ask: "/sights/ask",
   themes: "/sights/themes",
   street: "/sights/street",
   field: "/sights/field",
   grid: "/sights/grid",
   deep_dive: "/sights/deep-dive",
-  agents: "/sights/agents",
-  boards: "/sights/boards",
-  export: "/sights/export",
+  fundamentals: "/sights/fundamentals",
 };
 
 /** Hub always paints static content; meta API enriches when available. */
@@ -93,11 +89,16 @@ export default function SightsHubPage() {
         </>
       )}
 
+      <p className="muted" data-testid="sights-moved">
+        {t("ui.SightsHubPage.moved.search")}{" "}
+        <Link to="/research?scope=all">{t("nav.research")}</Link>.{" "}
+        {t("ui.SightsHubPage.moved.analyst")}{" "}
+        <Link to="/analyst">{t("nav.analyst")}</Link>.
+      </p>
+
       <p className="muted">
         {t("ui.SightsHubPage.footer.before")}{" "}
-        <Link to="/trust">{t("ui.SightsHubPage.footer.trust")}</Link>
-        {t("ui.SightsHubPage.footer.middle")}{" "}
-        <Link to="/research">{t("nav.research")}</Link>.
+        <Link to="/trust">{t("ui.SightsHubPage.footer.trust")}</Link>.
       </p>
     </section>
   );

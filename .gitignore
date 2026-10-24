@@ -27,6 +27,7 @@ backend/app/data/store.json
 backend/app/data/coverage_status.json
 backend/app/data/users.json
 backend/app/data/sessions.json
+backend/app/data/auth_tokens.json
 backend/app/data/crawl_state.json
 
 
@@ -47,3 +48,19 @@ backend/app/data/pit_series.json
 logs/
 *.pem
 *.key
+
+# Local auth.db backups (contain password hashes)
+backups/
+# Analyst customer content when INTELLENS_DATA_DIR is unset (never commit)
+backend/app/data/analyst_uploads/
+backend/app/data/analyst_projects.json
+backend/app/data/analyst_digest.json
+backend/app/data/analyst_org_keys.json
+backend/app/data/analyst_destinations.json
+backend/app/data/analyst_house_style.json
+backend/app/data/analyst_house_style/
+backend/app/data/holdings/
+backend/app/data/ninja/
+
+# Per-company model extracts from the filing walk (rebuilt on the data volume)
+backend/app/data/disclosures/

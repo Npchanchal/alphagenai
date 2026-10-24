@@ -50,13 +50,12 @@ PRODUCTS: List[Dict[str, Any]] = [
         "buyer": "PMs, risk, IR-watch desks",
         "endpoints": ["/api/radar/feed", "/api/alerts"],
         "ui": ["/products", "/desk"],
+        "delivery": "Weekly digest and webhook/Slack/Teams delivery through CiteAlpha Analyst (/api/analyst/digest, /api/analyst/destinations)",
         "docs": "docs/customer/skus/RADAR.md",
         "phase": "P2",
         "endpoints_extended": [
             "/api/radar/diff/{company_id}",
             "/api/radar/calendar",
-            "/api/radar/digest/preview",
-            "/api/radar/digest/send",
         ],
     },
     {
@@ -90,7 +89,7 @@ PRODUCTS: List[Dict[str, Any]] = [
             "/api/companies/{id}/gci/history",
             "/api/export/em-factor/{company_id}",
         ],
-        "ui": ["/products", "/package"],
+        "ui": ["/products"],
         "docs": "docs/customer/skus/DATA.md",
         "phase": "P4",
         "endpoints_extended": [
@@ -128,6 +127,20 @@ PRODUCTS: List[Dict[str, Any]] = [
             "/api/sights/export/{company_id}",
             "/api/sights/enterprise",
         ],
+    },
+    {
+        "id": "holdings",
+        "name": "CiteAlpha Holdings",
+        "job": "Holdings-weighted published GCI, coverage, and residual assets",
+        "status": "live",
+        "buyer": "MF, PMS, AIF, and pension desks",
+        "endpoints": ["/api/holdings/lookthrough", "/api/holdings/latest"],
+        "ui": ["/holdings"],
+        "docs": "docs/customer/skus/HOLDINGS.md",
+        "note": (
+            "Reads published company scores. A missing score stays out of the weighted figure. "
+            "Open during an admin-approved 30, 45, or 60 day pilot, and on a paid desk after that."
+        ),
     },
 ]
 

@@ -166,3 +166,52 @@ def test_heuristic_does_not_apply_flag_without_set_by():
     restored = client.get("/api/companies/infy/gci").json()
     assert restored["gci_score"] == 76.5
     assert restored["audit_flags"] == []
+
+
+def test_job_reviewer_alone_does_not_promote():
+    from app.data.seed import get_data, save_data
+    from app.services.labeling import _maybe_promote_quality
+
+    data = get_data()
+    cid = "ws_job_only"
+    data["companies"].append(
+        {
+            "id": cid,
+            "name": "Job Only",
+            "ticker": "JOB",
+            "sector": "Equity",
+            "data_quality": "extracted_verified",
+        }
+    )
+    data.setdefault("outcomes", {})[cid] = [
+        {
+            "period": "FY25",
+            "metric": "revenue_growth_pct",
+            "guided_low": 10,
+            "guided_high": 12,
+            "guided_value": 11,
+            "actual_value": 11,
+            "guidance_quote": "We expect revenue growth of 10% to 12% for FY25.",
+            "guidance_source_url": "https://nse.example/promise",
+            "guidance_as_of": "2024-05-10",
+            "quote_span": "Revenue growth for FY25 was 11.0%.",
+            "source_url": "https://nse.example/actual",
+            "as_of": "2025-05-15",
+            "reviewed_by": "job:disclosure_reconcile",
+            "reviewed_at": "2026-10-24",
+        }
+    ]
+    save_data()
+    assert _maybe_promote_quality(cid) is False
+    company = next(c for c in get_data()["companies"] if c["id"] == cid)
+    assert company["data_quality"] == "extracted_verified"
+    data = get_data()
+    data["outcomes"][cid][0]["reviewed_by"] = "analyst:desk"
+    save_data()
+    assert _maybe_promote_quality(cid) is True
+    company = next(c for c in get_data()["companies"] if c["id"] == cid)
+    assert company["data_quality"] == "hand_labeled"
+
+
+def test_guest_cannot_list_the_labeling_queue():
+    assert client.get("/api/labeling/queue").status_code in (401, 403)

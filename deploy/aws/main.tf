@@ -424,7 +424,7 @@ resource "aws_route53_record" "spf" {
   ttl     = 14400
   # Apex TXT is one RRset — SPF + Google Search Console verification together.
   records = [
-    "v=spf1 include:_spf.mail.hostinger.com ~all",
+    local.apex_spf,
     "google-site-verification=yo37H-rnMsn-bMsyzOearpVxl4VISl6S7wVb6mZYEZE",
   ]
 }
@@ -694,6 +694,11 @@ resource "aws_ecs_task_definition" "app" {
         var.pilot_request_to != "" ? [
           { name = "PILOT_REQUEST_TO", value = var.pilot_request_to }
         ] : [],
+        local.ses_on && var.smtp_host == "" ? [
+          { name = "INTELLENS_MAIL_TRANSPORT", value = "ses" },
+          { name = "SMTP_FROM", value = var.smtp_from != "" ? var.smtp_from : "CiteAlpha <no-reply@${var.domain_name}>" },
+          { name = "AWS_REGION", value = var.aws_region },
+        ] : [],
         var.smtp_host != "" ? [
           { name = "SMTP_HOST", value = var.smtp_host },
           { name = "SMTP_PORT", value = var.smtp_port },
@@ -724,11 +729,17 @@ resource "aws_ecs_task_definition" "app" {
           { name = "INTELLENS_DATA_DIR", value = "/data/citealpha" },
           { name = "INTELLENS_INDIA_COVERAGE", value = "1" },
           { name = "INTELLENS_FILING_LIVE", value = "1" },
-          { name = "INTELLENS_FILING_FETCH_DAILY_CAP", value = "10000" },
+          { name = "INTELLENS_FILING_FETCH_DAILY_CAP", value = "40000" },
           { name = "INTELLENS_FILING_DISCOVERY_DAILY_CAP", value = "10000" },
-          { name = "INTELLENS_INDIA_COVERAGE_COHORT", value = "nifty50" },
-          { name = "INTELLENS_EXTRACT_LLM_DAILY_CAP", value = "10000" },
-          { name = "INTELLENS_LLM_RATE_PER_MIN", value = "8" },
+          { name = "INTELLENS_INDIA_COVERAGE_COHORT", value = "nifty50,nifty500" },
+          { name = "INTELLENS_FILING_DISCOVERY_SINCE", value = "2024-01-01" },
+          { name = "INTELLENS_US_COVERAGE", value = "1" },
+          { name = "INTELLENS_SEC_USER_AGENT", value = "CiteAlpha filings research ops@citealpha.com" },
+          { name = "INTELLENS_EXTRACT_LLM_DAILY_CAP", value = "100000" },
+          { name = "INTELLENS_LLM_RATE_PER_MIN", value = "200" },
+          { name = "INTELLENS_DISCLOSURE_READ_WORKERS", value = "8" },
+          { name = "INTELLENS_DISCLOSURE_SERVICE_TIER", value = "flex" },
+          { name = "MALLOC_ARENA_MAX", value = "2" },
           { name = "INTELLENS_WEB_SEARCH_DISCOVERY", value = "1" },
           { name = "INTELLENS_IR_CRAWL_DISCOVERY", value = "1" }
         ] : [],

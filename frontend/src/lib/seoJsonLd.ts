@@ -156,7 +156,7 @@ export function extraJsonLdForPath(pathname: string, pageTitle?: string): JsonLd
   const blocks: JsonLd[] = [];
   if (pathname === "/") {
     blocks.push(orgJsonLd(), softwareJsonLd(), faqJsonLd());
-  } else if (pathname === "/about" || pathname === "/about/tiers") {
+  } else if (pathname === "/about") {
     blocks.push(howToGciJsonLd());
   } else if (pathname === "/answers" || pathname === "/help") {
     blocks.push(faqJsonLd());

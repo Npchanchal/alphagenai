@@ -17,8 +17,8 @@
   --bad-soft: #f0d8d8;
   --good: #0b6b5f;
   --good-soft: #d4e8e4;
-  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
-  --sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --serif: "Source Serif 4", "Source Serif 4 Fallback", "Iowan Old Style", Georgia, serif;
+  --sans: "IBM Plex Sans", "IBM Plex Sans Fallback", "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius: 10px;
   --radius-sm: 6px;
@@ -63,6 +63,14 @@ a {
 
 a:hover {
   color: var(--accent);
+}
+
+/* Inline links need a cue other than color (Lighthouse link-in-text-block). */
+:where(p, li, dd) a:not(.btn):not(.landing-card):not(.landing-example-step) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
 }
 
 #root {
@@ -169,8 +177,7 @@ a:hover {
 
 .brand-logo-wordmark {
   width: clamp(140px, 22vw, 168px);
-  max-height: 40px;
-  height: auto;
+  height: 40px;
   object-fit: contain;
 }
 
@@ -691,6 +698,23 @@ h3 {
   line-height: 1.1;
 }
 
+.score.score-reason {
+  font-weight: 500;
+  font-size: 0.85em;
+  color: var(--muted);
+  white-space: normal;
+  line-height: 1.3;
+  min-width: 18ch;
+  max-width: 26ch;
+}
+
+.score-reveal.score-reason {
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.35;
+  max-width: 34ch;
+}
+
 @keyframes score-reveal {
   from {
     opacity: 0;
@@ -956,11 +980,16 @@ h3 {
 .guest-banner a {
   color: var(--accent);
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .consent-banner {
-  position: sticky;
-  bottom: 0;
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(960px, calc(100% - 32px));
   /* Above .tour-welcome (70) so consent stays answerable while the welcome card is open. */
   z-index: 80;
   display: flex;
@@ -969,7 +998,7 @@ h3 {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  margin-top: 12px;
+  margin: 0;
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -3042,6 +3071,10 @@ h2 .info-tip {
   margin: 8px 0 0;
 }
 
+.thread-cites {
+  margin-top: 8px;
+}
+
 /* ——— Responsive ——— */
 
 @media (max-width: 800px) {
@@ -3621,7 +3654,7 @@ h2 .info-tip {
   background: var(--ilc-bg);
   color: var(--ilc-text);
   border: 1px solid var(--ilc-border);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: "IBM Plex Sans", "IBM Plex Sans Fallback", "Segoe UI", sans-serif;
 }
 
 .ilc-top {
@@ -3800,8 +3833,7 @@ h2 .info-tip {
 .ilc-span-news { grid-column: span 4; }
 .ilc-span-peers { grid-column: span 4; }
 .ilc-span-screen { grid-column: span 4; }
-.ilc-span-heat { grid-column: span 5; }
-.ilc-span-metric { grid-column: span 3; }
+.ilc-span-metric { grid-column: span 12; }
 
 .ilc-table-wrap {
   overflow: auto;
@@ -3996,51 +4028,6 @@ h2 .info-tip {
   text-align: left;
 }
 
-.ilc-heat {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 8px;
-  min-height: 140px;
-}
-
-.ilc-heat-cell {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 72px;
-  min-height: 64px;
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid var(--ilc-border);
-  background: #101816;
-}
-
-.ilc-heat-cell.tone-up {
-  background: rgba(61, 255, 154, 0.12);
-  border-color: rgba(61, 255, 154, 0.3);
-}
-.ilc-heat-cell.tone-down {
-  background: rgba(255, 107, 107, 0.12);
-  border-color: rgba(255, 107, 107, 0.3);
-}
-.ilc-heat-cell.tone-flat {
-  background: rgba(201, 180, 106, 0.1);
-}
-
-.ilc-heat-cell strong {
-  font-size: 11px;
-}
-.ilc-heat-cell span {
-  font-size: 16px;
-  font-weight: 700;
-}
-.ilc-heat-cell em {
-  font-style: normal;
-  font-size: 10px;
-  color: var(--ilc-muted);
-}
-
 .ilc-bars {
   list-style: none;
   margin: 0;
@@ -4102,7 +4089,6 @@ h2 .info-tip {
   .ilc-span-news,
   .ilc-span-peers,
   .ilc-span-screen,
-  .ilc-span-heat,
   .ilc-span-metric {
     grid-column: span 12;
     grid-row: auto;
@@ -4245,6 +4231,12 @@ h2 .info-tip {
 
 .landing-example {
   padding: 24px 28px;
+  /* Holds the first screen while the cited example loads, so rows do not shove the hero. */
+  min-height: 32rem;
+}
+
+.landing-proof {
+  min-height: 14rem;
 }
 
 .landing-example-head {
@@ -4325,6 +4317,15 @@ h2 .info-tip {
 
 .landing-example-revisions a {
   color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.landing-page p a:not(.btn),
+.landing-example-why a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .landing-example-calc {
@@ -4488,7 +4489,7 @@ h2 .info-tip {
 }
 
 .landing-pilot h2 {
-  font-family: "Source Serif 4", Georgia, serif;
+  font-family: "Source Serif 4", "Source Serif 4 Fallback", Georgia, serif;
 }
 
 .pilot-request-form {
@@ -4666,7 +4667,7 @@ h2 .info-tip {
 }
 
 .blog-page h1 {
-  font-family: "Source Serif 4", Georgia, serif;
+  font-family: "Source Serif 4", "Source Serif 4 Fallback", Georgia, serif;
   font-size: clamp(1.75rem, 3vw, 2.35rem);
   line-height: 1.2;
   margin: 0.25rem 0 0.75rem;
@@ -4697,7 +4698,7 @@ h2 .info-tip {
 }
 
 .blog-list-link h2 {
-  font-family: "Source Serif 4", Georgia, serif;
+  font-family: "Source Serif 4", "Source Serif 4 Fallback", Georgia, serif;
   font-size: 1.25rem;
   margin: 0.35rem 0 0.4rem;
   font-weight: 600;
@@ -4723,7 +4724,7 @@ h2 .info-tip {
 }
 
 .blog-section h2 {
-  font-family: "Source Serif 4", Georgia, serif;
+  font-family: "Source Serif 4", "Source Serif 4 Fallback", Georgia, serif;
   font-size: 1.2rem;
   margin: 0 0 0.5rem;
 }
@@ -5120,6 +5121,38 @@ h2 .info-tip {
   align-items: center;
 }
 
+.admin-seat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-seat-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  align-items: center;
+}
+
+.admin-delete {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, #9b2c2c 35%, transparent);
+  background: transparent;
+  color: #9b2c2c;
+}
+
+.admin-delete:hover {
+  background: color-mix(in srgb, #9b2c2c 8%, transparent);
+}
+
 .admin-perm-list {
   display: flex;
   flex-wrap: wrap;
@@ -5277,3 +5310,109 @@ h2 .info-tip {
   min-width: 200px;
 }
 
+
+/* CiteAlpha Analyst */
+.analyst-page .company-picker {
+  margin: 0.75rem 0 1rem;
+}
+
+.analyst-skills {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.analyst-skills li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.analyst-skills li:last-child {
+  border-bottom: 0;
+}
+
+.analyst-skills p {
+  margin: 0.25rem 0 0;
+}
+
+.analyst-small {
+  font-size: 0.85rem;
+}
+
+.analyst-monitor-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.analyst-monitor-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.analyst-monitor-form label.analyst-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.analyst-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.analyst-headline {
+  font-weight: 600;
+}
+
+.analyst-section h3 {
+  margin: 1.25rem 0 0.5rem;
+}
+
+.analyst-section ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.analyst-section li {
+  margin: 0.3rem 0;
+}
+
+.cite-marker {
+  font-size: 0.8em;
+  margin-left: 0.15em;
+  text-decoration: none;
+}
+
+.analyst-sources blockquote {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  font-size: 0.9rem;
+}
+
+.analyst-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .analyst-skills li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

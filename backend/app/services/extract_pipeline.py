@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 from app.data import doc_store
 from app.data.seed import get_data, save_data
+from app.data.store_lock import locked
 from app.services.matching import match_actuals
 from app.services.score_policy import EXTRACTED_VERIFIED, is_dual_cited, is_scoreable
 
@@ -60,6 +61,7 @@ def _ledger() -> Dict[str, Any]:
     return _LEDGER
 
 
+@locked
 def _save_ledger() -> None:
     path = _ledger_path()
     if path is None or _LEDGER is None:
@@ -74,6 +76,7 @@ def _llm_budget_ok() -> bool:
     return int(_ledger()["used"]) < llm_daily_cap()
 
 
+@locked
 def note_llm_use() -> None:
     _ledger()["used"] = int(_ledger()["used"]) + 1
     _save_ledger()
@@ -167,6 +170,7 @@ def apply_extracted_outcomes(data: Dict[str, Any]) -> None:
             have.add(row["id"])
 
 
+@locked
 def _save_overlay(company_ids: List[str]) -> None:
     path = _overlay_path()
     if path is None or not company_ids:
@@ -189,14 +193,16 @@ def _save_overlay(company_ids: List[str]) -> None:
     path.write_text(json.dumps(blob) + "\n", encoding="utf-8")
 
 
+@locked
 def ensure_company_record(company_id: str) -> Optional[Dict[str, Any]]:
     data = get_data()
     for c in data["companies"]:
         if c["id"] == company_id:
             return c
     from app.data.india_listings import find_listing
+    from app.data.us_listings import find_us_listing
 
-    listing = find_listing(company_id)
+    listing = find_listing(company_id) or find_us_listing(company_id)
     if listing is None:
         return None
     row = {
@@ -206,6 +212,9 @@ def ensure_company_record(company_id: str) -> Optional[Dict[str, Any]]:
         "sector": listing.get("sector") or "Equity",
         "data_quality": "listing_provisional",
     }
+    if listing.get("market_id") and listing["market_id"] != "IN":
+        row["market_id"] = listing["market_id"]
+        row["cik"] = listing.get("cik")
     data["companies"].append(row)
     data.setdefault("outcomes", {}).setdefault(company_id, [])
     save_data()
@@ -232,6 +241,7 @@ def _row_key(row: Dict[str, Any]) -> tuple:
     return (str(row.get("period") or ""), str(row.get("metric") or ""))
 
 
+@locked
 def upsert_guidance_rows(company_id: str, statements: List[Dict[str, Any]]) -> int:
     """Append extracted guidance shells. Does not write an actual."""
     if not statements:
@@ -294,6 +304,7 @@ def extract_company(
     }
 
 
+@locked
 def match_company_actuals(company_id: str, actuals: List[Dict[str, Any]]) -> int:
     """Fill actuals only from caller-supplied reported figures (never invented)."""
     data = get_data()
@@ -310,6 +321,7 @@ def match_company_actuals(company_id: str, actuals: List[Dict[str, Any]]) -> int
     return changed
 
 
+@locked
 def relabel_copied_guidance(company_id: str) -> int:
     """Replace guided==actual copies when a later-or-prior filing has a distinct band."""
     from app.services.guidance_review import _promise_distinct, bind_from_documents
@@ -359,6 +371,7 @@ def relabel_copied_guidance(company_id: str) -> int:
     return changed
 
 
+@locked
 def maybe_promote_extracted(company_id: str) -> Optional[str]:
     """Promote listing_provisional → extracted_verified when a dual-cited row exists."""
     data = get_data()

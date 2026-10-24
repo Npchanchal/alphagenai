@@ -1,0 +1,31 @@
+---
+description: Read a stored filing, listing, extract, or score before calling NSE, BSE, EDGAR, or a model again
+alwaysApply: true
+---
+
+# Read the store before the source
+
+A document, listing, model extract, or published score that is already on disk is the source for the next caller. Fetch or call the model only for a URL or chunk the store does not have.
+
+Lookup, in order:
+
+1. `doc_store.find_by_url` / `url_key` — same filing, any company. Scheme, `www.`, NSE/BSE archive host, `#fragment`, and `utm_` do not make a new document.
+2. `doc_store.find_by_hash` / `upsert_document` — same text and company returns the stored row.
+3. `disclosures.load_extracts` — a chunk key already in `{data_dir}/disclosures/{id}.json` is not sent to the model again. A filing fully read at the old 12k size is not re-read at 48k.
+4. `extract_pipeline` ledger `llm_extract_ledger.json` — a seen chunk key is skipped.
+5. Listing files and `gci_score_cache.load_cache` — do not hit the index CSV or recompute a published row inline.
+
+India ingest and SEC ingest already return `already_stored` and skip the network. Call `exchange_filings.ingest_company_urls` and `sec_filings.ingest_company`. Do not add another HTTP client for NSE, BSE, EDGAR, issuer IR, or FMP.
+
+The browser never fetches those hosts. Pages go through `frontend/src/lib/api.ts`.
+
+Network and model calls stay outside `app/data/store_lock.py`. The lock covers document, coverage, extract, and ledger writes only.
+
+```python
+from app.data import doc_store
+held = doc_store.find_by_url(url)
+if held is None:
+    exchange_filings.ingest_url(company_id, url)  # SEC: sec_filings.ingest_company
+    held = doc_store.find_by_url(url)
+text = held["text"]
+```

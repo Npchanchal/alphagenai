@@ -55,6 +55,8 @@ test("guest dossier has no synthetic analytics and shows tier + as-of", async ({
   expect(tableText).not.toMatch(/\{o\.|span_end/);
   await expect(page.getByTestId("promise-source-0")).toBeVisible();
   await expect(page.getByTestId("actual-source-0")).toBeVisible();
+  await expect(page.getByTestId("promise-threads")).toBeVisible();
+  await expect(page.getByTestId("thread-promise").first()).toBeVisible();
 
   await expect(page.getByTestId("analytics-panel")).toHaveCount(0);
   await expect(page.getByTestId("gci-price-overlay")).toHaveCount(0);
@@ -131,12 +133,12 @@ test("screener lists every name, with scored rows first", async ({ page }) => {
   if ((await unscored.count()) > 0) {
     await expect(unscored.first()).toHaveAttribute(
       "title",
-      /Not yet scored|No quantified guidance|Filing in review|Open period|Listed only/,
+      /Not yet scored|No numeric guidance|being checked|being read|not yet closed|closes [A-Z][a-z]{2} \d{4}|not yet read|not yet matched/,
     );
     const lastScore = page.locator("[data-testid='company-table'] tbody tr").last().locator("td.score");
     await expect(lastScore).toHaveAttribute(
       "title",
-      /Not yet scored|No quantified guidance|Filing in review|Open period|Listed only/,
+      /Not yet scored|No numeric guidance|being checked|being read|not yet closed|closes [A-Z][a-z]{2} \d{4}|not yet read|not yet matched/,
     );
   }
 });

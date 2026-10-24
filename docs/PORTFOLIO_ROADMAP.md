@@ -90,7 +90,6 @@ Canonical catalog: [`PRODUCT_PORTFOLIO.md`](PRODUCT_PORTFOLIO.md).
 | `SIGHTS` | on | CiteAlpha Sights shell |
 | `SIGHTS_DEEP_DIVE` | on | Deep Dive synthesis |
 | `SIGHTS_GRID` | on | Compare Grid |
-| `SIGHTS_AGENTS` | on | Desk Agents |
 | `SIGHTS_WEB_ASSIST` | off | Open-web assist beside IR (quality gate) |
 
 ---
@@ -103,7 +102,7 @@ Canonical catalog: [`PRODUCT_PORTFOLIO.md`](PRODUCT_PORTFOLIO.md).
 | S1 | `/sights` shell + Search / Ask / Boards | Meta + research compose |
 | S2 | Lexicon, Delivery Themes, Street Context, Field Evidence | Honest empty states |
 | S3 | Compare Grid, Deep Dive, Fundamentals Strip | Cite-only refuse tests |
-| S4 | Desk Agents, Notify Hooks, Cite Export | Templated cited brief |
+| S4 | Desk Agents, Notify Hooks, Cite Export | Superseded 2026-10-17 by CiteAlpha Analyst Skills, exports and destinations |
 | S5 | Enterprise links (Trust / SSO / billing / seats) | Settings deep-links |
 | S6 | Counsel-gated licensed content / Office add-ins | Budget + counsel only |
 

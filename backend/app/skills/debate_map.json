@@ -1,0 +1,14 @@
+{
+  "id": "debate_map",
+  "version": "1.0.0",
+  "title": "Debate Map",
+  "audience": "Analysts ramping on a debated name, PMs and investment committees",
+  "description": "The open questions on a company split by who is saying it — the company, a rating agency or a regulator — each in their own filed words, plus what changed since the last call and the commitments still open.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "debate", "title": "Who says what", "builder": "debate_map"},
+    {"id": "shift", "title": "What changed since the last call", "builder": "language_shift"},
+    {"id": "open", "title": "Commitments still open", "builder": "commitments_open"}
+  ],
+  "disproof": {"queries": ["delay deferred postponed", "adverse order penalty"]}
+}

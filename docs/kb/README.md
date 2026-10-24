@@ -19,12 +19,18 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | Architecture | [02-architecture](02-architecture.md) · [ARCHITECTURE_AND_DESIGN](../ARCHITECTURE_AND_DESIGN.md) |
 | Sights SKU | [14-sights](14-sights.md) |
 | Platform admin portal | [15-admin-portal](15-admin-portal.md) |
+| Commitment Record | [16-commitments](16-commitments.md) |
+| CiteAlpha Analyst (cited agent) | [17-analyst-agent](17-analyst-agent.md) |
+| Filing walk (India + US, FY22 →) | [18-filing-walk](18-filing-walk.md) |
+| Reuse owners; read a source once | [19-reuse-and-source-once](19-reuse-and-source-once.md) |
 
 ## Source-of-truth docs (outside kb/)
 
 | Topic | Doc |
 |---|---|
 | **Current programme (Round-3 remediation)** | `docs/PLAN_WORLDCLASS_GCI.md` |
+| India whitespace (extract → match → index) | `docs/PLAN_WHITESPACE.md` |
+| CiteAlpha Analyst agent + Commitment Record (draft) | `docs/PLAN_CITEALPHA_ANALYST.md` |
 | MVP scope | `docs/PRODUCT_DEFINITION.md` |
 | Portfolio SKUs | `docs/PRODUCT_PORTFOLIO.md` · `docs/PORTFOLIO_ROADMAP.md` |
 | Stories | `docs/USER_STORIES.md` |
@@ -36,6 +42,7 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | Customer pack | `docs/customer/` · `docs/customer/skus/` |
 | B2B/B2C production | `docs/PRODUCTION_B2B_B2C.md` · `docs/INFRA_PRODUCTION.md` |
 | Platform admin portal | `docs/ADMIN_PORTAL.md` |
+| Super admin board, workflows, reports | `docs/PLAN_SUPER_ADMIN.md` |
 | Pitch | `docs/PITCH_DECK.md` |
 
 ## Cursor assets

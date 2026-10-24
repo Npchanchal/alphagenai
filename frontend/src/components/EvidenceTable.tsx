@@ -186,7 +186,16 @@ export default function EvidenceTable({
             <Fragment key={`${o.period}-${o.metric}-${idx}`}>
               <tr>
                 <td>{o.period}</td>
-                <td>{metricDisplayName(o.metric)}</td>
+                <td>
+                  {metricDisplayName(o.metric)}
+                  {o.reporting_basis && o.actual_reporting_basis ? (
+                    <div className="muted" style={{ fontSize: 11 }}>
+                      {o.label === "basis_mismatch"
+                        ? t("dossier.basis.mismatch")
+                        : t(`dossier.basis.${o.reporting_basis}`)}
+                    </div>
+                  ) : null}
+                </td>
                 <td>{formatGuidedBand({ ...o, metric: o.metric })}</td>
                 <td>{formatActual(o)}</td>
                 {showDeltaActual && (

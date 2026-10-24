@@ -28,6 +28,7 @@ PLAN_FEATURES: Dict[str, set] = {
     "guest": {"tracker"},
     "pilot": {
         "tracker",
+        "analyst_agent",
         "desk",
         "desk_write",
         "research",
@@ -41,6 +42,7 @@ PLAN_FEATURES: Dict[str, set] = {
     },
     "desk": {
         "tracker",
+        "analyst_agent",
         "desk",
         "desk_write",
         "research",
@@ -55,9 +57,12 @@ PLAN_FEATURES: Dict[str, set] = {
         "labeling",
         "wordmap",
         "analytics_experimental",
+        "holdings",
+        "ninja",
     },
     "enterprise": {
         "tracker",
+        "analyst_agent",
         "desk",
         "desk_write",
         "research",
@@ -75,9 +80,12 @@ PLAN_FEATURES: Dict[str, set] = {
         "wordmap",
         "badge",
         "analytics_experimental",
+        "holdings",
+        "ninja",
     },
     "onestop": {
         "tracker",
+        "analyst_agent",
         "desk",
         "desk_write",
         "research",
@@ -96,6 +104,8 @@ PLAN_FEATURES: Dict[str, set] = {
         "ic_export",
         "feedback",
         "analytics_experimental",
+        "holdings",
+        "ninja",
     },
     "retail": {"tracker", "research", "read_api"},
     "one-stop": set(),  # alias filled below
@@ -138,12 +148,22 @@ def org_snapshot(org_id: str) -> Dict[str, Any]:
     seats = seat_limit_for(plan, row.get("seats"))
     used = int(row.get("seats_used") or 0)
     features = sorted(PLAN_FEATURES.get(plan, PLAN_FEATURES["pilot"]))
+    from app.services.pilot_checklist import holdings_feature_open
+
+    if holdings_feature_open(org_id, plan):
+        features = sorted(set(features) | {"holdings", "ninja"})
+    else:
+        features = [f for f in features if f not in ("holdings", "ninja")]
     if row.get("labeling_granted") or row.get("design_partner"):
         extra = set(features)
         extra.add("feedback")
         if row.get("labeling_granted"):
             extra.add("labeling")
         features = sorted(extra)
+    from app.services.pilot_checklist import pilot_evaluation_ended
+
+    if pilot_evaluation_ended(org_id):
+        features = ["tracker"]
     return {
         "id": org_id,
         **row,
@@ -307,9 +327,11 @@ def ensure_builtin_orgs() -> None:
 
 
 def assert_org_access(auth: Dict[str, Any], org_id: str) -> None:
-    if auth.get("role") == "admin":
+    """A desk key stays on its own organisation. A platform operator may cross desks."""
+    if auth.get("platform_admin_role"):
         return
-    if auth.get("org") != org_id:
+    caller = str(auth.get("org_id") or auth.get("org") or "")
+    if caller != org_id:
         raise HTTPException(status_code=403, detail="Org mismatch")
 
 
@@ -330,11 +352,15 @@ def create_invite(
     email: str,
     invited_by: str,
     role: str = "member",
+    subject: Optional[str] = None,
+    intro: Optional[str] = None,
+    actor_role: str = "owner",
 ) -> Dict[str, Any]:
     """Create a one-time invite token (does not consume seat until accept)."""
     from app.services import mailer
     from app.services import session_auth
 
+    role = session_auth.seat_role_for_actor(actor_role, role)
     snap = org_snapshot(org_id)
     if snap["seats_available"] < 1:
         raise HTTPException(
@@ -350,13 +376,18 @@ def create_invite(
         extra={"org_id": org_id, "role": role, "invited_by": invited_by},
     )
     link = f"{mailer.public_base_url()}/accept-invite?token={token}"
-    mail = mailer.send_mail(
-        to=email,
-        subject=f"Join {snap['name']} on CiteAlpha",
-        body=(
+    mail_subject = subject or f"Join {snap['name']} on CiteAlpha"
+    if intro:
+        mail_body = f"{intro.strip()}\n\nAccept: {link}\n"
+    else:
+        mail_body = (
             f"You were invited to {snap['name']} on CiteAlpha "
             f"(Ocotillo Innovation Private Limited).\n\nAccept: {link}\n"
-        ),
+        )
+    mail = mailer.send_mail(
+        to=email,
+        subject=mail_subject,
+        body=mail_body,
     )
     out: Dict[str, Any] = {
         "status": "ok",
@@ -368,6 +399,58 @@ def create_invite(
         out["dev_token"] = token
         out["dev_link"] = link
     return out
+
+
+def invite_recorded_owner(*, org_id: str, invited_by: str) -> Dict[str, Any]:
+    """Mail the address stored on the org a one-time link to join as desk admin.
+
+    The seat is taken when they accept. An address that already has a login is refused.
+    """
+    from app.services import session_auth
+
+    snap = org_snapshot(org_id)
+    email = str(snap.get("owner_email") or "").strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="This organisation has no recorded owner email")
+    existing = session_auth._find_by_email(email)
+    if existing and existing.get("kind") != "guest":
+        if str(existing.get("org_id") or "") == org_id:
+            raise HTTPException(
+                status_code=409,
+                detail="Recorded owner already has a login on this desk",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail="This email already has a CiteAlpha login on another desk",
+        )
+    name = str(snap.get("name") or "Your desk").strip() or "Your desk"
+    sent = create_invite(
+        org_id=org_id,
+        email=email,
+        invited_by=invited_by,
+        role="admin",
+        subject=f"{name} on CiteAlpha",
+        intro=(
+            f"{name} is open on CiteAlpha.\n\n"
+            "Set a password to join as desk admin. You can then invite the rest of your desk "
+            "from Seat administration. A pilot has five seats.\n\n"
+            f"CiteAlpha is a product of {LEGAL_ENTITY}. It reports whether management "
+            "delivered the guidance it published. It is not investment advice."
+        ),
+    )
+    record = {
+        "email": email,
+        "mail_status": sent.get("mail_status") or "error",
+        "sent_at": datetime.now(timezone.utc).isoformat(),
+        "invited_by": invited_by,
+        "role": "admin",
+    }
+    data = get_data()
+    row = data.setdefault("orgs", {}).get(org_id)
+    if isinstance(row, dict):
+        row["owner_invite"] = record
+        save_data()
+    return {**sent, "role": "admin"}
 
 
 def create_partner_invite(*, org_id: str, email: str, invited_by: str) -> Dict[str, Any]:

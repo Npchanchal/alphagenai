@@ -70,13 +70,88 @@ def get_listing_score(company_id: str) -> Optional[Dict[str, Any]]:
     return dict(row) if row else None
 
 
+def refresh_listing_score(company_id: str) -> Dict[str, Any]:
+    """Rewrite one listing row from the current outcomes. The composite is whatever the scorer returns."""
+    from app.data.india_listings import india_equity_universe
+    from app.data.seed import get_outcomes, list_companies
+    from app.data.us_listings import us_equity_universe
+    from app.services.coverage import coverage_status_for
+    from app.services.gci_scoring import gci_trend_series, label_counts
+    from app.services.guidance_flags import score_meta
+    from app.services.score_policy import is_scoreable
+
+    stock = next(
+        (row for row in list(india_equity_universe()) + list(us_equity_universe()) if row["id"] == company_id),
+        None,
+    )
+    seeded = next((row for row in list_companies() if row["id"] == company_id), None)
+    if stock is None or seeded is None:
+        raise KeyError(company_id)
+    outcomes = get_outcomes(company_id)
+    meta = score_meta(
+        outcomes,
+        scoreable=is_scoreable(seeded.get("data_quality")),
+        company_id=company_id,
+        data_quality=seeded.get("data_quality"),
+    )
+    gci = meta["gci_score"]
+    trend = gci_trend_series(outcomes)
+    change_pct = trend[-1].get("change_pct") if trend else None
+    change_horizon = trend[-1].get("change_horizon") if trend else None
+    from app.services.repository import gci_change_bundle_for
+
+    bundle = gci_change_bundle_for(company_id) if gci is not None else {}
+    horizons = {
+        "wow_pct": None,
+        "mom_pct": None,
+        "qoq_pct": None,
+        "yoy_pct": None,
+        "series_kind": bundle.get("series_kind"),
+    }
+    if bundle.get("series_kind") == "citeable_pit":
+        horizons = {key: bundle.get(key) for key in ("wow_pct", "mom_pct", "qoq_pct", "yoy_pct", "series_kind")}
+    row = {
+        "gci_score": gci,
+        "coverage_status": coverage_status_for(
+            company_id,
+            score=gci,
+            outcomes=outcomes,
+            data_quality=seeded.get("data_quality"),
+        ),
+        "data_quality": seeded.get("data_quality", "demo_structured"),
+        "ticker": stock.get("ticker") or company_id,
+        "sector": stock.get("sector") or "Equity",
+        "by_metric": meta["by_metric"],
+        "context_metrics": meta["context_metrics"],
+        "label_counts": label_counts(outcomes),
+        "gci_change_pct": change_pct,
+        "gci_change_horizon": change_horizon,
+        "source": "seed",
+        "confidence_tier": meta["confidence_tier"],
+        "closed_periods": meta["closed_periods"],
+        "metrics_scored": meta["metrics_scored"],
+        "as_of": meta["as_of"],
+        "algorithm_id": meta["algorithm_id"],
+        **horizons,
+    }
+    from datetime import datetime, timezone
+
+    data = load_cache(force=True)
+    scores = data.setdefault("scores", {})
+    scores[company_id] = row
+    data["scored_count"] = sum(1 for item in scores.values() if item.get("gci_score") is not None)
+    data["as_of"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    save_cache(data)
+    return row
+
+
 def clear_memory_cache() -> None:
     global _CACHE
     _CACHE = None
 
 
 def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
-    """Score every India listing with active gci_scoring version (seed or provisional).
+    """Score every India and S&P 500 listing with the active gci_scoring version.
 
     Each row includes calendar-aligned WoW / MoM / QoQ / YoY on the GCI level
     **only** when the company has a citeable outcome-as-of PIT series deep enough
@@ -86,6 +161,7 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
 
     from app.data.india_listings import india_equity_universe
     from app.data.seed import get_outcomes, list_companies
+    from app.data.us_listings import us_equity_universe
     from app.services.gci_scoring import (
         algorithm_id,
         gci_trend_series,
@@ -100,7 +176,7 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
 
     seed_by_id = {c["id"]: c for c in list_companies()}
     scores: Dict[str, Any] = {}
-    universe = list(india_equity_universe())
+    universe = list(india_equity_universe()) + list(us_equity_universe())
     if limit is not None and limit > 0:
         universe = universe[:limit]
 
@@ -213,8 +289,8 @@ def build_india_gci_cache(*, limit: Optional[int] = None) -> Dict[str, Any]:
         "horizons_yoy_count": with_yoy,
         "horizons_full_count": with_all,
         "note": (
-            f"Only hand_labeled companies carry a {algo} score. demo_structured and "
-            "listing_provisional rows are listed as not yet scored."
+            f"A {algo} score needs both quotes on the cited filings (hand-labeled, or "
+            "extracted and checked word for word). Other listings carry the reason they have no number."
         ),
         "scores": scores,
     }

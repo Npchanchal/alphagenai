@@ -2,11 +2,69 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
+from fastapi import HTTPException
 
 from app.data.seed import get_data, save_data
 from app.services import orgs
+
+TERM_CHOICES = (30, 45, 60)
+PAID_HOLDINGS_PLANS = frozenset({"desk", "enterprise", "onestop"})
+
+
+def require_term_days(value: object) -> int:
+    """Admin-chosen evaluation length. Anything else is refused."""
+    try:
+        days = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="term_days must be 30, 45, or 60")
+    if days not in TERM_CHOICES:
+        raise HTTPException(status_code=400, detail="term_days must be 30, 45, or 60")
+    return days
+
+
+def pilot_term_open(org_id: str, *, today: Optional[datetime] = None) -> bool:
+    """True only for an admin-approved pilot still inside its 30/45/60 day term."""
+    row = (get_data().get("pilot_checklists") or {}).get(org_id) or {}
+    if not row.get("approved"):
+        return False
+    days = row.get("term_days")
+    if days not in TERM_CHOICES:
+        return False
+    started = str(row.get("created_at") or "")
+    try:
+        start = datetime.fromisoformat(started.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if start.tzinfo is None:
+        start = start.replace(tzinfo=timezone.utc)
+    now = today or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    return now.date() < (start.date() + timedelta(days=int(days)))
+
+
+def holdings_feature_open(org_id: str, plan: str) -> bool:
+    """Paid desks keep Holdings. A pilot has it only while the approved term is open."""
+    if plan in PAID_HOLDINGS_PLANS:
+        return True
+    if plan != "pilot":
+        return False
+    return pilot_term_open(org_id)
+
+
+def pilot_evaluation_ended(org_id: str) -> bool:
+    """An approved evaluation that is past its 30, 45, or 60 days.
+
+    A pilot org that was never approved is unchanged. That is the standing
+    desk key, not an evaluation whose clock has run out.
+    """
+    row = (get_data().get("pilot_checklists") or {}).get(org_id) or {}
+    if not row.get("approved"):
+        return False
+    return not pilot_term_open(org_id)
 
 
 CHECKLIST_ITEMS: List[Dict[str, str]] = [
@@ -102,6 +160,7 @@ def provision_pilot_org(
     name: str,
     owner_email: Optional[str] = None,
     seats: int = 5,
+    term_days: object = None,
 ) -> Dict[str, Any]:
     """Create a B2B pilot tenant with conversion checklist initialized."""
     snap = orgs.create_org(
@@ -111,14 +170,17 @@ def provision_pilot_org(
         owner_email=owner_email,
         seats=min(5, max(1, seats)),
     )
+    days = require_term_days(term_days)
     oid = snap["id"]
     data = get_data()
     checklists = data.setdefault("pilot_checklists", {})
+    started = datetime.now(timezone.utc).isoformat()
     checklists[oid] = {
         "org_id": oid,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": started,
         "status": "active",
-        "term_days": 45,
+        "approved": True,
+        "term_days": days,
         "items": {item["id"]: False for item in CHECKLIST_ITEMS},
         "notes": "",
         "convert_intent": None,
@@ -126,13 +188,14 @@ def provision_pilot_org(
     }
     orgs_row = data.setdefault("orgs", {}).get(oid) or {}
     orgs_row["pilot_template"] = True
-    orgs_row["pilot_started_at"] = checklists[oid]["created_at"]
+    orgs_row["pilot_started_at"] = started
+    orgs_row["pilot_term_days"] = days
     data["orgs"][oid] = orgs_row
     save_data()
     return {
         "org": snap,
         "checklist": get_pilot_checklist(oid),
-        "note": "Pilot: Sensex coverage · ≤5 seats · 30–60 day evaluation.",
+        "note": f"Pilot: Sensex coverage · ≤5 seats · {days}-day evaluation, started on approval.",
     }
 
 
@@ -146,7 +209,8 @@ def get_pilot_checklist(org_id: str) -> Dict[str, Any]:
             "org_id": org_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "active",
-            "term_days": 45,
+            "term_days": None,
+            "approved": False,
             "items": {item["id"]: False for item in CHECKLIST_ITEMS},
             "notes": "",
             "convert_intent": None,
@@ -180,7 +244,9 @@ def get_pilot_checklist(org_id: str) -> Dict[str, Any]:
     return {
         "org_id": org_id,
         "status": row.get("status") or "active",
-        "term_days": row.get("term_days") or 45,
+        "term_days": row.get("term_days"),
+        "approved": bool(row.get("approved")),
+        "term_open": pilot_term_open(org_id),
         "created_at": row.get("created_at"),
         "progress": {"done": done, "total": total, "pct": round(100.0 * done / total, 1)},
         "items": items_out,

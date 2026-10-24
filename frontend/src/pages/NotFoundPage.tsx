@@ -7,7 +7,7 @@ const LINKS = [
   { to: "/about", key: "footer.about" },
   { to: "/blog", key: "footer.blog" },
   { to: "/help", key: "nav.help" },
-  { to: "/package", key: "footer.package" },
+  { to: "/products#plans", key: "footer.package" },
   { to: "/trust", key: "footer.trust" },
 ] as const;
 

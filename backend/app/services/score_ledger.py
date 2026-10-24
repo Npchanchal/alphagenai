@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+from app.data.store_lock import locked
+
 LEDGER_PATH = Path(__file__).resolve().parents[1] / "data" / "score_ledger.jsonl"
 
 REASONS = (
@@ -86,6 +88,7 @@ def latest_for(company_id: str) -> Optional[Dict[str, Any]]:
     return rows[-1] if rows else None
 
 
+@locked
 def append(row: LedgerRow) -> bool:
     """Append ``row``. Returns False when an identical row already exists.
 
@@ -123,6 +126,49 @@ def append_many(rows: Iterable[LedgerRow]) -> int:
     return n
 
 
+RELEASE_BY = "job:methodology_release"
+_RELEASE_CORRECTION_NOTE = (
+    "Level restored. The methodology entry recorded this company as withdrawn because its score "
+    "was read while the service was still loading filing citations. The published level was never withdrawn."
+)
+
+
+def correct_release_withdrawals(*, by: str = RELEASE_BY) -> int:
+    """Append a data_correction where the release step logged a withdrawal the live score contradicts."""
+    if not os.environ.get("INTELLENS_DATA_DIR", "").strip():
+        return 0
+    latest: Dict[str, Dict[str, Any]] = {}
+    for r in read_all():
+        latest[str(r.get("company_id"))] = r
+    flagged = {cid for cid, r in latest.items() if r.get("by") == RELEASE_BY and r.get("gci") is None}
+    if not flagged:
+        return 0
+    rows = [
+        r
+        for r in snapshot_rows(reason="data_correction", note=_RELEASE_CORRECTION_NOTE, by=by)
+        if r.company_id in flagged and r.gci is not None
+    ]
+    return append_many(rows)
+
+
+def record_methodology_release(*, by: str = RELEASE_BY) -> int:
+    """Once per scorer revision: log every level the new method moved, as ``methodology``.
+
+    Runs before the daily filing walks so a method change is not booked as ``new_filing``.
+    Only on a data volume; packaged data is snapshotted by hand with ``snapshot_scores``.
+    """
+    from app.services.gci_scoring import ALGORITHM_REVISION
+
+    if not os.environ.get("INTELLENS_DATA_DIR", "").strip():
+        return 0
+    marker = _path().parent / "methodology_release.txt"
+    if marker.exists() and marker.read_text(encoding="utf-8").strip() == ALGORITHM_REVISION:
+        return 0
+    n = append_many(snapshot_rows(reason="methodology", note=ALGORITHM_REVISION, by=by))
+    marker.write_text(ALGORITHM_REVISION + "\n", encoding="utf-8")
+    return n
+
+
 def dataset_version(now: Optional[datetime] = None) -> str:
     """Next ``YYYY-MM-DD.N`` for today — N is one above the highest already in the ledger."""
     d = (now or datetime.now(timezone.utc)).strftime("%Y-%m-%d")
@@ -154,8 +200,10 @@ def snapshot_rows(
     # dataset_version follows the row's as_of date, not the wall clock.
     version = dataset_version(datetime.fromisoformat(today).replace(tzinfo=timezone.utc))
     out: List[LedgerRow] = []
+    from app.services.score_policy import is_scoreable
+
     for c in repository.list_company_summaries():
-        if (c.data_quality or "") != "hand_labeled":
+        if not is_scoreable(c.data_quality):
             continue
         prev = latest_for(c.id)
         prior = prev.get("gci") if prev else None

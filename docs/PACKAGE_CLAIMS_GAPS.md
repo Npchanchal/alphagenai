@@ -23,7 +23,7 @@
 | Nifty deep GCI | **Milestone-gated** — M0–M4 API + Desk enqueue; no invented hand_labels |
 | HTTPS custom domain | **Ready** — Route53/ACM; Hostinger NS cutover required |
 | CSM / SLA / VPC | **Shipped surfaces** — Desk CSM + `/api/csm` `/api/sla` `/api/vpc/posture`; MSA terms still commercial |
-| Git | **Remote** — https://github.com/Npchanchal/aplhagenai |
+| Git | **Remote** — https://github.com/Npchanchal/alphagenai |
 
 ## Tests
 

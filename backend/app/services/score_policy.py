@@ -130,12 +130,37 @@ def is_unreviewed(outcome: object) -> bool:
     return not _filled(g("reviewed_by"), g("reviewed_at"))
 
 
+def _token(value: object) -> Optional[str]:
+    text = str(value or "").strip().lower()
+    return text or None
+
+
+def is_basis_mismatch(outcome: object) -> bool:
+    """Promise and actual both name a basis, unit, or scope, and they differ.
+
+    A blank side is unknown. Existing rows with no basis still score.
+    """
+    from app.data.metric_catalog import normalize_basis
+
+    g = outcome.get if isinstance(outcome, dict) else lambda k, d=None: getattr(outcome, k, d)
+    promise_basis = normalize_basis(g("reporting_basis"))
+    actual_basis = normalize_basis(g("actual_reporting_basis"))
+    if promise_basis and actual_basis and promise_basis != actual_basis:
+        return True
+    unit_promise, unit_actual = _token(g("unit")), _token(g("actual_unit"))
+    if unit_promise and unit_actual and unit_promise != unit_actual:
+        return True
+    scope_promise, scope_actual = _token(g("scope")), _token(g("actual_scope"))
+    return bool(scope_promise and scope_actual and scope_promise != scope_actual)
+
+
 def excluded_from_score(outcome: object) -> bool:
     """Production-shaped closed row that must not enter the composite."""
     return (
         is_pending_guidance_cite(outcome)
         or is_unreviewed(outcome)
         or is_source_verify_fail(outcome)
+        or is_basis_mismatch(outcome)
     )
 
 

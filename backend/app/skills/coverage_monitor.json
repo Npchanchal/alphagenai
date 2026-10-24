@@ -1,0 +1,15 @@
+{
+  "id": "coverage_monitor",
+  "version": "1.0.0",
+  "title": "Coverage Monitor",
+  "audience": "Analysts and IR teams following a company between results",
+  "description": "What the company's latest filings say about the future, which guidance and commitments are still open, and how the delivery record stands. Runs automatically when a Monitor sees a new filing.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "recent", "title": "Latest filings, in management's words", "builder": "recent_filings", "args": {"limit": 5}},
+    {"id": "open", "title": "Open guidance", "builder": "open_guidance"},
+    {"id": "commitments", "title": "Open commitments", "builder": "commitments_open"},
+    {"id": "record", "title": "Delivery record", "builder": "delivery_record"}
+  ],
+  "disproof": {"queries": ["delay deferred postponed", "revised downward lower"]}
+}

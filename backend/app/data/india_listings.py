@@ -2,8 +2,8 @@
 
 GCI is NOT invented for these rows — only Sensex/Nifty seed outcomes score.
 
-One row per scrip. Every India index (SENSEX, NIFTY50, NIFTYBANK, NSE_ALL,
-BSE_ALL, IN1000) is a membership tag on that row, never a separate record, so a
+One row per scrip. Every India index (SENSEX, NIFTY50, NIFTYBANK, NIFTY500,
+NSE_ALL, BSE_ALL, IN1000) is a membership tag on that row, never a separate record, so a
 dual-listed or multi-index name is stored, scored and walked exactly once.
 """
 
@@ -27,7 +27,7 @@ _LISTINGS = Path(__file__).with_name("listings")
 StockRow = Dict[str, Any]
 
 IN1000_CAP = 1000
-INDIA_INDEX_IDS = ("SENSEX", "NIFTY50", "NIFTYBANK", "NSE_ALL", "BSE_ALL", "IN1000")
+INDIA_INDEX_IDS = ("SENSEX", "NIFTY50", "NIFTYBANK", "NIFTY500", "NSE_ALL", "BSE_ALL", "IN1000")
 NIFTYBANK_TICKERS = frozenset(
     {"HDFCBANK", "ICICIBANK", "AXISBANK", "KOTAKBANK", "SBIN", "INDUSINDBK"}
 )
@@ -59,6 +59,12 @@ def _load_json(name: str) -> Dict[str, Any]:
 def nse_meta() -> Dict[str, Any]:
     raw = _load_json("nse_equity.json")
     return {"count": int(raw.get("count") or len(raw.get("rows") or [])), "source": raw.get("source")}
+
+
+@lru_cache(maxsize=1)
+def nifty500_by_symbol() -> Dict[str, Dict[str, Any]]:
+    rows = _load_json("nifty500.json").get("rows") or []
+    return {str(r.get("symbol") or "").upper(): r for r in rows if r.get("symbol")}
 
 
 @lru_cache(maxsize=1)
@@ -175,6 +181,8 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
         }
 
     sensex_ids = {cid for cid, *_ in SENSEX_30}
+    nifty500 = nifty500_by_symbol()
+    nifty500_isins = {str(r.get("isin") or "") for r in nifty500.values()} - {""}
     for cid, entry in by_id.items():
         ids = list(entry.get("index_ids") or [])
         ticker = (entry.get("ticker") or "").upper()
@@ -184,6 +192,13 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             ids.append("NIFTY50")
         if ticker in NIFTYBANK_TICKERS:
             ids.append("NIFTYBANK")
+        member = nifty500.get(ticker) if "NSE_ALL" in ids or cid in sensex_ids else None
+        if member is None and entry.get("isin") in nifty500_isins:
+            member = next(r for r in nifty500.values() if r.get("isin") == entry["isin"])
+        if member is not None:
+            ids.append("NIFTY500")
+            if entry.get("sector") in (None, "", "Equity") and member.get("industry"):
+                entry["sector"] = member["industry"]
         entry["index_ids"] = ids
 
     # Stable order: deep GCI first, then NSE ticker, then BSE-only
@@ -258,6 +273,7 @@ def clear_listing_caches() -> None:
     india_index_members.cache_clear()
     _listings_by_id.cache_clear()
     nse_meta.cache_clear()
+    nifty500_by_symbol.cache_clear()
     bse_meta.cache_clear()
     _sensex_by_ticker.cache_clear()
     _nifty_extra_by_ticker.cache_clear()

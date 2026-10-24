@@ -125,7 +125,9 @@ Rule: close only what strengthens **India guidance accountability**; never try t
 
 ### Refuse (explicit non-goals)
 
-500M+ firehose · broker research · Tegus live calls · PPT/Excel add-ins · connector platform · SuperAnalyst OS · newsroom · live quotes / OMS · Buy–Hold–Sell · multi-industry corp packs · mobile-first research app (MVP).
+500M+ firehose · broker research · Tegus live calls · newsroom · live quotes / OMS · Buy–Hold–Sell · multi-industry corp packs · mobile-first research app (MVP).
+
+**Changed 2026-10-03:** an always-on cited agent (SuperAnalyst-style), Excel/PPT export and connectors are now **in scope** as CiteAlpha Analyst, on public Indian disclosures plus user uploads only. See `docs/PLAN_CITEALPHA_ANALYST.md`.
 
 **One-liner:** AlphaSense = *find anything, cite it*. CiteAlpha = *did management deliver, prove it*. CiteAlpha **Sights** (`/sights`) covers research-OS *jobs* with CiteAlpha brands (Sights Search, Ask, Compare Grid, Deep Dive, Street Context, Field Evidence) on **public IR + labels** — never unlicensed broker PDFs or expert-call brokerage. See `docs/customer/skus/SIGHTS.md` and `docs/kb/14-sights.md`.
 

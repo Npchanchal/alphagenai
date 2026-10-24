@@ -372,11 +372,20 @@ def accept_draft(draft_id: str, *, actor: Dict[str, Any]) -> Dict[str, Any]:
     return row
 
 
-def _maybe_promote_quality(company_id: str) -> bool:
-    """Promote demo_structured → hand_labeled only when citeable rows exist.
+def _human_reviewed(row: Dict[str, Any]) -> bool:
+    who = str(row.get("reviewed_by") or "").strip()
+    return bool(who) and not who.startswith("job:")
 
-    Returns True when the quality flag actually flipped (W2.5 governance).
+
+def _maybe_promote_quality(company_id: str) -> bool:
+    """Promote to hand_labeled only when a person has accepted a citeable row.
+
+    ``job:disclosure_reconcile`` may leave a company ``extracted_verified``.
+    That stamp alone does not promote. An extracted company promotes only when
+    a person has dual-cited a row (promise and actual, each with a date).
     """
+    from app.services.score_policy import is_dual_cited
+
     data = get_data()
     company = next((c for c in data.get("companies") or [] if c.get("id") == company_id), None)
     if not company:
@@ -384,15 +393,17 @@ def _maybe_promote_quality(company_id: str) -> bool:
     q = (company.get("data_quality") or "").lower()
     if q == "hand_labeled":
         return False
-    if q not in ("demo_structured", "listing_provisional"):
+    if q not in ("demo_structured", "listing_provisional", "extracted_verified"):
         return False
     rows = data.get("outcomes", {}).get(company_id) or []
-    citeable = [
-        o
-        for o in rows
-        if (o.get("source_url") or "").strip() and (o.get("quote_span") or "").strip()
-    ]
-    if len(citeable) < 1:
+    if q == "extracted_verified":
+        ok = any(is_dual_cited(o) and _human_reviewed(o) for o in rows)
+    else:
+        ok = any(
+            (o.get("source_url") or "").strip() and (o.get("quote_span") or "").strip()
+            for o in rows
+        )
+    if not ok:
         return False
     company["data_quality"] = "hand_labeled"
     save_data()

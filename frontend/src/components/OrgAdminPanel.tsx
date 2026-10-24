@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
+  fetchMyOrg,
   fetchOrgMembers,
   postMemberRole,
   postOrgApiKey,
@@ -7,13 +8,17 @@ import {
   postOrgRevoke,
   postPartnerInvite,
   type AuthUser,
+  type OrgPayload,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
+
+const WORKING_ROLES = ["viewer", "analyst", "labeler", "reviewer"] as const;
 
 /** B2B seat admin — invite / revoke / mint API key. */
 export default function OrgAdminPanel() {
   const { user, token } = useAuth();
   const [members, setMembers] = useState<AuthUser[]>([]);
+  const [desk, setDesk] = useState<OrgPayload | null>(null);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("analyst");
   const [partnerEmail, setPartnerEmail] = useState("");
@@ -23,16 +28,26 @@ export default function OrgAdminPanel() {
 
   const orgId = user?.org_id;
   const canAdmin = user?.role === "owner" || user?.role === "admin";
+  const isOwner = user?.role === "owner";
+  const assignable = isOwner ? [...WORKING_ROLES, "admin"] : [...WORKING_ROLES];
 
   const reload = useCallback(async () => {
     if (!orgId || !token) return;
-    const res = await fetchOrgMembers(orgId, token);
+    const [res, snap] = await Promise.all([
+      fetchOrgMembers(orgId, token),
+      fetchMyOrg(token).catch(() => null),
+    ]);
     setMembers(res.members);
+    setDesk(snap);
   }, [orgId, token]);
 
   useEffect(() => {
     void reload().catch(() => setMembers([]));
   }, [reload]);
+
+  useEffect(() => {
+    if (!isOwner && role === "admin") setRole("analyst");
+  }, [isOwner, role]);
 
   if (!user || user.kind === "guest" || !orgId) {
     return (
@@ -46,8 +61,8 @@ export default function OrgAdminPanel() {
   if (!canAdmin) {
     return (
       <p className="muted">
-        Signed in as {user.email} ({user.role}) on org <code>{orgId}</code>. Ask an owner to
-        invite or revoke seats.
+        Signed in as {user.email} ({user.role}) on org <code>{orgId}</code>. Ask an owner or
+        admin to invite or revoke seats. Only the organisation owner can appoint an admin.
       </p>
     );
   }
@@ -74,7 +89,15 @@ export default function OrgAdminPanel() {
     <div className="org-admin" data-testid="org-admin-panel">
       <h3 style={{ marginTop: 0 }}>Seat administration</h3>
       <p className="muted">
-        Org <code>{orgId}</code> · invite consumes a seat on accept · revoke frees a seat.
+        Org <code>{orgId}</code>
+        {desk?.plan ? ` · ${desk.plan}` : ""}
+        {desk?.seats != null
+          ? ` · ${desk.seats_used ?? 0} of ${desk.seats} seats in use`
+          : ""}
+        . Invite consumes a seat on accept. Revoke frees a seat.
+        {isOwner
+          ? " You can appoint an admin."
+          : " Only the organisation owner can appoint or remove an admin."}
       </p>
       <form className="auth-form" onSubmit={onInvite} style={{ maxWidth: 420 }}>
         <label>
@@ -94,11 +117,11 @@ export default function OrgAdminPanel() {
             onChange={(e) => setRole(e.target.value)}
             data-testid="org-invite-role"
           >
-            <option value="viewer">viewer</option>
-            <option value="analyst">analyst</option>
-            <option value="labeler">labeler</option>
-            <option value="reviewer">reviewer</option>
-            <option value="admin">admin</option>
+            {assignable.map((seat) => (
+              <option key={seat} value={seat}>
+                {seat}
+              </option>
+            ))}
           </select>
         </label>
         <button type="submit" className="btn-primary" data-testid="org-invite-submit">
@@ -146,7 +169,7 @@ export default function OrgAdminPanel() {
               {m.active === false ? " · revoked" : ""}
               {m.email_verified ? " · verified" : " · unverified"}
             </span>
-            {m.role !== "owner" && m.active !== false && (
+            {m.role !== "owner" && m.active !== false && (isOwner || m.role !== "admin") && (
               <select
                 value={m.role || "viewer"}
                 onChange={(e) => {
@@ -159,14 +182,14 @@ export default function OrgAdminPanel() {
                 }}
                 aria-label={`Role for ${m.email || m.name}`}
               >
-                <option value="viewer">viewer</option>
-                <option value="analyst">analyst</option>
-                <option value="labeler">labeler</option>
-                <option value="reviewer">reviewer</option>
-                <option value="admin">admin</option>
+                {assignable.map((seat) => (
+                  <option key={seat} value={seat}>
+                    {seat}
+                  </option>
+                ))}
               </select>
             )}
-            {m.role !== "owner" && m.active !== false && (
+            {m.role !== "owner" && m.active !== false && (isOwner || m.role !== "admin") && (
               <button
                 type="button"
                 className="btn-ghost"

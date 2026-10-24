@@ -117,10 +117,12 @@ def test_weekly_digest_sends_when_configured(tmp_path, monkeypatch):
         return {"status": "stubbed", "to": to}
 
     monkeypatch.setattr("app.services.mailer.send_mail", _mail)
+    from datetime import date, timedelta
+
     rows = [
         {
             "company_id": "infy",
-            "as_of": "2026-09-28",
+            "as_of": (date.today() - timedelta(days=2)).isoformat(),
             "gci": 76.5,
             "prior_gci": 88.2,
             "reason": "methodology",

@@ -12,9 +12,12 @@ import hashlib
 import json
 import os
 from collections import OrderedDict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
+
+from app.data.store_lock import locked
 
 _PACKAGED = Path(__file__).with_name("documents.json")
 _PATH = _PACKAGED
@@ -85,6 +88,7 @@ def _hydrate(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     return out
 
 
+@locked
 def _load() -> Dict[str, Any]:
     global _DOCS
     if _DOCS is None:
@@ -101,6 +105,7 @@ def _load() -> Dict[str, Any]:
     return _DOCS
 
 
+@locked
 def save() -> None:
     data = _load()
     path = _write_path()
@@ -113,6 +118,7 @@ def save() -> None:
         path.write_text(json.dumps(data, indent=2))
 
 
+@locked
 def reset_docs() -> None:
     global _DOCS
     _DOCS = {"documents": [], "versions": []}
@@ -124,6 +130,7 @@ def content_hash(text: str) -> str:
     return hashlib.sha256(text.strip().encode("utf-8")).hexdigest()
 
 
+@locked
 def upsert_document(
     *,
     company_id: str,
@@ -136,7 +143,9 @@ def upsert_document(
     review_status: str = "pending",
     source_type: Optional[str] = None,
     period: Optional[str] = None,
+    persist: bool = True,
 ) -> Dict[str, Any]:
+    """``persist=False`` defers the index write; the caller must call ``save()``."""
     from app.data.source_policy import resolve_source_type
 
     store = _load()
@@ -159,12 +168,16 @@ def upsert_document(
         "content_hash": h,
         "review_status": review_status,  # pending | accepted | rejected
         "version": 1,
+        # Knowledge time. ``date`` is the filing date; a score may only use a
+        # document from the moment we held it.
+        "ingested_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     store["documents"].append(doc)
     store["versions"].append({"doc_id": doc["doc_id"], "version": 1, "hash": h})
     if _externalise(doc):
         _TEXT_CACHE[doc["text_file"]] = text
-    save()
+    if persist:
+        save()
     return _hydrate(doc)
 
 
@@ -177,6 +190,31 @@ def get_document(doc_id: str) -> Optional[Dict[str, Any]]:
         if d.get("doc_id") == want:
             return _hydrate(d)
     return None
+
+
+_META_KEYS = (
+    "doc_id", "company_id", "doc_type", "title", "url", "date", "source_type",
+    "period", "content_hash", "review_status", "version", "ingested_at",
+)
+
+
+def _meta(d: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: d.get(k) for k in _META_KEYS}
+
+
+def document_meta(doc_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Metadata only (hash, dates, URL). No filing text is read."""
+    want = (doc_id or "").strip()
+    if not want:
+        return None
+    return next((_meta(d) for d in _load()["documents"] if d.get("doc_id") == want), None)
+
+
+def find_by_hash(content_hash: str) -> Optional[Dict[str, Any]]:
+    want = (content_hash or "").strip().lower()
+    if len(want) != 64:
+        return None
+    return next((_meta(d) for d in _load()["documents"] if d.get("content_hash") == want), None)
 
 
 _HOST_ALIASES = {
@@ -236,6 +274,7 @@ def list_documents(
     return out
 
 
+@locked
 def set_review_status(doc_id: str, status: str) -> Dict[str, Any]:
     store = _load()
     for d in store["documents"]:
@@ -246,6 +285,7 @@ def set_review_status(doc_id: str, status: str) -> Dict[str, Any]:
     raise KeyError(doc_id)
 
 
+@locked
 def patch_document(doc_id: str, **fields: Any) -> Dict[str, Any]:
     """Update selected fields on an existing document (period, url, review_status…)."""
     store = _load()

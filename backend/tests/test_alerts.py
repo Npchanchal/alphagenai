@@ -106,7 +106,7 @@ def test_revision_alert_reports_a_net_raise():
     revised = [a for a in list_alerts() if a.kind == "guidance_revised" and a.ticker == "INFY"]
     assert len(revised) == 1
     assert "raised" in revised[0].message
-    assert "10.0 → 16.0" in revised[0].message
+    assert "from 10" in revised[0].message and "to 16" in revised[0].message
 
 
 def test_thread_stale_fires_for_unreiterated_pending_promise():
@@ -129,7 +129,8 @@ def test_thread_stale_fires_for_unreiterated_pending_promise():
     alerts = list_alerts()
     stale = [a for a in alerts if a.kind == "thread_stale" and a.ticker == "INFY"]
     assert stale, "expected thread_stale alert for INFY"
-    assert "quietly shelved" in stale[0].message
+    assert "has not reiterated its FY26" in stale[0].message
+    assert "?" not in stale[0].message
     assert stale[0].severity == "medium"
 
 

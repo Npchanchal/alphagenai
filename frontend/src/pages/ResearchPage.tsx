@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import ChangeChip, { ChangeTriple } from "../components/ChangeChip";
 import { LineChart, Sparkline } from "../components/Charts";
 import CompanyPicker from "../components/CompanyPicker";
@@ -7,7 +7,6 @@ import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import QualityBadge from "../components/QualityBadge";
 import ScoreReveal from "../components/ScoreReveal";
-import SectorLeaderboard from "../components/SectorLeaderboard";
 import TabBar from "../components/TabBar";
 import CitationCard from "../components/CitationCard";
 import CitedAnswer from "../components/CitedAnswer";
@@ -38,7 +37,7 @@ import { useI18n } from "../i18n";
 import { useSourceViewer } from "../lib/SourceViewerContext";
 import { withTextHighlight } from "../lib/sourceHighlight";
 
-type Tab = "search" | "chat" | "desk" | "sectors" | "news" | "watch";
+type Tab = "search" | "chat" | "desk" | "news" | "watch";
 
 const TABS: { id: Tab; labelKey: string; titleKey?: string; title?: string }[] = [
   {
@@ -57,11 +56,6 @@ const TABS: { id: Tab; labelKey: string; titleKey?: string; title?: string }[] =
     title: tipText("research_terminal"),
   },
   {
-    id: "sectors",
-    labelKey: "ui.ResearchPage.tab.sectors.label",
-    titleKey: "ui.ResearchPage.tab.sectors.title",
-  },
-  {
     id: "news",
     labelKey: "ui.ResearchPage.tab.news.label",
     titleKey: "ui.ResearchPage.tab.news.title",
@@ -74,6 +68,17 @@ const TABS: { id: Tab; labelKey: string; titleKey?: string; title?: string }[] =
 ];
 
 const DOC_TYPES = ["all", "guidance", "transcript", "filing", "news", "expert"] as const;
+const SAVED_KEY = "citealpha_sights_saved_queries";
+
+function loadSaved(fromPrefs?: string[]): string[] {
+  if (fromPrefs?.length) return fromPrefs;
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export default function ResearchPage() {
   const { preferences, token, updatePreferences } = useAuth();
@@ -100,8 +105,13 @@ export default function ResearchPage() {
     );
   };
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
-  const [companyId, setCompanyId] = useState("infy");
-  const [q, setQ] = useState("guidance margin");
+  const [companyId, setCompanyId] = useState(
+    searchParams.get("scope") === "all" ? "" : "infy"
+  );
+  const [q, setQ] = useState(searchParams.get("q") || "guidance margin");
+  const [expand, setExpand] = useState(true);
+  const [expandedQuery, setExpandedQuery] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string[]>(() => loadSaved(preferences?.saved_queries));
   const [docType, setDocType] = useState<(typeof DOC_TYPES)[number]>("all");
   const [results, setResults] = useState<ResearchDoc[]>([]);
   const [question, setQuestion] = useState(
@@ -125,19 +135,25 @@ export default function ResearchPage() {
     fetchCompanies({ market, index, limit: 200 })
       .then((c) => {
         setCompanies(c);
-        if (!c.find((r) => r.id === companyId) && c[0]) setCompanyId(c[0].id);
+        if (companyId && !c.find((r) => r.id === companyId) && c[0]) setCompanyId(c[0].id);
       })
       .catch((e: Error) => setError(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, index]);
 
   useEffect(() => {
+    if (preferences?.saved_queries?.length) setSaved(preferences.saved_queries);
+  }, [preferences?.saved_queries]);
+
+  const deskCompanyId = companyId || companies[0]?.id || "infy";
+
+  useEffect(() => {
     if (tab === "desk") {
       Promise.all([
-        fetchResearchSnapshot(companyId),
-        fetchResearchEstimates(companyId),
-        fetchResearchTranscripts(companyId),
-        fetchResearchBrief(companyId).catch(() => null),
+        fetchResearchSnapshot(deskCompanyId),
+        fetchResearchEstimates(deskCompanyId),
+        fetchResearchTranscripts(deskCompanyId),
+        fetchResearchBrief(deskCompanyId).catch(() => null),
       ])
         .then(([s, e, t, b]) => {
           setSnapshot(s);
@@ -148,7 +164,7 @@ export default function ResearchPage() {
         .catch((err: Error) => setError(err.message));
     }
     if (tab === "news") {
-      fetchResearchNews(companyId)
+      fetchResearchNews(companyId || undefined)
         .then((n) => setNews(n.items))
         .catch((err: Error) => setError(err.message));
     }
@@ -158,19 +174,41 @@ export default function ResearchPage() {
         .then((w) => setWatch(w.items))
         .catch((err: Error) => setError(err.message));
     }
-  }, [tab, companyId, preferences?.watchlist, token]);
+  }, [tab, companyId, deskCompanyId, preferences?.watchlist, token]);
 
   const filteredResults = useMemo(() => {
     if (docType === "all") return results;
     return results.filter((r) => r.doc_type === docType);
   }, [results, docType]);
 
-  const runSearch = async () => {
+  const chooseCompany = (id: string) => {
+    setCompanyId(id);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.delete("scope");
+        else next.set("scope", "all");
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const persistSaved = (next: string[]) => {
+    setSaved(next);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    if (token) void updatePreferences({ saved_queries: next });
+  };
+
+  const runSearch = async (query = q) => {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetchResearchSearch(q, companyId || undefined);
+      const res = await fetchResearchSearch(query, companyId || undefined, { expand });
       setResults(res.results);
+      setExpandedQuery(
+        res.expanded_query && res.expanded_query !== res.original_query ? res.expanded_query : null
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -182,7 +220,7 @@ export default function ResearchPage() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetchResearchChat(question, companyId || undefined);
+      const res = await fetchResearchChat(question, companyId || undefined, { expand });
       setAnswer(res.answer);
       setCitations(res.citations || []);
     } catch (e) {
@@ -191,6 +229,8 @@ export default function ResearchPage() {
       setBusy(false);
     }
   };
+
+  if (tabParam === "sectors") return <Navigate to="/tracker?tab=sectors" replace />;
 
   return (
     <PlanAccessGate
@@ -216,9 +256,10 @@ export default function ResearchPage() {
         <CompanyPicker
           companies={companies}
           value={companyId}
-          onChange={setCompanyId}
+          onChange={chooseCompany}
           label={t("research.focus")}
           testId="research-company"
+          allLabel={t("ui.ResearchPage.scope.all")}
         />
         <TabBar
           tabs={tabs}
@@ -229,13 +270,6 @@ export default function ResearchPage() {
       </div>
 
       {error && <p className="error">{error}</p>}
-
-      {tab === "sectors" && (
-        <div data-testid="research-sectors-tab">
-          <SectorLeaderboard market="IN" index="SENSEX" limit={40} />
-          <Disclaimer />
-        </div>
-      )}
 
       {tab === "search" && (
         <div className="panel">
@@ -263,10 +297,60 @@ export default function ResearchPage() {
                 if (e.key === "Enter") void runSearch();
               }}
             />
-            <button type="button" className="btn" onClick={runSearch} disabled={busy}>
+            <button type="button" className="btn" onClick={() => void runSearch()} disabled={busy}>
               {t("ui.ResearchPage.search.button")}
             </button>
+            <button
+              type="button"
+              className="btn ghost"
+              data-testid="research-save-query"
+              disabled={!q.trim()}
+              onClick={() => persistSaved([...saved.filter((x) => x !== q.trim()), q.trim()].slice(-20))}
+            >
+              {t("ui.ResearchPage.saved.save")}
+            </button>
           </div>
+          <label className="row gap" style={{ fontSize: 13, marginTop: 8 }}>
+            <input
+              type="checkbox"
+              checked={expand}
+              onChange={(e) => setExpand(e.target.checked)}
+              data-testid="research-expand"
+            />
+            {t("ui.ResearchPage.expand.label")}
+          </label>
+          {expandedQuery && (
+            <p className="muted" style={{ fontSize: 13 }} data-testid="research-expanded">
+              {t("ui.ResearchPage.expand.searched", { query: expandedQuery })}
+            </p>
+          )}
+          {saved.length > 0 && (
+            <div className="chip-row" role="group" aria-label={t("ui.ResearchPage.saved.title")} data-testid="research-saved">
+              <span className="field-label">{t("ui.ResearchPage.saved.title")}</span>
+              {saved.map((sq) => (
+                <span key={sq} className="type-chip">
+                  <button
+                    type="button"
+                    className="linkish"
+                    onClick={() => {
+                      setQ(sq);
+                      void runSearch(sq);
+                    }}
+                  >
+                    {sq}
+                  </button>{" "}
+                  <button
+                    type="button"
+                    className="btn-text"
+                    aria-label={t("ui.ResearchPage.saved.remove", { query: sq })}
+                    onClick={() => persistSaved(saved.filter((x) => x !== sq))}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           <ul className="doc-list">
             {filteredResults.map((r) => (
               <li key={r.id}>
@@ -327,7 +411,7 @@ export default function ResearchPage() {
           <button
             type="button"
             className="btn"
-            onClick={runChat}
+            onClick={() => void runChat()}
             disabled={busy}
             style={{ marginTop: 8 }}
           >
@@ -622,7 +706,7 @@ export default function ResearchPage() {
           </ul>
           <p style={{ marginTop: 12 }}>
             <Link
-              to={`/companies/${companyId}`}
+              to={`/companies/${deskCompanyId}`}
               style={{ color: "var(--accent)", fontWeight: 600 }}
             >
               {t("ui.ResearchPage.openEvidence")}
@@ -706,7 +790,7 @@ export default function ResearchPage() {
                         type="button"
                         className="linkish"
                         onClick={() => {
-                          setCompanyId(w.company_id);
+                          chooseCompany(w.company_id);
                           setTab("desk");
                         }}
                       >

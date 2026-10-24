@@ -43,45 +43,13 @@ def test_p22_radar_calendar():
     assert "windows" in body
 
 
-def test_p22_radar_digest_preview():
+def test_radar_digest_and_webhooks_moved_to_analyst():
     r = client.get("/api/radar/digest/preview")
-    assert r.status_code == 200
-    body = r.json()
-    assert "body" in body
-    assert "Not investment advice" in body["disclaimer"]
-
-
-def test_p22_radar_digest_send_disabled_by_default():
-    r = client.post(
-        "/api/radar/digest/send",
-        json={"to": "desk@example.com"},
-        headers=DEMO_KEY,
-    )
-    assert r.status_code == 200
-    assert r.json()["status"] == "disabled"
-
-
-def test_p22_radar_digest_send_when_enabled(monkeypatch):
-    from app.services import feature_flags
-
-    monkeypatch.setattr(feature_flags, "radar_digest_enabled", lambda: True)
-    r = client.post(
-        "/api/radar/digest/send",
-        json={"to": "desk@example.com"},
-        headers=DEMO_KEY,
-    )
-    assert r.status_code == 200
-    assert r.json()["status"] == "ok"
-
-
-def test_p23_radar_webhook_stub_disabled():
-    r = client.post(
-        "/api/radar/webhooks",
-        json={"url": "https://example.com/hook"},
-        headers=DEMO_KEY,
-    )
-    assert r.status_code == 200
-    assert r.json()["status"] == "disabled"
+    assert r.status_code == 410 and r.json()["moved_to"] == "/api/analyst/digest"
+    r = client.post("/api/radar/digest/send", json={"to": "desk@example.com"}, headers=DEMO_KEY)
+    assert r.status_code == 410 and r.json()["moved_to"] == "/api/analyst/digest"
+    r = client.post("/api/radar/webhooks", json={"url": "https://example.com/hook"}, headers=DEMO_KEY)
+    assert r.status_code == 410 and r.json()["moved_to"] == "/api/analyst/destinations"
 
 
 # --- P3 Ledger ---

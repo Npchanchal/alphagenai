@@ -6,15 +6,12 @@ sell-side broker PDFs or operate an expert-call marketplace.
 
 from __future__ import annotations
 
-import csv
-import io
 from collections import Counter, defaultdict
 from typing import Any, Dict, List, Optional
 
 from app.services import repository
 from app.services import research as research_svc
 from app.services.feature_flags import (
-    sights_agents_enabled,
     sights_deep_dive_enabled,
     sights_enabled,
     sights_grid_enabled,
@@ -32,25 +29,6 @@ _LEXICON: Dict[str, List[str]] = {
     "pat": ["net profit", "profit after tax", "bottom line"],
     "npa": ["asset quality", "slippages", "gnpa", "nnpa"],
     "aum": ["assets under management", "mf aum"],
-}
-
-_AGENT_TEMPLATES: Dict[str, Dict[str, str]] = {
-    "earnings_prep": {
-        "name": "Earnings prep",
-        "description": "Open promises + recent delivery labels for the name.",
-    },
-    "promise_brief": {
-        "name": "Promise brief",
-        "description": "Open guidance windows and historical hit rate.",
-    },
-    "peer_delivery": {
-        "name": "Peer delivery pack",
-        "description": "Sector peer GCI context next to the focus name.",
-    },
-    "ic_footnote": {
-        "name": "IC footnote pack",
-        "description": "Citeable outcome rows formatted for IC footnotes.",
-    },
 }
 
 _DISCLAIMER = (
@@ -97,45 +75,39 @@ def sights_meta() -> Dict[str, Any]:
         "product": "CiteAlpha Sights",
         "sku_id": "sights",
         "enabled": sights_enabled(),
-        "job": "India disclosure research OS — search, cite GenAI, grids, agents",
+        "job": "Compare disclosures across Indian listed companies — themes, street context, field evidence, grids, deep dives",
         "vertical": "India Equity Desk",
         "ui": [
             "/sights",
-            "/sights/search",
-            "/sights/ask",
-            "/sights/boards",
             "/sights/themes",
             "/sights/street",
             "/sights/field",
             "/sights/grid",
             "/sights/deep-dive",
             "/sights/fundamentals",
-            "/sights/agents",
-            "/sights/export",
             "/sights/settings",
         ],
         "flags": {
             "SIGHTS": sights_enabled(),
             "SIGHTS_DEEP_DIVE": sights_deep_dive_enabled(),
             "SIGHTS_GRID": sights_grid_enabled(),
-            "SIGHTS_AGENTS": sights_agents_enabled(),
             "SIGHTS_WEB_ASSIST": sights_web_assist_enabled(),
         },
         "brand_map": {
-            "search": "Sights Search",
-            "lexicon": "Business Lexicon",
             "themes": "Delivery Themes",
-            "ask": "Sights Ask",
             "deep_dive": "Deep Dive",
             "grid": "Compare Grid",
-            "agents": "Desk Agents",
-            "web_assist": "Web Assist",
             "street": "Street Context",
             "field": "Field Evidence",
             "fundamentals": "Fundamentals Strip",
-            "boards": "Sights Boards",
-            "export": "Cite Export",
-            "hooks": "Notify Hooks",
+        },
+        "moved": {
+            "search": "/research?scope=all",
+            "ask": "/research?tab=chat&scope=all",
+            "boards": "/research?tab=watch",
+            "agents": "/analyst",
+            "export": "/analyst",
+            "hooks": "/analyst",
         },
         "refuse": [
             "Unlicensed sell-side broker PDF corpus",
@@ -145,15 +117,11 @@ def sights_meta() -> Dict[str, Any]:
             "Claims of hundreds of millions of documents",
         ],
         "variants": {
-            "ask": "Sights Ask — cite-only Q&A (not competitor Generative Search naming)",
             "grid": "Compare Grid — prompt×company cite table (not competitor Generative Grid naming)",
             "street": "Street Context — public IR + licensed consensus (not broker PDF library)",
             "field": "Field Evidence — labeled outcomes + citations (not expert-call brokerage)",
             "themes": "Delivery Themes — met/miss/drop/pending (not sentiment OS)",
-            "lexicon": "Business Lexicon — India IR synonym expand",
             "deep_dive": "Deep Dive — multi-step cite synthesis",
-            "export": "Cite Export — MD/CSV/IC PDF (Office add-ins deferred)",
-            "hooks": "Notify Hooks — email/webhook (M365/Slack deferred)",
         },
         "content_model": (
             "Public IR + exchange filings + concalls + CiteAlpha labels + "
@@ -165,13 +133,13 @@ def sights_meta() -> Dict[str, Any]:
             "trust": "/trust",
             "sso_docs": "docs/OIDC.md",
             "billing": "/billing",
-            "package": "/package",
+            "package": "/products#plans",
             "desk_seats": "/desk",
         },
         "stretch": {
             "licensed_third_party": "Counsel-gated only; written redistribution rights required",
             "office_addins": "Deferred to S6 after pilot demand",
-            "slack_m365": "Deferred until MSA + OAuth app registration",
+            "slack_teams": "Delivered by CiteAlpha Analyst destinations (webhook, Slack, Teams)",
         },
         "disclaimer": _DISCLAIMER,
         "docs": "docs/customer/skus/SIGHTS.md",
@@ -192,6 +160,7 @@ def sights_search(
         expanded, company_id=company_id, doc_type=doc_type, limit=limit
     )
     result["product"] = "CiteAlpha Sights Search"
+    result["superseded_by"] = "/api/research/search?expand=true"
     result["lexicon_expanded"] = expanded != (query or "").strip()
     result["original_query"] = query
     result["expanded_query"] = expanded
@@ -210,6 +179,7 @@ def sights_ask(
     expanded = expand_query_lexicon(question)
     result = research_svc.research_chat(expanded, company_id=company_id)
     result["product"] = "CiteAlpha Sights Ask"
+    result["superseded_by"] = "/api/research/chat"
     result["lexicon_expanded"] = expanded != (question or "").strip()
     result["web_assist"] = {
         "requested": bool(web_assist),
@@ -516,202 +486,6 @@ def fundamentals_strip(company_id: str) -> Dict[str, Any]:
     }
 
 
-def list_agents() -> Dict[str, Any]:
-    if not sights_enabled():
-        return _refuse_disabled("Desk Agents")
-    return {
-        "product": "CiteAlpha Desk Agents",
-        "enabled": sights_agents_enabled(),
-        "templates": [
-            {"id": k, **v} for k, v in _AGENT_TEMPLATES.items()
-        ],
-        "disclaimer": _DISCLAIMER,
-    }
-
-
-def run_agent(template_id: str, *, company_id: str) -> Dict[str, Any]:
-    if not sights_enabled():
-        return _refuse_disabled("Desk Agents")
-    if not sights_agents_enabled():
-        return _refuse_disabled("SIGHTS_AGENTS")
-    if template_id not in _AGENT_TEMPLATES:
-        return {
-            "product": "CiteAlpha Desk Agents",
-            "refused": True,
-            "message": f"Unknown template: {template_id}",
-            "disclaimer": _DISCLAIMER,
-        }
-    detail = repository.get_company_gci(company_id)
-    brief = research_svc.promise_brief(company_id)
-    citations = []
-    try:
-        from app.services.citations import list_company_citations
-
-        citations = list_company_citations(company_id, citeable_only=True)[:8]
-    except Exception:
-        citations = []
-
-    if template_id == "earnings_prep":
-        body = (
-            f"Earnings prep for {detail.ticker}: GCI "
-            f"{'n/a' if detail.gci_score is None else detail.gci_score}. "
-            f"Open promises: {brief.get('open_count', len(brief.get('open_promises') or []))}. "
-            "See Field Evidence for labeled rows."
-        )
-    elif template_id == "promise_brief":
-        body = brief
-    elif template_id == "peer_delivery":
-        from app.data.seed import list_companies
-
-        peers = []
-        for c in list_companies():
-            if c.get("sector") == detail.sector and c["id"] != company_id:
-                try:
-                    d = repository.get_company_gci(c["id"])
-                    peers.append(
-                        {"ticker": d.ticker, "gci_score": d.gci_score, "id": c["id"]}
-                    )
-                except Exception:
-                    continue
-            if len(peers) >= 5:
-                break
-        body = {
-            "focus": {"ticker": detail.ticker, "gci_score": detail.gci_score},
-            "peers": peers,
-        }
-    else:  # ic_footnote
-        footnotes = []
-        for i, c in enumerate(citations, start=1):
-            footnotes.append(
-                c.get("ic_footnote")
-                or c.get("markdown")
-                or c.get("bibliographic")
-                or f"[{i}] {c.get('id', '')}"
-            )
-        body = {"footnotes": footnotes, "count": len(footnotes)}
-
-    return {
-        "product": "CiteAlpha Desk Agents",
-        "template_id": template_id,
-        "template": _AGENT_TEMPLATES[template_id],
-        "company_id": company_id,
-        "ticker": detail.ticker,
-        "body": body,
-        "citations": citations,
-        "refused": False,
-        "disclaimer": _DISCLAIMER,
-    }
-
-
-def notify_hooks_meta() -> Dict[str, Any]:
-    """Reuse Radar digest/webhook — email + webhook first."""
-    from app.services.feature_flags import radar_digest_enabled
-
-    return {
-        "product": "CiteAlpha Notify Hooks",
-        "channels": [
-            {
-                "id": "email_digest",
-                "path": "/api/radar/digest/preview",
-                "send": "/api/radar/digest/send",
-                "enabled": radar_digest_enabled(),
-                "flag": "RADAR_DIGEST",
-            },
-            {
-                "id": "webhook",
-                "path": "/api/radar/webhooks",
-                "enabled": True,
-                "note": "Registration stub; delivery gated with digest flag in ops",
-            },
-        ],
-        "deferred": ["m365", "slack", "salesforce"],
-        "disclaimer": _DISCLAIMER,
-    }
-
-
-def cite_export(
-    company_id: str,
-    *,
-    fmt: str = "markdown",
-) -> Dict[str, Any]:
-    """Cite Export — markdown / csv / structured payload (PDF via ledger)."""
-    if not sights_enabled():
-        return _refuse_disabled("Cite Export")
-    field = field_evidence(company_id)
-    fmt = (fmt or "markdown").lower()
-    if fmt not in ("markdown", "csv", "json"):
-        return {
-            "product": "CiteAlpha Cite Export",
-            "error": "format must be markdown, csv, or json",
-            "disclaimer": _DISCLAIMER,
-        }
-    outcomes = field.get("outcomes") or []
-    if fmt == "json":
-        return {
-            "product": "CiteAlpha Cite Export",
-            "format": "json",
-            "company_id": company_id,
-            "payload": field,
-            "pdf_hint": f"/api/ledger/{company_id}/pdf",
-            "disclaimer": _DISCLAIMER,
-        }
-    if fmt == "csv":
-        buf = io.StringIO()
-        w = csv.DictWriter(
-            buf,
-            fieldnames=[
-                "metric",
-                "period",
-                "label",
-                "guided_low",
-                "guided_high",
-                "actual",
-                "source_url",
-            ],
-            extrasaction="ignore",
-        )
-        w.writeheader()
-        for o in outcomes:
-            w.writerow(o)
-        return {
-            "product": "CiteAlpha Cite Export",
-            "format": "csv",
-            "company_id": company_id,
-            "content": buf.getvalue(),
-            "pdf_hint": f"/api/ledger/{company_id}/pdf",
-            "disclaimer": _DISCLAIMER,
-        }
-    # markdown
-    lines = [
-        f"# Cite Export — {field.get('ticker') or company_id}",
-        "",
-        _DISCLAIMER,
-        "",
-        f"GCI: {field.get('gci_score')}",
-        f"Data quality: {field.get('data_quality')}",
-        "",
-        "## Outcomes",
-        "",
-    ]
-    for o in outcomes:
-        lines.append(
-            f"- **{o.get('metric')}** ({o.get('period')}): {o.get('label')} "
-            f"guided {o.get('guided_low')}–{o.get('guided_high')} actual {o.get('actual')}"
-        )
-    lines.append("")
-    lines.append("## Citations")
-    for c in field.get("citations") or []:
-        lines.append(f"- {c.get('markdown') or c.get('bibliographic') or c.get('id')}")
-    return {
-        "product": "CiteAlpha Cite Export",
-        "format": "markdown",
-        "company_id": company_id,
-        "content": "\n".join(lines),
-        "pdf_hint": f"/api/ledger/{company_id}/pdf",
-        "disclaimer": _DISCLAIMER,
-    }
-
-
 def enterprise_links() -> Dict[str, Any]:
     from app.services.feature_flags import sso_enabled
 
@@ -720,7 +494,7 @@ def enterprise_links() -> Dict[str, Any]:
         "links": {
             "trust_center": "/trust",
             "billing": "/billing",
-            "package": "/package",
+            "package": "/products#plans",
             "desk": "/desk",
             "oidc_docs": "docs/OIDC.md",
         },

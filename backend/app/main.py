@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 import os
 
+from app.api.analyst_routes import router as analyst_router
+from app.api.connector_routes import router as connector_router
+from app.api.ninja_routes import router as ninja_router
 from app.api.routes import router
 from app.services.guest_lock import GuestWriteMiddleware
 from app.services.rate_limit import RateLimitMiddleware
@@ -38,6 +41,9 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(GuestWriteMiddleware)
 
 app.include_router(router)
+app.include_router(analyst_router)
+app.include_router(connector_router)
+app.include_router(ninja_router)
 
 # Public contract only (W8.5). Workbench, auth, billing, and ops routes stay
 # callable; they are omitted from /openapi.json so the published spec is the
@@ -122,3 +128,22 @@ def _restore_missing_orgs() -> None:
         from app.services import orgs
 
         orgs.restore_missing_orgs()
+
+
+@app.on_event("startup")
+def _ensure_protected_users() -> None:
+    import logging
+    import os
+
+    if os.environ.get("CITEALPHA_PROTECTED_USERS", "1").strip().lower() in ("0", "false", "no", "off"):
+        return
+    from app.services.protected_users import ensure_protected_users
+
+    try:
+        res = ensure_protected_users()
+        logging.getLogger(__name__).info(
+            "protected_users created=%d repaired=%d skipped=%d",
+            len(res["created"]), len(res["repaired"]), len(res["skipped"]),
+        )
+    except Exception as exc:  # noqa: BLE001 — a bad manifest must not stop the API
+        logging.getLogger(__name__).error("protected_users_failed err=%s", type(exc).__name__)

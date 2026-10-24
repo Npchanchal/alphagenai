@@ -1,8 +1,9 @@
 """Major markets → flagship indexes → top-1000 constituent scaffolding.
 
 India: one merged NSE + BSE equity master (`india_listings`). Every India index
-(SENSEX, NIFTY50, NIFTYBANK, NSE_ALL, BSE_ALL, IN1000) filters that single row
-set by membership tag. Other markets stay market_scaffold pads.
+(SENSEX, NIFTY50, NIFTYBANK, NIFTY500, NSE_ALL, BSE_ALL, IN1000) filters that
+single row set by membership tag. US: the S&P 500 master (`us_listings`) when the
+file is present. Other markets stay market_scaffold pads.
 """
 
 from __future__ import annotations
@@ -36,10 +37,11 @@ INDEXES: List[Dict[str, Any]] = [
     {"id": "SENSEX", "market_id": "IN", "name": "BSE Sensex", "ticker": "SENSEX"},
     {"id": "NIFTY50", "market_id": "IN", "name": "Nifty 50", "ticker": "NIFTY"},
     {"id": "NIFTYBANK", "market_id": "IN", "name": "Nifty Bank", "ticker": "BANKNIFTY"},
+    {"id": "NIFTY500", "market_id": "IN", "name": "Nifty 500", "ticker": "NIFTY500"},
     {"id": "NSE_ALL", "market_id": "IN", "name": "NSE Equities (all)", "ticker": "NSE"},
     {"id": "BSE_ALL", "market_id": "IN", "name": "BSE Equities (all)", "ticker": "BSE"},
     {"id": "IN1000", "market_id": "IN", "name": "India Top 1000", "ticker": "IN1000"},
-    {"id": "SPX", "market_id": "US", "name": "S&P 500 / US Top 1000", "ticker": "SPX"},
+    {"id": "SPX", "market_id": "US", "name": "S&P 500", "ticker": "SPX"},
     {"id": "DJI", "market_id": "US", "name": "Dow Jones Industrial Average", "ticker": "DJI"},
     {"id": "NDX", "market_id": "US", "name": "Nasdaq-100", "ticker": "NDX"},
     {"id": "FTSE100", "market_id": "GB", "name": "FTSE / UK Top 1000", "ticker": "UKX"},
@@ -226,10 +228,23 @@ def _index_ids_for(market_id: str, rank: int, sector: str) -> List[str]:
     return ids
 
 
+def _with_anchor_tags(listed: Tuple[StockRow, ...]) -> Tuple[StockRow, ...]:
+    """Real listing rows; secondary index tags come only from the named anchors."""
+    tags = {a["id"]: a.get("index_ids") or [] for a in _ANCHORS}
+    out = []
+    for row in listed:
+        ids = list(row.get("index_ids") or [])
+        for ix in tags.get(row["id"], []):
+            if ix not in ids:
+                ids.append(ix)
+        out.append({**row, "index_ids": ids})
+    return tuple(out)
+
+
 @lru_cache(maxsize=16)
 def _market_universe(market_id: str) -> Tuple[Dict[str, Any], ...]:
     mid = market_id.upper()
-    if get_market(mid) is None:
+    if not any(x["id"] == mid for x in MARKETS):
         return tuple()
 
     # India uses exchange equity masters (NSE + BSE), not synthetic Constituent pads
@@ -237,6 +252,13 @@ def _market_universe(market_id: str) -> Tuple[Dict[str, Any], ...]:
         from app.data.india_listings import india_equity_universe
 
         return india_equity_universe()
+
+    if mid == "US":
+        from app.data.us_listings import us_equity_universe
+
+        listed = us_equity_universe()
+        if listed:
+            return _with_anchor_tags(listed)
 
     rows: List[StockRow] = []
     seen: set = set()
@@ -282,18 +304,21 @@ def _market_universe(market_id: str) -> Tuple[Dict[str, Any], ...]:
     return tuple(rows)
 
 
+def _universe_size(market_id: str) -> int:
+    if market_id == "IN":
+        from app.data.india_listings import listing_counts
+
+        return listing_counts()["merged"]
+    return len(_market_universe(market_id)) or MARKET_TOP_N
+
+
 def list_markets() -> List[Dict[str, Any]]:
     out = []
     for m in MARKETS:
-        size = MARKET_TOP_N
-        if m["id"] == "IN":
-            from app.data.india_listings import listing_counts
-
-            size = listing_counts()["merged"]
         out.append(
             {
                 **m,
-                "universe_size": size,
+                "universe_size": _universe_size(m["id"]),
                 "primary_index": _PRIMARY_INDEX[m["id"]],
             }
         )
@@ -305,12 +330,7 @@ def get_market(market_id: str) -> Optional[Dict[str, Any]]:
     m = next((dict(x) for x in MARKETS if x["id"] == mid), None)
     if m is None:
         return None
-    if mid == "IN":
-        from app.data.india_listings import listing_counts
-
-        m["universe_size"] = listing_counts()["merged"]
-    else:
-        m["universe_size"] = MARKET_TOP_N
+    m["universe_size"] = _universe_size(mid)
     m["primary_index"] = _PRIMARY_INDEX[mid]
     return m
 

@@ -40,6 +40,36 @@ def _mid(o: GuidanceOutcome) -> float:
     return float(o.guided_value)
 
 
+def _event_detail(kind: str, o: GuidanceOutcome, prev: Optional[GuidanceOutcome] = None) -> str:
+    """One plain sentence per timeline event, with display names and units."""
+    from app.services.gci_scoring import metric_direction
+    from app.services.guidance_profile import guided_text, metric_phrase, value_text
+
+    name = metric_phrase(o.metric, start=True)
+    guide = guided_text(o)
+    if kind == "withdrawn":
+        return f"{name} guidance for {o.period} was withdrawn."
+    if kind == "restatement":
+        return f"{name} for {o.period}: the filing refers to a restatement."
+    if kind.startswith("resolved_") and o.actual_value is not None:
+        actual = value_text(o.metric, o.actual_value)
+        direction = metric_direction(o.metric)
+        if kind == "resolved_met":
+            side = "within"
+        elif kind == "resolved_exceeded":
+            side = "below" if direction == "lower" else "above"
+        else:
+            side = {"lower": "above", "two_sided": "outside"}.get(direction, "below")
+        return f"{name} for {o.period} came in at {actual}, {side} guidance of {guide}."
+    if prev is not None and prev.period != o.period and kind in ("revised_up", "revised_down", "reiterated"):
+        return f"{name} guided at {guide} for {o.period}, against {guided_text(prev)} for {prev.period}."
+    if kind in ("revised_up", "revised_down") and prev is not None:
+        return f"{name} guidance for {o.period} moved from {guided_text(prev)} to {guide}."
+    if kind == "reiterated":
+        return f"{name} guidance for {o.period} repeated at {guide}."
+    return f"{name} guided at {guide} for {o.period}."
+
+
 def _text_blob(o: GuidanceOutcome) -> str:
     return f"{o.source_ref or ''} {o.guided_text or ''} {o.quote_span or ''}".lower()
 
@@ -283,9 +313,8 @@ def audit_summary(
         "deduction": round(float(deduction), 1),
         "badges": badges,
         "note": (
-            "Audit deductions apply only when the flag is stored with a source. "
-            "Keyword matches do not move GCI. "
-            "Not a forensic accruals or Beneish engine."
+            "A deduction applies only when an analyst records the flag with a source filing. "
+            "Keyword matches never move the GCI."
         ),
     }
 
@@ -350,30 +379,19 @@ def revision_timeline(
         for o in ordered:
             label = classify_outcome(o).value
             kind = "stated"
-            detail = f"Stated {o.metric} band mid {_mid(o):.1f}"
             if prev is not None:
                 d = _mid(o) - _mid(prev)
                 if abs(d) >= 0.5:
                     kind = "revised_up" if d > 0 else "revised_down"
-                    detail = (
-                        f"Revised {o.metric} {_mid(prev):.1f} → {_mid(o):.1f} "
-                        f"({'+' if d > 0 else ''}{d:.1f})"
-                    )
                 else:
                     kind = "reiterated"
-                    detail = f"Reiterated {o.metric} near {_mid(o):.1f}"
             if o.dropped or label == "dropped":
                 kind = "withdrawn"
-                detail = f"Withdrew / dropped {o.metric} guidance ({o.period})"
             elif label in ("met", "exceeded", "missed") and o.actual_value is not None:
                 kind = f"resolved_{label}"
-                detail = (
-                    f"{label.title()} {o.metric}: guided ~{_mid(o):.1f}, "
-                    f"actual {o.actual_value}"
-                )
             if "restat" in _text_blob(o):
                 kind = "restatement"
-                detail = f"Restatement signal on {o.metric} ({o.period})"
+            detail = _event_detail(kind, o, prev)
 
             severity = "low"
             if kind in ("withdrawn", "restatement", "resolved_missed"):
@@ -420,7 +438,7 @@ def revision_timeline(
                 "thread_id": None,
                 "kind": kind,
                 "label": label,
-                "detail": f"{kind.replace('_', ' ').title()} — {o.metric} {o.period}",
+                "detail": _event_detail(kind, o),
                 "guided_value": o.guided_value,
                 "guided_low": o.guided_low,
                 "guided_high": o.guided_high,
@@ -455,9 +473,7 @@ def company_red_alerts(
                 "company_id": company_id,
                 "ticker": ticker,
                 "kind": b["flag"],
-                "message": (
-                    f"{ticker}: {b['label']} (−{b['points']:.0f} GCI pts audit)"
-                ),
+                "message": f"{b['label']}, {b['points']:.0f} points deducted from the GCI.",
                 "severity": b["severity"],
                 "audit_flag": b["flag"],
                 "deduction_pts": b["points"],
@@ -471,7 +487,7 @@ def company_red_alerts(
                     "company_id": company_id,
                     "ticker": ticker,
                     "kind": "large_miss",
-                    "message": f"{ticker} missed {o.metric} for {o.period}",
+                    "message": _event_detail("resolved_missed", o),
                     "severity": "high",
                     "period": o.period,
                     "metric": o.metric,
@@ -484,7 +500,7 @@ def company_red_alerts(
                     "company_id": company_id,
                     "ticker": ticker,
                     "kind": "guidance_dropped",
-                    "message": f"{ticker} dropped {o.metric} ({o.period})",
+                    "message": _event_detail("withdrawn", o),
                     "severity": "high",
                     "period": o.period,
                     "metric": o.metric,

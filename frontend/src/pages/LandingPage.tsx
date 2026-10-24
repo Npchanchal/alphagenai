@@ -145,7 +145,7 @@ export default function LandingPage() {
         <PilotRequestForm source="landing" />
         <p className="muted" style={{ marginTop: "1rem" }}>
           <Link
-            to="/package"
+            to="/products#plans"
             onClick={() => trackEvent("pilot_cta", { source: "landing", type: "package" })}
           >
             {t("landing.viewPackages")}

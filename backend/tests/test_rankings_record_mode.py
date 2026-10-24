@@ -18,7 +18,7 @@ def test_snapshot_record_mode_while_under_threshold():
     assert body["bottom"] == []
     assert body["records"]
     infy = next(r for r in body["records"] if r["company_id"] == "infy")
-    assert infy["confidence_tier"] == "provisional"
+    assert infy["confidence_tier"] == "deep"
     assert infy["met"] + infy["exceeded"] + infy["missed"] >= 1
     md = gci_rankings(index="NIFTY50")
     from app.services.gci_rankings import rankings_markdown

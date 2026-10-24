@@ -321,13 +321,30 @@ function buildSitemap(staticRoutes, posts, dossiers = []) {
   return `${lines.join("\n")}\n`;
 }
 
-function dossierBodyHtml(d, esc) {
+function dossierBodyHtml(d, escFn) {
+  const ticker = d.ticker ? ` (${escFn(d.ticker)})` : "";
   return `<main>
-      <h1>${esc(d.name)} — Guidance Credibility Index (GCI)</h1>
-      <p class="seo-speakable">${esc(d.description)}</p>
-      <p><a href="${SITE}/companies/${esc(d.id)}">Open the full evidence trail</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/methodology">Methodology</a></p>
+      <h1>${escFn(d.name)}${ticker} — Guidance Credibility Index (GCI)</h1>
+      <p class="seo-speakable">${escFn(d.description)}</p>
+      <p>${escFn(d.name)}${ticker} on the CiteAlpha Guidance Credibility Index. ${escFn(d.record_sentence || d.description)}</p>
+      <p><a href="${SITE}/companies/${escFn(d.id)}">Open the full evidence trail</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/methodology">Methodology</a> · <a href="${SITE}/changelog">Score changelog</a></p>
       <p>Not investment advice.</p>
     </main>`;
+}
+
+function dossierLinkList(rows) {
+  const items = rows
+    .map(
+      (d) =>
+        `<li><a href="${SITE}${esc(d.path)}">${esc(d.name)}${d.ticker ? ` (${esc(d.ticker)})` : ""}</a></li>`,
+    )
+    .join("\n        ");
+  return `<section>
+      <h2>Company dossiers</h2>
+      <ul>
+        ${items}
+      </ul>
+    </section>`;
 }
 
 async function loadDossiers() {
@@ -381,6 +398,9 @@ for (const route of staticRoutes) {
     esc,
   });
   if (marketingBody) seo.bodyHtml = marketingBody;
+  if ((route.path === "/tracker" || route.path === "/rankings") && dossiers.length) {
+    seo.bodyHtml = `${seo.bodyHtml || ""}\n${dossierLinkList(dossiers)}`;
+  }
   seo.extraJsonLd = extraJsonLdForPath(route.path, STRUCTURED, route.title);
   writeRoute(seo, baseHtml);
   if (!((route.robots ?? "index,follow").includes("noindex"))) {
@@ -478,10 +498,14 @@ for (const d of dossiers) {
   });
   shell = shell.replace(/<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi, "");
   shell = shell.replace(/<script\b[^>]*id="seo-prerender-jsonld[^"]*"[^>]*>[\s\S]*?<\/script>/gi, "");
-  shell = shell.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, `<link rel="canonical" href="${SITE}/" />`);
-  shell = shell.replace(/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${SITE}/" />`);
+  // Unknown URLs are noindex. A canonical to the homepage would pass that noindex onto the page answer engines should index.
+  shell = shell.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/g, "");
+  shell = shell.replace(/\s*<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/g, "");
   if (!/name="robots" content="noindex/.test(shell)) {
     shell = shell.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/, '<meta name="robots" content="noindex,follow" />');
+  }
+  if (/rel="canonical"|property="og:url"/.test(shell)) {
+    throw new Error("app-shell must not declare a canonical URL");
   }
   fs.writeFileSync(path.join(DIST, "app-shell.html"), shell);
   console.log("prerender /app-shell -> app-shell.html");

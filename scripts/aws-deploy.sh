@@ -98,7 +98,10 @@ _load_tf_env() {
         [[ -z "${TF_VAR_auth_sqlite_path:-}" ]] && export TF_VAR_auth_sqlite_path="$val"
         ;;
       SMTP_HOST)
-        [[ -z "${TF_VAR_smtp_host:-}" ]] && export TF_VAR_smtp_host="$val"
+        # Mailtrap in .env is the local inbox. The AWS task uses SES instead.
+        if [[ "${DEPLOY_USE_SES:-}" != "1" && "$val" != *mailtrap* && -z "${TF_VAR_smtp_host:-}" ]]; then
+          export TF_VAR_smtp_host="$val"
+        fi
         ;;
       SMTP_PORT)
         [[ -z "${TF_VAR_smtp_port:-}" ]] && export TF_VAR_smtp_port="$val"
@@ -156,7 +159,7 @@ if [[ -n "${TF_VAR_alphahunter_api_url:-}" ]]; then
   echo "== AlphaHunter live URL detected =="
 fi
 if [[ "${TF_VAR_radar_digest:-}" == "true" ]]; then
-  echo "== RADAR_DIGEST=1 (Radar email/webhook digests) =="
+  echo "== RADAR_DIGEST=1 (no effect: digests and webhooks moved to CiteAlpha Analyst) =="
 fi
 if [[ "${TF_VAR_ir_mirror:-}" == "true" ]]; then
   echo "== IR_MIRROR=1 (IR Mirror ledger) =="
@@ -171,6 +174,8 @@ if [[ "${TF_VAR_use_db_auth:-true}" == "true" ]]; then
 fi
 if [[ -n "${TF_VAR_smtp_host:-}" ]]; then
   echo "== SMTP configured (${TF_VAR_smtp_host}:${TF_VAR_smtp_port:-587}) =="
+elif [[ "${DEPLOY_USE_SES:-}" == "1" || "${TF_VAR_smtp_host:-}" == "" ]]; then
+  echo "== SES mail — Mailtrap in .env is not copied onto the task =="
 else
   echo "== No SMTP — verify/reset mail stays stubbed =="
 fi

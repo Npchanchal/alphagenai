@@ -1,6 +1,9 @@
 """CLI: python -m app.jobs.classify_india_coverage [--cohort nifty50] [--limit N]
 
-Walks a cohort, optionally ingesting/extracting, and stamps coverage_status.
+    python -m app.jobs.classify_india_coverage --live --company tcs infy
+
+Walks a cohort (or named companies), optionally ingesting/extracting, and stamps
+coverage_status. With --live, filings since 2022 are read and promises matched to results.
 """
 
 from __future__ import annotations
@@ -10,12 +13,14 @@ import json
 import sys
 from typing import Optional
 
-from app.services.india_coverage import roll_cohort, universe_coverage
+from app.services import disclosures
+from app.services.india_coverage import COHORTS, roll_cohort, universe_coverage
 
 
 def main(argv: Optional[list] = None) -> int:
     p = argparse.ArgumentParser(description="Classify India listing GCI coverage")
-    p.add_argument("--cohort", default="nifty50", choices=["nifty50", "in1000", "nse_all", "bse_only", "all"])
+    p.add_argument("--cohort", default="nifty50", choices=[*COHORTS, "all"])
+    p.add_argument("--company", nargs="*", default=None, help="Listing ids; overrides --cohort")
     p.add_argument("--limit", type=int, default=None)
     p.add_argument("--live", action="store_true")
     p.add_argument("--no-extract", action="store_true")
@@ -31,7 +36,13 @@ def main(argv: Optional[list] = None) -> int:
         live=args.live,
         extract=not args.no_extract,
         discover=args.live and not args.no_discover,
+        company_ids=args.company or None,
     )
+    if args.live:
+        report["ledger_rows"] = disclosures.log_moves(
+            [r["company_id"] for r in report.get("results") or []],
+            lead="Filing walk read exchange filings since 2022 and matched promises to reported results.",
+        )
     slim = {k: v for k, v in report.items() if k != "results"}
     print(json.dumps(slim, indent=2))
     return 0

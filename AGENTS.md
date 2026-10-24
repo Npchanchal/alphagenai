@@ -15,10 +15,13 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks und
 5. Prefer small, tested changes; never invent financial actuals **or score history**.
 6. Any change that moves a published GCI follows `citealpha-index-integrity` (ledger + changelog).
 7. Public copy is for domain experts: rule `public-copy-voice`; canonical names GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer · Public Snapshot.
+8. Do not duplicate a shipped owner or refetch a stored source. Rules `reuse-before-add` and `source-once`; skill `citealpha-reuse-sources`; map `docs/kb/19-reuse-and-source-once.md`.
 
 ## Current programme
 
 `docs/PLAN_WORLDCLASS_GCI.md` — Round-3 review remediation (findings `R3-nn`, workstreams `W1–W9`, gates G-A…G-E). Execute with skill `citealpha-worldclass-remediation`.
+
+`docs/PLAN_WHITESPACE.md` — India guidance extract, match vs actuals, and the ranked index (WS0–WS4). Extend `disclosures.py`. Execute on request with `citealpha-gci-dev`.
 
 ## Specialist agents
 

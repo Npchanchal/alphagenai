@@ -1,0 +1,30 @@
+{
+  "note": "Standing team accounts, re-created on every API start (services/protected_users.py). Password hashes only (PBKDF2-SHA256, 120000 iterations); never commit plain-text passwords.",
+  "org": {
+    "id": "citealpha-team",
+    "name": "CiteAlpha Team",
+    "plan": "desk",
+    "account_type": "b2b"
+  },
+  "universe": {"version": 1, "default_market": "IN", "default_index": "SENSEX"},
+  "users": [
+    {"email": "owner.team@citealpha.com", "name": "Team Owner", "role": "owner",
+     "password_salt": "c92538c09f7c2165aba17be4fcac0d17",
+     "password_hash": "1d6243703e855eea26c2f99a618c87bb9c78d03a45408434d0dd8305751e2019"},
+    {"email": "admin.team@citealpha.com", "name": "Team Admin", "role": "admin", "platform_admin_role": "super",
+     "password_salt": "c35c23f86421ca64646687aa477c8258",
+     "password_hash": "43aacc055e60711bbc96d9e6e460c6bc6513ef7111f5adf163c46fde93eaf508"},
+    {"email": "reviewer.team@citealpha.com", "name": "Team Reviewer", "role": "reviewer",
+     "password_salt": "04568ec59be8bcff5637fcbc31941463",
+     "password_hash": "084c095d7af1a2a301ceab80c98032d80933371ea9ffabf3618989bc623324f6"},
+    {"email": "analyst.team@citealpha.com", "name": "Team Analyst", "role": "analyst",
+     "password_salt": "4f0c7eb3f25718d3610c197326551013",
+     "password_hash": "d8f7c2b7c4430e9eda4a2350f60c452489ace89d5d970459b1238f50906ed3c1"},
+    {"email": "labeler.team@citealpha.com", "name": "Team Labeler", "role": "labeler",
+     "password_salt": "f011cc25b54947a269a4816b1172f8cc",
+     "password_hash": "7714376e917e135896874644cbb0b6cd832e5895704c4745ab9fdb0650b78bb3"},
+    {"email": "viewer.team@citealpha.com", "name": "Team Viewer", "role": "viewer",
+     "password_salt": "af2d38d84b10387195652528ea299b63",
+     "password_hash": "5898bdaf0b1cd0bf19aa360941bc41e7eeef912babc64f985ee80bb96159fcda"}
+  ]
+}

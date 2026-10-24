@@ -1,7 +1,7 @@
 """Priority walk of NSE/BSE listings: ingest → extract → classify.
 
 Order: flagship (Sensex ∪ Nifty 50 ∪ Nifty Bank ∪ seeded deep names) → rest of
-India Top 1000 → rest of NSE → BSE-only. Cohorts are disjoint slices of the one
+Nifty 500 → rest of India Top 1000 → rest of NSE → BSE-only. Cohorts are disjoint slices of the one
 listing master, so a scrip in several indexes is walked once. A lookback without
 a metric+number promise stamps ``no_quantified_guidance``. Unsearched names stay
 ``listed_only``.
@@ -29,16 +29,18 @@ from app.services.coverage import (
 from app.services.exchange_filings import (
     GUIDANCE_DOC_TYPES,
     budget_remaining,
+    discovery_since,
     ingest_company_urls,
 )
+from app.services import disclosures
 from app.services.extract_pipeline import (
     _accepted_docs,
-    extract_company,
+    ensure_company_record,
     llm_budget_used,
     maybe_promote_extracted,
 )
 
-COHORTS = ("nifty50", "in1000", "nse_all", "bse_only")
+COHORTS = ("nifty50", "nifty500", "in1000", "nse_all", "bse_only")
 
 _FLAGSHIP_INDEXES = frozenset({"SENSEX", "NIFTY50", "NIFTYBANK"})
 
@@ -47,6 +49,8 @@ def _cohort_of(row: Dict[str, Any], deep_ids: frozenset) -> str:
     ix = set(row.get("index_ids") or [])
     if row["id"] in deep_ids or ix & _FLAGSHIP_INDEXES:
         return "nifty50"
+    if "NIFTY500" in ix:
+        return "nifty500"
     if "IN1000" in ix:
         return "in1000"
     if "NSE_ALL" in ix:
@@ -64,12 +68,15 @@ def cohort_partition() -> Dict[str, List[str]]:
 
 
 def cohort_ids(cohort: str) -> List[str]:
+    """One cohort, ``all``, or a comma list such as ``nifty50,nifty500``."""
     parts = cohort_partition()
     if cohort == "all":
         return [cid for name in COHORTS for cid in parts[name]]
-    if cohort not in parts:
+    names = [c.strip() for c in cohort.split(",") if c.strip()]
+    unknown = [c for c in names if c not in parts]
+    if unknown or not names:
         raise ValueError(f"unknown cohort: {cohort}")
-    return parts[cohort]
+    return [cid for name in names for cid in parts[name]]
 
 
 def _has_rows(company_id: str) -> bool:
@@ -143,12 +150,26 @@ def process_company(
     )
     fetched = any(r.get("ok") for r in ingest.get("results") or [])
     has_docs = fetched or bool(_accepted_docs(company_id))
-    extracted = extract_company(company_id) if (extract and has_docs) else {}
+    extracted: Dict[str, Any] = {}
+    if extract and has_docs:
+        if disclosures.enabled():
+            company = ensure_company_record(company_id) or {}
+            extracted = disclosures.process_company(
+                company_id, market_id="IN", company_name=str(company.get("name") or company_id)
+            )
+        else:
+            # Paused or unconfigured: leave the filings unread. The shell extractor
+            # does not match a later actual, so it is not a second writer.
+            extracted = {"budget_out": True, "model_unavailable": True}
     if has_docs:
         maybe_promote_extracted(company_id)
-    # A lookback is complete only when a con-call or presentation filing was searched.
+    # A lookback is complete only when a con-call or presentation filing was searched
+    # and every chunk of it was read.
+    read_all = not extracted.get("budget_out") and not extracted.get("failed")
     status = (
-        classify_company(company_id, lookback_complete=_has_exchange_filing(company_id))
+        classify_company(
+            company_id, lookback_complete=_has_exchange_filing(company_id) and read_all
+        )
         if classify
         else published_status(company_id)
     )
@@ -215,7 +236,14 @@ def roll_daily(
     seen = load_coverage().get("companies") or {}
     ids = _nse_ids(cohort)
     order = {cid: i for i, cid in enumerate(ids)}
-    ids.sort(key=lambda cid: (str((seen.get(cid) or {}).get("last_discovery") or ""), order[cid]))
+    since = discovery_since()
+
+    def walk_key(cid: str) -> tuple:
+        row = seen.get(cid) or {}
+        reached = str(row.get("lookback_since") or "9999") <= since
+        return (reached, str(row.get("last_discovery") or ""), order[cid])
+
+    ids.sort(key=walk_key)
     processed: List[Dict[str, Any]] = []
     stopped = "walked_all"
     _PROGRESS.update(
@@ -231,9 +259,10 @@ def roll_daily(
                 stopped = "daily_budget"
                 break
             _PROGRESS.update(current=cid, current_started_at=_now())
-            calls_before = llm_budget_used()
             out = process_company(cid, live=True, extract=extract, discover=True)
-            note_discovery(cid)
+            read = out.get("extract") or {}
+            budget_out = bool(read.get("budget_out"))
+            note_discovery(cid, since=None if budget_out or read.get("failed") else since)
             row = {
                 "company_id": cid,
                 "coverage_status": out["coverage_status"],
@@ -242,13 +271,17 @@ def roll_daily(
                 ),
             }
             processed.append(row)
-            step = {**row, "llm_calls": llm_budget_used() - calls_before, "finished_at": _now()}
+            step = {**row, "llm_calls": int(read.get("llm_calls") or 0), "finished_at": _now()}
             _PROGRESS["done"] = len(processed)
             _PROGRESS["recent"] = ([step] + _PROGRESS["recent"])[:10]
             print(json.dumps({"india_coverage_step": {**step, "n": len(processed), "of": len(ids)}}), flush=True)
     finally:
         _PROGRESS.update(running=False, current=None, current_started_at=None, finished_at=_now(),
                          stopped=stopped)
+    ledger_rows = disclosures.log_moves(
+        [p["company_id"] for p in processed],
+        lead="Filing walk read exchange filings since 2022 and matched promises to reported results.",
+    )
     counts = coverage_counts([p["company_id"] for p in processed])
     return {
         "ok": True,
@@ -256,6 +289,7 @@ def roll_daily(
         "processed": len(processed),
         "new_filings": sum(p["new_filings"] for p in processed),
         "stopped": stopped,
+        "ledger_rows": ledger_rows,
         "coverage": counts,
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "results": processed,

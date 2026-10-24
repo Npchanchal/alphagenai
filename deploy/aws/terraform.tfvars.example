@@ -52,9 +52,10 @@ app_desired_count  = 1
 # ARM64 (Graviton) is ~44% cheaper than X86_64 in ap-south-1; Fargate Spot is x86-only.
 # cpu_architecture = "ARM64"
 # intellens_api_key / intellens_abuse_secret via .env → TF_VAR_* (Secrets Manager)
-# pilot_request_to = "sales@citealpha.com"
+# pilot_request_to = "sales@citealpha.com,contact@ocotilloinnovation.com"
+# enable_ses = true   # domain identity + DKIM; task sends when smtp_host is empty
 
-# SMTP (Mailtrap for staging; Hostinger/SES for prod)
+# SMTP (Mailtrap for staging). Leave smtp_host empty in prod so the task uses SES.
 # smtp_host  = "smtp.mailtrap.io"
 # smtp_port  = "2525"
 # smtp_from  = "CiteAlpha <no-reply@citealpha.com>"

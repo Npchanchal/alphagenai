@@ -82,3 +82,4 @@ Filings/data  →  Sentiment/notes  →  Guidance extract  →  Match vs actuals
 - [Product definition](PRODUCT_DEFINITION.md)
 - [Regional markets](REGIONAL_MARKETS.md)
 - [Accuracy assessment](ACCURACY_ASSESSMENT.md)
+- [Whitespace implementation plan](PLAN_WHITESPACE.md)

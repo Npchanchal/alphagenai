@@ -28,6 +28,10 @@ def lookup_api_key(x_api_key: str) -> Optional[Dict[str, Any]]:
     env_row = _env_admin_key_row()
     if env_row and x_api_key == env_row["key"]:
         return env_row
+    if x_api_key.startswith("ca_live_"):
+        from app.services.agent.org_keys import lookup
+
+        return lookup(x_api_key)
     for row in get_data().get("api_keys", []):
         if row["key"] == x_api_key:
             if env_row and row.get("platform_admin_role"):
@@ -40,6 +44,8 @@ def resolve_api_key(x_api_key: Optional[str] = Header(default=None)) -> Dict[str
     if not x_api_key:
         raise HTTPException(status_code=401, detail="Missing X-API-Key header")
     row = lookup_api_key(x_api_key)
+    if row and row.get("org_key"):
+        raise HTTPException(status_code=403, detail="Organisation API keys work on /api/v1/analyst and /api/mcp only")
     if row:
         return row
     raise HTTPException(status_code=403, detail="Invalid API key")

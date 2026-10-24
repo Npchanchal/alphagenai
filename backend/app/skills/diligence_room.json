@@ -1,0 +1,15 @@
+{
+  "id": "diligence_room",
+  "version": "1.0.0",
+  "title": "Diligence Room",
+  "audience": "Deal, credit and buy-side teams working from a data room",
+  "description": "Checks figures and forward-looking statements in your uploaded files against the company's public filings, and lists the standard data-room items the uploads do not cover. Run inside a Project.",
+  "inputs": ["company_id", "project_id"],
+  "requires_project": true,
+  "sections": [
+    {"id": "claims", "title": "Your files against public filings", "builder": "diligence_claims", "args": {"limit": 8}},
+    {"id": "coverage", "title": "Data-room coverage", "builder": "diligence_gaps"},
+    {"id": "record", "title": "Delivery record from public filings", "builder": "delivery_record"}
+  ],
+  "disproof": {"queries": ["litigation contingent liability", "default delay restructuring"]}
+}

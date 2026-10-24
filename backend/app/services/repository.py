@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -19,7 +20,7 @@ from app.models.schemas import (
 )
 from app.services.changes import change_bundle, enrich_metric_rows, enrich_value_series
 from app.services.citations import enrich_outcome_citation
-from app.services.coverage import coverage_status_for
+from app.services.coverage import coverage_reason, coverage_status_for
 from app.services.score_policy import NOT_SCORED_STATUS, is_scoreable, publishable_score
 from app.services.gci_scoring import (
     classify_outcome,
@@ -45,8 +46,11 @@ def _to_view(
     guided_change_pct=None,
     guided_change_horizon=None,
 ) -> OutcomeView:
+    from app.data import doc_store
+
     score = outcome_score(o) if is_scoreable(data_quality) else None
     cite = enrich_outcome_citation(o, company_id=company_id, data_quality=data_quality)
+    doc = doc_store.document_meta(cite["doc_id"]) or {}
     final = final_band(o)
     final_lbl = final_band_label(o) if o.actual_value is not None else None
     return OutcomeView(
@@ -89,7 +93,26 @@ def _to_view(
         span_end=cite.get("span_end"),
         reviewed_by=o.reviewed_by,
         reviewed_at=o.reviewed_at,
+        reporting_basis=o.reporting_basis,
+        actual_reporting_basis=o.actual_reporting_basis,
+        unit=o.unit,
+        actual_unit=o.actual_unit,
+        scope=o.scope,
+        actual_scope=o.actual_scope,
+        evidence_hashes={
+            "guidance_quote_sha256": _sha256(o.guidance_quote),
+            "quote_sha256": _sha256(cite["quote_span"]),
+            "doc_sha256": doc.get("content_hash"),
+            "doc_ingested_at": doc.get("ingested_at"),
+        },
     )
+
+
+def _sha256(text: Optional[str]) -> Optional[str]:
+    """Same convention as Analyst citations: SHA-256 of the exact quote, UTF-8."""
+    if not text:
+        return None
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def _outcome_change_map(outcomes) -> Dict[Tuple[str, str], Dict[str, Any]]:
@@ -219,6 +242,7 @@ def list_company_summaries(
     if not mid and not iid:
         from app.data.gci_score_cache import load_cache
         from app.data.india_listings import find_listing
+        from app.data.us_listings import find_us_listing
 
         cache_scores = load_cache().get("scores") or {}
         stats = _sector_stats()
@@ -272,8 +296,8 @@ def list_company_summaries(
                     sector_avg_gci=avg,
                     gci_change_pct=ch_pct,
                     gci_change_horizon=ch_h,
-                    market_id="IN",
-                    index_ids=(find_listing(c["id"]) or {}).get("index_ids"),
+                    market_id=c.get("market_id") or "IN",
+                    index_ids=(find_listing(c["id"]) or find_us_listing(c["id"]) or {}).get("index_ids"),
                     confidence_tier=meta["confidence_tier"],
                     closed_periods=meta["closed_periods"],
                     metrics_scored=meta["metrics_scored"],
@@ -290,7 +314,7 @@ def list_company_summaries(
             rows = rows[offset:]
         if limit is not None and limit > 0:
             rows = rows[:limit]
-        return rows
+        return _with_reasons(rows)
 
     stock_rows = (
         markets_data.constituents_readonly(iid)
@@ -412,6 +436,13 @@ def list_company_summaries(
                 or coverage_status_for(cid, score=score, data_quality=quality),
             )
         )
+    return _with_reasons(rows)
+
+
+def _with_reasons(rows: List[CompanySummary]) -> List[CompanySummary]:
+    for r in rows:
+        if r.gci_score is None:
+            r.coverage_reason = coverage_reason(r.id, r.coverage_status)
     return rows
 
 
@@ -421,11 +452,14 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         from app.data.india_listings import find_listing
         from app.services.provisional_gci import QUALITY
 
-        listing = find_listing(company_id)
+        from app.data.us_listings import find_us_listing
+
+        listing = find_listing(company_id) or find_us_listing(company_id)
         if listing is None:
             raise HTTPException(status_code=404, detail="Company not found")
 
         audit = _audit_payload([], company_id=listing["id"], ticker=listing["ticker"])
+        status = coverage_status_for(listing["id"], score=None, data_quality=QUALITY)
         return CompanyGCIDetail(
             id=listing["id"],
             name=listing["name"],
@@ -445,9 +479,8 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
             gci_change_horizon=None,
             by_metric_changes={},
             algorithm_id=score_meta([], scoreable=False)["algorithm_id"],
-            coverage_status=coverage_status_for(
-                listing["id"], score=None, data_quality=QUALITY
-            ),
+            coverage_status=status,
+            coverage_reason=coverage_reason(listing["id"], status),
             **audit,
         )
 
@@ -505,6 +538,7 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
     trend = gci_trend_series(outcomes) if scoreable else []
     ch_pct, ch_h = _latest_trend_change(trend)
     audit = _audit_payload(outcomes, company_id=company_id, ticker=company["ticker"])
+    status = coverage_status_for(company_id, score=score, outcomes=outcomes, data_quality=quality)
 
     return CompanyGCIDetail(
         id=company["id"],
@@ -533,9 +567,8 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         as_of=smeta["as_of"],
         reviewed_at=smeta.get("reviewed_at"),
         algorithm_id=smeta["algorithm_id"],
-        coverage_status=coverage_status_for(
-            company_id, score=score, outcomes=outcomes, data_quality=quality
-        ),
+        coverage_status=status,
+        coverage_reason=coverage_reason(company_id, status, outcomes=outcomes),
         **audit,
     )
 
@@ -599,6 +632,7 @@ def _audit_payload(
         revision_summaries,
         revision_timeline,
     )
+    from app.services.guidance_profile import guidance_profile
 
     summary = audit_summary(outcomes, company_id=company_id)
     return {
@@ -611,11 +645,20 @@ def _audit_payload(
             outcomes, company_id=company_id, ticker=ticker
         ),
         "revision_summaries": revision_summaries(outcomes),
+        "guidance_profile": guidance_profile(outcomes),
     }
 
 
+def _short_name(company: Dict[str, Any]) -> str:
+    name = str(company.get("name") or company.get("ticker") or "")
+    for suffix in (" Ltd.", " Ltd", " Limited"):
+        if name.endswith(suffix):
+            return name[: -len(suffix)]
+    return name
+
+
 def list_alerts() -> List[AlertItem]:
-    from app.data.metric_catalog import display_name_for
+    from app.services.guidance_profile import guided_text, human_date, metric_phrase, value_text
     from app.services.guidance_flags import collect_audit_flags, AUDIT_LABELS, AUDIT_SEVERITY
     from app.services.gci_scoring import AUDIT_PENALTY_PTS
 
@@ -640,8 +683,8 @@ def list_alerts() -> List[AlertItem]:
                     ticker=c["ticker"],
                     kind="docs_pending_review",
                     message=(
-                        f"{c['ticker']}: {n} IR/transcript document(s) awaiting review "
-                        f"— open the Analyst Workbench review queue"
+                        f"{_short_name(c)}: {n} {'filing' if n == 1 else 'filings'} "
+                        f"awaiting review in the Analyst Workbench."
                     ),
                     severity="medium",
                 )
@@ -661,8 +704,8 @@ def list_alerts() -> List[AlertItem]:
                     ticker=c["ticker"],
                     kind=flag,
                     message=(
-                        f"{c['ticker']}: {AUDIT_LABELS.get(flag, flag)} "
-                        f"(−{pts:.0f} GCI audit pts)"
+                        f"{_short_name(c)}: {AUDIT_LABELS.get(flag, flag)}, "
+                        f"{pts:.0f} points deducted from the GCI."
                     ),
                     severity=AUDIT_SEVERITY.get(flag, "medium"),
                     audit_flag=flag,
@@ -695,7 +738,7 @@ def list_alerts() -> List[AlertItem]:
                     ticker=c["ticker"],
                     kind="credibility_drift",
                     message=(
-                        f"{c['ticker']} GCI down {n} periods in recent trend — credibility drift"
+                        f"{_short_name(c)}: GCI fell in {n} of the last {len(recent_ch)} reporting periods."
                     ),
                     severity="high" if n >= 3 else "medium",
                 )
@@ -719,8 +762,8 @@ def list_alerts() -> List[AlertItem]:
                             ticker=c["ticker"],
                             kind="thread_stale",
                             message=(
-                                f"{c['ticker']} has not reiterated {display_name_for(last.metric)} guidance "
-                                f"({last.period}) since {last.as_of} — quietly shelved?"
+                                f"{_short_name(c)} has not reiterated its {last.period} "
+                                f"{metric_phrase(last.metric)} guidance since {human_date(last.as_of)}."
                             ),
                             severity="medium",
                             period=last.period,
@@ -732,16 +775,14 @@ def list_alerts() -> List[AlertItem]:
         for o in outs:
             label = classify_outcome(o).value
             if label == "missed":
-                lo = o.guided_low if o.guided_low is not None else o.guided_value
-                hi = o.guided_high if o.guided_high is not None else o.guided_value
                 alerts.append(
                     AlertItem(
                         company_id=c["id"],
                         ticker=c["ticker"],
                         kind="large_miss",
                         message=(
-                            f"{c['ticker']} missed {display_name_for(o.metric)} guidance "
-                            f"for {o.period} (guided {lo}–{hi}, reported {o.actual_value})"
+                            f"{_short_name(c)} missed its {o.period} {metric_phrase(o.metric)} guidance "
+                            f"(guided {guided_text(o)}, reported {value_text(o.metric, o.actual_value)})."
                         ),
                         severity="high",
                         period=o.period,
@@ -755,7 +796,10 @@ def list_alerts() -> List[AlertItem]:
                         company_id=c["id"],
                         ticker=c["ticker"],
                         kind="guidance_dropped",
-                        message=f"{c['ticker']} dropped {display_name_for(o.metric)} guidance ({o.period})",
+                        message=(
+                            f"{_short_name(c)} stopped reiterating its {o.period} "
+                            f"{metric_phrase(o.metric)} guidance."
+                        ),
                         severity="high",
                         period=o.period,
                         metric=o.metric,
@@ -781,8 +825,8 @@ def list_alerts() -> List[AlertItem]:
                                 ticker=c["ticker"],
                                 kind="guidance_revised",
                                 message=(
-                                    f"{c['ticker']} {direction} {display_name_for(o.metric)} guidance "
-                                    f"{prev_m:.1f} → {cur_m:.1f}"
+                                    f"{_short_name(c)} {direction} its {metric_phrase(o.metric)} guidance "
+                                    f"from {value_text(o.metric, prev_m)} to {value_text(o.metric, cur_m)}."
                                 ),
                                 severity="medium",
                                 period=o.period,

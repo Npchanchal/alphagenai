@@ -95,6 +95,14 @@ def test_gemini_gets_reasoning_headroom_unless_low(monkeypatch):
     assert sent[1]["max_tokens"] == 400 and sent[1]["reasoning_effort"] == "low"
 
 
+def test_gemini_service_tier_sent_only_when_asked(monkeypatch):
+    monkeypatch.setenv("INTELLENS_LLM_BASE_URL", GEMINI)
+    sent = _capture_post(monkeypatch, {"choices": [{"message": {"content": "ok"}, "finish_reason": "stop"}]})
+    llm_client.chat_completion([{"role": "user", "content": "x"}], reasoning="low", service_tier="flex")
+    llm_client.chat_completion([{"role": "user", "content": "x"}], reasoning="low")
+    assert sent[0]["service_tier"] == "flex" and "service_tier" not in sent[1]
+
+
 def test_openai_payload_unchanged(monkeypatch):
     monkeypatch.setenv("INTELLENS_LLM_BASE_URL", "https://api.openai.com/v1")
     sent = _capture_post(monkeypatch, {"choices": [{"message": {"content": "ok"}}]})

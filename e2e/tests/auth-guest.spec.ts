@@ -100,7 +100,7 @@ test.describe("Guest user journey", () => {
     await page.goto("/");
     await dismissOverlays(page);
     await expect(page.locator(".landing-hero .btn")).toHaveCount(1);
-    await expect(page.getByTestId("landing-cta-pilot")).toHaveText("Request a pilot");
+    await expect(page.getByTestId("landing-cta-pilot")).toHaveText("Request an evaluation");
     await page.getByTestId("landing-cta-pilot").click();
     await expect(page).toHaveURL(/#pilot-request$/);
     await expect(page.locator("#pilot-request")).toBeInViewport();
@@ -118,7 +118,7 @@ test.describe("Guest user journey", () => {
       await expect(card.locator(".landing-card-stage")).toHaveText(/^(Live|Beta)$/);
     }
     await expect(surfaces.getByTestId("landing-surface-rankings")).toContainText("no login");
-    await expect(page.getByTestId("site-footer").getByRole("link", { name: "Request a pilot" })).toBeVisible();
+    await expect(page.getByTestId("site-footer").getByRole("link", { name: "Request an evaluation" })).toBeVisible();
   });
 
   test("Public Snapshot opens without login and without recommendation chrome", async ({ page }) => {

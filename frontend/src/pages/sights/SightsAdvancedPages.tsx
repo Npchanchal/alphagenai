@@ -2,12 +2,8 @@ import { useEffect, useState } from "react";
 import CompanyPicker from "../../components/CompanyPicker";
 import {
   fetchCompanies,
-  fetchSightsAgents,
   fetchSightsEnterprise,
-  fetchSightsExport,
   fetchSightsFundamentals,
-  fetchSightsHooks,
-  postSightsAgentRun,
   postSightsDeepDive,
   postSightsGrid,
   type CompanySummary,
@@ -177,128 +173,6 @@ export function SightsFundamentalsPage() {
         GCI {formatScore(gci)} ·{" "}
         <Link to={`/companies/${companyId}`}>{t("ui.SightsAdvancedPages.fundamentals.openDossier")}</Link>
       </p>
-    </section>
-  );
-}
-
-export function SightsAgentsPage() {
-  const { t } = useI18n();
-  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
-  const [templates, setTemplates] = useState<{ id: string; name: string; description: string }[]>(
-    [],
-  );
-  const [result, setResult] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchSightsAgents()
-      .then((r) => !cancelled && setTemplates(r.templates || []))
-      .catch((e) => {
-        if (!cancelled) setError(errorText(e, t("ui.SightsAdvancedPages.err.agents")));
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function run(templateId: string) {
-    if (!companyId) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await postSightsAgentRun({ template_id: templateId, company_id: companyId });
-      setResult(JSON.stringify(res.body, null, 2));
-    } catch (e) {
-      setError(errorText(e, t("ui.SightsAdvancedPages.err.agentRun")));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <section className="sights-panel" data-testid="sights-agents">
-      <h2>{t("ui.SightsAdvancedPages.agents.title")}</h2>
-      <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
-      {(error || focusError) && <p className="error">{error || focusError}</p>}
-      <ul className="doc-list">
-        {templates.map((tpl) => (
-          <li key={tpl.id}>
-            <strong>{tpl.name}</strong> — {tpl.description}{" "}
-            <button type="button" className="btn" disabled={busy} onClick={() => void run(tpl.id)}>
-              {t("ui.SightsAdvancedPages.agents.run")}
-            </button>
-          </li>
-        ))}
-      </ul>
-      {result && <pre className="code-block">{result}</pre>}
-    </section>
-  );
-}
-
-export function SightsExportPage() {
-  const { t } = useI18n();
-  const { companies, companyId, setCompanyId, focusError } = useCompanyFocus();
-  const [content, setContent] = useState("");
-  const [pdfHint, setPdfHint] = useState("");
-  const [hooks, setHooks] = useState<{ id: string; path: string; enabled?: boolean }[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchSightsHooks()
-      .then((r) => !cancelled && setHooks(r.channels || []))
-      .catch((e) => {
-        if (!cancelled) setError(errorText(e, t("ui.SightsAdvancedPages.err.hooks")));
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function exportFmt(fmt: "markdown" | "csv") {
-    if (!companyId) return;
-    setError(null);
-    try {
-      const res = await fetchSightsExport(companyId, fmt);
-      setContent(res.content || JSON.stringify(res.payload, null, 2));
-      setPdfHint(res.pdf_hint || "");
-    } catch (e) {
-      setError(errorText(e, t("ui.SightsAdvancedPages.err.export")));
-    }
-  }
-
-  return (
-    <section className="sights-panel" data-testid="sights-export">
-      <h2>{t("ui.SightsAdvancedPages.export.title")}</h2>
-      <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
-      {(error || focusError) && <p className="error">{error || focusError}</p>}
-      <div className="row gap">
-        <button type="button" className="btn" onClick={() => void exportFmt("markdown")}>
-          Markdown
-        </button>
-        <button type="button" className="btn" onClick={() => void exportFmt("csv")}>
-          CSV
-        </button>
-      </div>
-      {pdfHint && (
-        <p className="muted">
-          IC PDF: <code>{pdfHint}</code>
-        </p>
-      )}
-      {content && <pre className="code-block">{content}</pre>}
-      <h3>{t("ui.SightsAdvancedPages.export.hooks")}</h3>
-      <ul>
-        {hooks.map((h) => (
-          <li key={h.id}>
-            {h.id} → <code>{h.path}</code> {h.enabled === false ? t("ui.SightsAdvancedPages.export.flaggedOff") : ""}
-          </li>
-        ))}
-      </ul>
-      <p className="muted">{t("ui.SightsAdvancedPages.export.deferred")}</p>
     </section>
   );
 }

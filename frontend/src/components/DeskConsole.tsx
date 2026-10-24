@@ -16,7 +16,6 @@ import {
   fetchExtractPending,
   fetchHistory,
   fetchLabelingQueue,
-  fetchSectorLeaderboard,
   type AlertItem,
   type CompanyGCIDetail,
   type CompanySummary,
@@ -53,9 +52,6 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [history, setHistory] = useState<{ as_of: string; gci_score: number | null }[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [sectors, setSectors] = useState<
-    Array<{ sector: string; avg: number | null; count: number }>
-  >([]);
   const [pending, setPending] = useState<PendingExtractBatch[]>([]);
   const [labelQ, setLabelQ] = useState<LabelingQueueItem[]>([]);
   const [clock, setClock] = useState(() => new Date());
@@ -73,17 +69,15 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
       setLoading(true);
       setErr(null);
       try {
-        const [cos, al, sec, ext, lq] = await Promise.all([
+        const [cos, al, ext, lq] = await Promise.all([
           fetchCompanies({ market: "IN", index: "SENSEX", limit: 40 }),
           fetchAlerts().catch(() => [] as AlertItem[]),
-          fetchSectorLeaderboard({ market: "IN", index: "SENSEX", limit: 40 }),
           fetchExtractPending().catch(() => ({ count: 0, batches: [] as PendingExtractBatch[] })),
           fetchLabelingQueue().catch(() => ({ count: 0, items: [] as LabelingQueueItem[] })),
         ]);
         if (cancelled) return;
         setRows(cos);
         setAlerts(al.slice(0, 24));
-        setSectors(sec.sectors || []);
         setPending((ext.batches || []).slice(0, 12));
         setLabelQ((lq.items || []).slice(0, 12));
       } catch (e) {
@@ -151,7 +145,6 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
     .slice(0, 8)
     .map(([metric, score]) => ({ metric, score: score as number }));
 
-  const maxSectorCount = Math.max(1, ...sectors.map((s) => s.count || 1));
   const hlCount = rows.filter((r) => r.data_quality === "hand_labeled").length;
   const scored = rows.filter((r) => r.gci_score != null).length;
 
@@ -446,34 +439,6 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
                 {!labelQ.length && <li className="ilc-muted">{t("ui.DeskConsole.queues.empty")}</li>}
               </ul>
             </div>
-          </div>
-        </section>
-
-        {/* Sector heatmap */}
-        <section className="ilc-panel ilc-span-heat" aria-label={t("ui.DeskConsole.heat.aria")}>
-          <header className="ilc-panel-h">
-            <h3>{t("ui.DeskConsole.heat.title")}</h3>
-            <span className="ilc-muted">{t("ui.DeskConsole.heat.sub")}</span>
-          </header>
-          <div className="ilc-heat">
-            {sectors.map((s) => {
-              const avg = s.avg ?? 50;
-              const flex = Math.max(0.6, (s.count || 1) / maxSectorCount);
-              const tone = gciTone(avg);
-              return (
-                <div
-                  key={s.sector}
-                  className={`ilc-heat-cell tone-${tone}`}
-                  style={{ flexGrow: flex, flexBasis: `${flex * 80}px` }}
-                  title={t("ui.DeskConsole.heat.cellTitle", { sector: s.sector, avg: formatScore(s.avg), n: s.count })}
-                >
-                  <strong>{s.sector}</strong>
-                  <span>{formatScore(s.avg)}</span>
-                  <em>n={s.count}</em>
-                </div>
-              );
-            })}
-            {!sectors.length && <p className="ilc-muted">{t("ui.DeskConsole.heat.empty")}</p>}
           </div>
         </section>
 

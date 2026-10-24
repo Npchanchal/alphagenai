@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const SITE = "https://citealpha.com";
-export const INDEXNOW_KEY = "citealpha-indexnow-key-2026";
+export const INDEXNOW_KEY = "c17e41fa2026a1b2c3d4e5f60718";
 
 export function loadStructured(root) {
   const raw = fs.readFileSync(path.join(root, "src/lib/seo-structured-data.json"), "utf8");
@@ -66,7 +66,7 @@ export function softwareJsonLd(data) {
       "Evidence-linked Guidance Credibility Index (GCI) for Indian equity desks. Factual research product; not investment advice.",
     offers: {
       "@type": "Offer",
-      url: `${SITE}/package`,
+      url: `${SITE}/products#plans`,
       priceCurrency: "INR",
       availability: "https://schema.org/OnlineOnly",
     },
@@ -155,7 +155,7 @@ export function extraJsonLdForPath(routePath, data, pageTitle) {
   const blocks = [];
   if (routePath === "/") {
     blocks.push(orgJsonLd(data), softwareJsonLd(data), faqJsonLd(data));
-  } else if (routePath === "/about" || routePath === "/about/tiers") {
+  } else if (routePath === "/about") {
     blocks.push(howToGciJsonLd(data));
   } else if (routePath === "/answers" || routePath === "/help") {
     blocks.push(faqJsonLd(data));
@@ -207,7 +207,7 @@ export function helpBodyHtml(glossaryPath, esc) {
     `<main>`,
     `<h1>Help &amp; Glossary for GCI Workflows — CiteAlpha</h1>`,
     `<p class="seo-speakable">CiteAlpha Help explains Guidance Credibility Index vocabulary, outcome labels, and desk workflows for Indian equity research. Factual research product — not investment advice.</p>`,
-    `<p>Start with the <a href="${SITE}/tracker">GCI Screener</a>, <a href="${SITE}/about">About</a>, or the canonical <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a>. Contact <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> for pilots.</p>`,
+    `<p>Start with the <a href="${SITE}/tracker">GCI Screener</a>, <a href="${SITE}/about">About</a>, or the canonical <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a>. Contact <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> for an evaluation.</p>`,
   ];
   for (const sec of sections) {
     const rows = sec.ids.map((id) => glossary[id]).filter(Boolean);
@@ -235,7 +235,7 @@ export function answersBodyHtml(data, esc) {
       <dl class="landing-faq">
         ${items}
       </dl>
-      <p><a href="${SITE}/blog/what-is-guidance-credibility-index">Full GCI definition</a> · <a href="${SITE}/blog/sentiment-vs-guidance-delivery">GCI vs sentiment</a> · <a href="${SITE}/pilot">Request a pilot</a></p>
+      <p><a href="${SITE}/blog/what-is-guidance-credibility-index">Full GCI definition</a> · <a href="${SITE}/blog/sentiment-vs-guidance-delivery">GCI vs sentiment</a> · <a href="${SITE}/pilot">Request an evaluation</a></p>
     </main>`;
 }
 
@@ -246,7 +246,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p>GCI by CiteAlpha · Guidance Credibility Index for Indian listed companies</p>
       <h1 class="seo-speakable">Did management deliver on what they promised? We check.</h1>
       <p class="seo-speakable">CiteAlpha's Guidance Credibility Index (GCI) compares what Indian listed management guided to what they later reported. Every score opens to the exchange filing, IR deck, or transcript behind it.</p>
-      <p><a href="${SITE}/pilot"><strong>Request a pilot</strong></a> · <a href="${SITE}/companies/infy">Or see a scored company (Infosys)</a></p>
+      <p><a href="${SITE}/pilot"><strong>Request an evaluation</strong></a> · <a href="${SITE}/companies/infy">Or see a scored company (Infosys)</a></p>
       <p>Built for: <a href="${SITE}/products#desk-buy-side">Buy-side</a> · <a href="${SITE}/products#desk-sell-side">Sell-side research</a> · <a href="${SITE}/products#desk-quant">Quant / data</a> · <a href="${SITE}/products#desk-ir-compliance">IR &amp; compliance</a></p>
       <h2>Worked example: Infosys revenue growth guidance vs actuals</h2>
       <p>Each April, management guided full-year revenue growth in constant currency. Each year links two filed Infosys results releases (SEC Form 6-K): the one that set the guidance and the one that reported the actual.</p>
@@ -283,13 +283,13 @@ export function marketingBodyHtml(routePath, opts = {}) {
         <li><a href="${SITE}/sights"><strong>Disclosure Explorer</strong></a> (Compare companies · Beta) — compare disclosures across companies with cite-only answers.</li>
         <li><a href="${SITE}/rankings"><strong>Public Snapshot</strong></a> (Share · Live · public, no login) — public GCI snapshot; no recommendation labels.</li>
       </ul>
-      <p><a href="${SITE}/answers">FAQ</a> · <a href="${SITE}/package">Packages</a> · <a href="${SITE}/pilot">Request a pilot</a> · <a href="${SITE}/trust">Trust Center</a></p>
+      <p><a href="${SITE}/answers">FAQ</a> · <a href="${SITE}/products#plans">Packages</a> · <a href="${SITE}/pilot">Request an evaluation</a> · <a href="${SITE}/trust">Trust Center</a></p>
     </main>`,
     "/pilot": `<main>
-      <h1>Request a CiteAlpha GCI Pilot</h1>
-      <p class="seo-speakable">Time-boxed pilot for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Share firm details — we follow up within one business day. Not investment advice.</p>
-      <p>Pilots include GCI Screener access, evidence trails with quality badges, and optional API discussion. Read the <a href="${SITE}/trust">Trust Center</a> and <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a> before requesting.</p>
-      <p>Contact: <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> · <a href="${SITE}/package">View packages</a></p>
+      <h1>Request a CiteAlpha evaluation</h1>
+      <p class="seo-speakable">Time-boxed evaluation for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Share firm details — we follow up within one business day. Not investment advice.</p>
+      <p>The evaluation includes GCI Screener access, evidence trails with quality badges, and optional API discussion. Read the <a href="${SITE}/trust">Trust Center</a> and <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a> before requesting.</p>
+      <p>Contact: <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> · <a href="${SITE}/products#plans">View packages</a></p>
     </main>`,
     "/press": `<main>
       <h1>CiteAlpha Press &amp; Brand — Ocotillo Innovation</h1>
@@ -300,7 +300,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <ul>
         <li><a href="${SITE}/blog/what-is-guidance-credibility-index">Canonical GCI definition</a></li>
         <li><a href="${SITE}/trust">Trust Center</a></li>
-        <li><a href="${SITE}/llms.txt">llms.txt</a> · <a href="${SITE}/ai.txt">AI use policy</a></li>
+        <li><a href="${SITE}/llms.txt">llms.txt</a> · <a href="${SITE}/llms-full.txt">llms-full.txt</a> · <a href="${SITE}/ai.txt">AI use policy</a> · <a href="${SITE}/.well-known/ai-catalog.json">Agent catalog</a></li>
       </ul>
       <p>Media inquiries: <a href="mailto:sales@citealpha.com">sales@citealpha.com</a></p>
     </main>`,
@@ -313,11 +313,11 @@ export function marketingBodyHtml(routePath, opts = {}) {
         <li>Corpus management and extract/match review before scores go citeable.</li>
         <li>PIT series and API hooks for platform embed — beside your market terminal.</li>
       </ul>
-      <p><a href="${SITE}/tracker">Open GCI Screener</a> · <a href="${SITE}/about/tiers">Tier features</a> · <a href="${SITE}/package">Packages</a></p>
+      <p><a href="${SITE}/tracker">Open GCI Screener</a> · <a href="${SITE}/products#features">Tier features</a> · <a href="${SITE}/products#plans">Packages</a></p>
     </main>`,
     "/research": `<main>
-      <h1>Filing Search: Cite-Only Search of One Company's Filings — CiteAlpha</h1>
-      <p class="seo-speakable">Search one Indian company's IR filings and transcripts with cite-only chat that refuses invented actuals. Complements the GCI Screener. Not a price feed and not investment advice.</p>
+      <h1>Filing Search: Cite-Only Search of Indian Company Filings — CiteAlpha</h1>
+      <p class="seo-speakable">Search IR filings and transcripts for one Indian company or across all covered companies, with India IR synonyms and cite-only answers that refuse invented actuals. Complements the GCI Screener. Not a price feed and not investment advice.</p>
       <h2>Capabilities</h2>
       <ul>
         <li>Filings and concall search with citation ids back to sources.</li>
@@ -327,15 +327,15 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p><a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/desk">Analyst Workbench</a> · <a href="${SITE}/help">Help &amp; glossary</a></p>
     </main>`,
     "/products": `<main>
-      <h1>Product Portfolio: Score, Cite, Disclosure Explorer &amp; More — CiteAlpha</h1>
-      <p class="seo-speakable">Score, Cite, Disclosure Explorer, Radar, Ledger, and Data SKUs for Guidance Credibility Index workflows on Indian equity desks. Evidence-first research infrastructure — not Buy/Hold/Sell recommendations.</p>
+      <h1>Products and Plans: GCI Screener, CiteAlpha Analyst, Filing Search &amp; API — CiteAlpha</h1>
+      <p class="seo-speakable">What Indian equity desks get from CiteAlpha and how to buy it: GCI Screener, CiteAlpha Analyst, Filing Search, Disclosure Explorer, Analyst Workbench and the API, on a Pilot, a Desk seat or Enterprise API. Evidence-first research — not Buy/Hold/Sell recommendations.</p>
       <ul>
-        <li><strong>Score</strong> — company GCI with evidence trail and PIT history.</li>
-        <li><strong>Cite</strong> — citation ids that reopen to NSE/BSE/IR documents.</li>
-        <li><strong>Disclosure Explorer</strong> — compare disclosures across Indian companies with cite-only Ask.</li>
-        <li><strong>Radar, Ledger, Data</strong> — alerts, audit, and API series for desks and quants.</li>
+        <li><strong>GCI Screener</strong> — company GCI with the guidance and result filings behind every scored period.</li>
+        <li><strong>CiteAlpha Analyst</strong> — cited workflows exported to Excel, PowerPoint or PDF in a desk's house style.</li>
+        <li><strong>Filing Search and Disclosure Explorer</strong> — cite-only search and answers over NSE/BSE filings and transcripts.</li>
+        <li><strong>Plans</strong> — Pilot (time-boxed), Desk seat, Enterprise API. Request a quote; there is no self-serve checkout.</li>
       </ul>
-      <p><a href="${SITE}/package">Packages</a> · <a href="${SITE}/about/tiers">Tier map</a> · <a href="${SITE}/pilot">Request a pilot</a></p>
+      <p><a href="${SITE}/pilot">Request an evaluation</a> · <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> · <a href="${SITE}/developers">API reference</a></p>
     </main>`,
     "/rankings": `<main>
       <h1>Public Snapshot: GCI for Indian Listings — GCI by CiteAlpha</h1>
@@ -343,36 +343,66 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p>The snapshot shows relative guidance credibility within covered cohorts. Every citeable row links to guidance, actuals, outcome labels, and sources. Prefer hand_labeled names when citing in IC materials.</p>
       <p><a href="${SITE}/tracker">Full GCI Screener</a> · <a href="${SITE}/blog/hand-labeled-vs-demo-data">Hand-labeled vs demo data</a> · <a href="${SITE}/about">About GCI</a></p>
     </main>`,
-    "/about/tiers": `<main>
-      <h1>Tier Features: Screener, Workbench, Filing Search — CiteAlpha</h1>
-      <p class="seo-speakable">Feature map across CiteAlpha tiers for Indian equity desks: GCI Screener, Analyst Workbench review workflows, Filing Search, and Enterprise API. Factual research — not investment advice.</p>
-      <p>Compare Pilot, Desk, and Enterprise capabilities including PIT API, labeling queue, Disclosure Explorer access, and export hooks. See methodology tables for honest feature status.</p>
-      <p><a href="${SITE}/package">Packages</a> · <a href="${SITE}/about#how">How GCI is built</a> · <a href="${SITE}/trust">Trust Center</a></p>
-    </main>`,
     "/sights": `<main>
       <h1>Disclosure Explorer: Compare Indian Company Disclosures — CiteAlpha</h1>
-      <p class="seo-speakable">Search, cite-only Ask, Compare Grid, and agents across Indian companies' public IR and CiteAlpha evidence for Indian listed companies. Not investment advice.</p>
+      <p class="seo-speakable">Compare public disclosures across Indian listed companies: delivery themes, street context, field evidence, Compare Grid and deep dives. Not investment advice.</p>
       <ul>
-        <li><a href="${SITE}/sights/search"><strong>Search</strong></a> — IR decks, filings, transcripts with Business Lexicon expand.</li>
-        <li><a href="${SITE}/sights/ask"><strong>Ask</strong></a> — cite-only answers; refuses without evidence.</li>
-        <li>Boards, themes, and export for institutional disclosure workflows.</li>
+        <li><a href="${SITE}/sights/themes"><strong>Delivery themes</strong></a> — recurring topics in management commentary, each linked to its filing.</li>
+        <li><a href="${SITE}/sights/grid"><strong>Compare Grid</strong></a> — several companies side by side on the same disclosure questions.</li>
+        <li>Search and cite-only answers across all covered companies are in <a href="${SITE}/research">Filing Search</a>.</li>
       </ul>
       <p><a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/products">Product portfolio</a></p>
     </main>`,
-    "/sights/search": `<main>
-      <h1>Disclosure Explorer Search: India IR Documents — CiteAlpha</h1>
-      <p class="seo-speakable">Search Indian IR decks, NSE/BSE filings, and transcripts with Business Lexicon synonym expand. Evidence-first disclosure research for equity desks.</p>
-      <p>Pair search hits with <a href="${SITE}/sights/ask">Ask</a> for cite-only follow-ups. Complements GCI evidence in the GCI Screener.</p>
+    "/analyst": `<main>
+      <h1>CiteAlpha Analyst — Cited workflows for Indian equity desks</h1>
+      <p class="seo-speakable">Cited research workflows for Indian equity desks, exported to Excel, PowerPoint, or PDF. Every claim stays tied to a filing. Not investment advice.</p>
+      <ul>
+        <li>Run a desk workflow on a covered company and keep each statement attached to its source.</li>
+        <li>Export the same note to Excel, PowerPoint, or PDF in the desk's house style.</li>
+        <li>Search across filings lives in <a href="${SITE}/research">Filing Search</a>. Scores live on the <a href="${SITE}/tracker">GCI Screener</a>.</li>
+      </ul>
+      <p><a href="${SITE}/products">Products and plans</a> · <a href="${SITE}/pilot">Request a pilot</a> · <a href="${SITE}/methodology">Methodology</a></p>
     </main>`,
-    "/sights/ask": `<main>
-      <h1>Disclosure Explorer Ask: Cite-Only Answers — CiteAlpha</h1>
-      <p class="seo-speakable">Cite-only answers from the India disclosure corpus. Refuses without evidence — built for equity research desks, not retail tips.</p>
-      <p>Use alongside <a href="${SITE}/sights/search">Disclosure Explorer Search</a> and <a href="${SITE}/research">Filing Search</a> for filing workflows.</p>
+    "/sights/themes": `<main>
+      <h1>Delivery themes — Disclosure Explorer</h1>
+      <p class="seo-speakable">Recurring topics in Indian company management commentary, each linked to the filing it came from. Not investment advice.</p>
+      <p>Themes are a way to read the same disclosure idea across covered companies without leaving the source behind. Open a company dossier when you need the Guidance Credibility Index and the guidance-versus-result table.</p>
+      <p><a href="${SITE}/sights">Disclosure Explorer</a> · <a href="${SITE}/sights/grid">Compare Grid</a> · <a href="${SITE}/tracker">GCI Screener</a></p>
+    </main>`,
+    "/sights/street": `<main>
+      <h1>Street context — Disclosure Explorer</h1>
+      <p class="seo-speakable">Street context placed next to Indian company disclosures, with the source attached. Not investment advice.</p>
+      <p>Use this page to read what was said in public beside the filing it refers to. CiteAlpha does not redistribute sell-side notes.</p>
+      <p><a href="${SITE}/sights">Disclosure Explorer</a> · <a href="${SITE}/research">Filing Search</a> · <a href="${SITE}/trust">Trust Center</a></p>
+    </main>`,
+    "/sights/field": `<main>
+      <h1>Field evidence — Disclosure Explorer</h1>
+      <p class="seo-speakable">Labeled guidance outcomes and the citations behind them, for Indian listed companies. Not investment advice.</p>
+      <p>Each labeled outcome opens to the guidance statement and the later reported result. The company score, when one is published, is on the dossier.</p>
+      <p><a href="${SITE}/sights">Disclosure Explorer</a> · <a href="${SITE}/methodology">Methodology</a> · <a href="${SITE}/tracker">GCI Screener</a></p>
+    </main>`,
+    "/sights/grid": `<main>
+      <h1>Compare Grid — Disclosure Explorer</h1>
+      <p class="seo-speakable">The same disclosure question across covered Indian companies. Every cell is cited. Not investment advice.</p>
+      <p>Ask one question of several names and read the cited answers side by side. Cells that cannot be sourced are refused rather than filled in.</p>
+      <p><a href="${SITE}/sights">Disclosure Explorer</a> · <a href="${SITE}/sights/deep-dive">Deep dive</a> · <a href="${SITE}/research">Filing Search</a></p>
+    </main>`,
+    "/sights/deep-dive": `<main>
+      <h1>Deep dive — Disclosure Explorer</h1>
+      <p class="seo-speakable">One topic across one Indian company's filings, with every claim cited. Not investment advice.</p>
+      <p>A deep dive stays on a single company and a single topic. Claims that are not in the filings are left out.</p>
+      <p><a href="${SITE}/sights">Disclosure Explorer</a> · <a href="${SITE}/sights/themes">Delivery themes</a> · <a href="${SITE}/companies/infy">Infosys dossier</a></p>
+    </main>`,
+    "/sights/fundamentals": `<main>
+      <h1>Fundamentals — Disclosure Explorer</h1>
+      <p class="seo-speakable">Filing-backed fundamentals for one Indian company, beside its Guidance Credibility Index dossier. Not investment advice.</p>
+      <p>The strip is a reading aid for the filings already on the dossier. The Guidance Credibility Index itself is the delivery record, not a forecast.</p>
+      <p><a href="${SITE}/sights">Disclosure Explorer</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/methodology">Methodology</a></p>
     </main>`,
     "/404": `<main>
       <h1>Page not found</h1>
       <p>That URL is not on CiteAlpha. Use the links below to reach the Guidance Credibility Index (GCI) product, documentation, or support pages.</p>
-      <p><a href="${SITE}/tracker"><strong>Open GCI Screener</strong></a> · <a href="${SITE}/">Home</a> · <a href="${SITE}/about">About</a> · <a href="${SITE}/blog">Blog</a> · <a href="${SITE}/help">Help</a> · <a href="${SITE}/answers">FAQ</a> · <a href="${SITE}/pilot">Request a pilot</a></p>
+      <p><a href="${SITE}/tracker"><strong>Open GCI Screener</strong></a> · <a href="${SITE}/">Home</a> · <a href="${SITE}/about">About</a> · <a href="${SITE}/blog">Blog</a> · <a href="${SITE}/help">Help</a> · <a href="${SITE}/answers">FAQ</a> · <a href="${SITE}/pilot">Request an evaluation</a></p>
     </main>`,
     "/about": `<main>
       <h1>About CiteAlpha — GCI by Ocotillo Innovation</h1>
@@ -403,19 +433,9 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <ul>
         <li>Product identity and sales@citealpha.com contact.</li>
         <li>Claim hygiene: evidence trails required; demo vs hand-labeled badged.</li>
-        <li>AI use policy: <a href="${SITE}/ai.txt">ai.txt</a> · <a href="${SITE}/llms.txt">llms.txt</a></li>
+        <li>AI use policy: <a href="${SITE}/ai.txt">ai.txt</a> · <a href="${SITE}/llms.txt">llms.txt</a> · <a href="${SITE}/llms-full.txt">llms-full.txt</a> · <a href="${SITE}/.well-known/ai-catalog.json">Agent catalog</a></li>
       </ul>
-      <p><a href="${SITE}/package">Packages</a> · <a href="${SITE}/blog/trust-center-checklist-institutional-buyers">Buyer checklist</a></p>
-    </main>`,
-    "/package": `<main>
-      <h1>Package &amp; Pricing for GCI Pilots — CiteAlpha</h1>
-      <p class="seo-speakable">Pilot, Desk, and Enterprise API packages for the Guidance Credibility Index. India-first institutional research — not investment advice.</p>
-      <ul>
-        <li>Buy-side and sell-side desks needing evidence-linked delivery history.</li>
-        <li>Platform teams wanting PIT series and citation hooks via API.</li>
-        <li>Pilot evaluations with Sensex hand-labeled evidence.</li>
-      </ul>
-      <p><a href="${SITE}/pilot">Request a pilot</a> · <a href="mailto:sales@citealpha.com">sales@citealpha.com</a></p>
+      <p><a href="${SITE}/products#plans">Packages</a> · <a href="${SITE}/blog/trust-center-checklist-institutional-buyers">Buyer checklist</a></p>
     </main>`,
   };
 
@@ -503,8 +523,9 @@ function toRfc822(isoDate) {
   return d.toUTCString();
 }
 
+/** Opt-in (INDEXNOW=1): a build-time ping would announce pages before they are deployed. */
 export async function pingIndexNow(urls) {
-  if (process.env.SKIP_INDEXNOW === "1") return;
+  if (process.env.INDEXNOW !== "1" || process.env.SKIP_INDEXNOW === "1") return;
   const host = "citealpha.com";
   const keyLocation = `${SITE}/${INDEXNOW_KEY}.txt`;
   const body = JSON.stringify({

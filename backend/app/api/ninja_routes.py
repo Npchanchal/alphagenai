@@ -1,0 +1,112 @@
+"""Financial Ninja routes. Worksheets and layer notes. Not the public GCI spec."""
+
+from __future__ import annotations
+
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.services.entitlements import has_feature, resolve_actor
+from app.services.pilot_checklist import pilot_evaluation_ended
+
+router = APIRouter()
+
+
+def _require_ninja(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+    if ent.get("kind") == "guest" or ent.get("source") == "guest":
+        if ent.get("user_id"):
+            raise HTTPException(status_code=403, detail="Sign in with a desk seat to open Financial Ninja")
+        raise HTTPException(status_code=401, detail="Authentication required")
+    if not has_feature(ent, "ninja"):
+        if ent.get("plan") == "pilot" and pilot_evaluation_ended(str(ent.get("org_id") or "")):
+            raise HTTPException(
+                status_code=403,
+                detail="This evaluation has ended. Financial Ninja stays on a paid desk.",
+            )
+        if ent.get("plan") == "pilot":
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Financial Ninja is open during an admin-approved evaluation "
+                    "of 30, 45, or 60 days, and on a paid desk after that."
+                ),
+            )
+        raise HTTPException(
+            status_code=403,
+            detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks ninja",
+        )
+    return ent
+
+
+def _known_company(company_id: str) -> None:
+    from app.services import repository
+
+    try:
+        repository.get_company_gci(company_id)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=404, detail="Unknown company")
+
+
+@router.get("/api/ninja/templates")
+def ninja_templates(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import TEMPLATES, WORKSHEET_LINE
+
+    return {"templates": list(TEMPLATES), "statement": WORKSHEET_LINE}
+
+
+@router.post("/api/ninja/worksheets/{template}")
+def ninja_worksheet(template: str, body: Dict[str, Any], _ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import worksheet
+
+    return worksheet(template, body)
+
+
+@router.get("/api/ninja/taxonomy")
+def ninja_taxonomy(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import sector_taxonomy
+
+    return sector_taxonomy()
+
+
+@router.post("/api/ninja/observations")
+def ninja_observation(body: Dict[str, Any], ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import add_observation
+
+    _known_company(str(body.get("company_id") or ""))
+    return add_observation(str(ent.get("org_id") or ""), body)
+
+
+@router.get("/api/ninja/indices/{company_id}")
+def ninja_index(company_id: str, ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import layer_index
+
+    _known_company(company_id)
+    return layer_index(str(ent.get("org_id") or ""), company_id)
+
+
+@router.get("/api/ninja/profile/{company_id}")
+def ninja_profile(company_id: str, ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+    """Cited layer text for the signed-in desk. Guests receive an empty record."""
+    from app.services.ninja import profile_quotes
+
+    if not ent.get("org_id") or not (has_feature(ent, "ninja") or has_feature(ent, "analyst_agent")):
+        return {
+            "company_id": company_id,
+            "layers": {name: [] for name in ("accounting", "causality", "conduct", "execution")},
+            "notes": [],
+            "sector": None,
+            "note": "Cited notes on this desk. These sentences are not a score.",
+        }
+    profile = profile_quotes(str(ent["org_id"]), company_id)
+    if not has_feature(ent, "ninja"):
+        profile["layers"] = {name: [] for name in ("accounting", "causality", "conduct", "execution")}
+    return profile
+
+
+@router.get("/api/ninja/tests")
+def ninja_tests(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import hypothesis_tests
+
+    return hypothesis_tests()

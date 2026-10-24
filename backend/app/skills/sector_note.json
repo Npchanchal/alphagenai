@@ -1,0 +1,13 @@
+{
+  "id": "sector_note",
+  "version": "1.0.0",
+  "title": "Sector note",
+  "audience": "An analyst comparing delivery inside one stored sector",
+  "description": "How often each company in the stored sector met its own guidance, beside the delivery record of the company in front of the analyst.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "grid", "title": "Delivery inside the stored sector", "builder": "peer_grid"},
+    {"id": "record", "title": "This company's delivery record", "builder": "delivery_record"}
+  ],
+  "disproof": {"queries": ["guidance withdrawn", "revised downward"]}
+}

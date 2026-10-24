@@ -23,6 +23,9 @@ PUBLIC_COPY_FILES = [
     FRONTEND / "src/lib/blogPosts.ts",
     FRONTEND / "scripts/seo-shared.mjs",
     FRONTEND / "public/llms.txt",
+    FRONTEND / "public/llms-full.txt",
+    FRONTEND / "public/ai.txt",
+    FRONTEND / "public/.well-known/ai-catalog.json",
 ]
 
 BANNED_VOICE = [
@@ -134,6 +137,48 @@ def test_public_copy_bans_legacy_voice(path: Path):
     assert not hits, f"{path.name}: banned voice {hits}"
 
 
+def test_ai_catalog_manifest_shape():
+    """Lighthouse fetches /.well-known/ai-catalog.json and rejects HTML or a bad schema."""
+    data = json.loads((FRONTEND / "public/.well-known/ai-catalog.json").read_text(encoding="utf-8"))
+    assert data["specVersion"] == "1.0"
+    assert data["host"]["displayName"] == "CiteAlpha"
+    ident = re.compile(r"^urn:air:[a-zA-Z0-9.-]+(:[a-zA-Z0-9._-]+)+$")
+    seen: set[str] = set()
+    assert data["entries"]
+    for entry in data["entries"]:
+        assert ident.match(entry["identifier"]), entry["identifier"]
+        assert entry["identifier"] not in seen
+        seen.add(entry["identifier"])
+        assert entry["displayName"]
+        assert entry["type"]
+        assert entry.get("url", "").startswith("https://citealpha.com/")
+        assert "data" not in entry
+
+
+def test_ai_search_crawlers_may_index_and_quote():
+    """Answer engines opt in only when their own crawler token is allowed."""
+    robots = (FRONTEND / "public/robots.txt").read_text(encoding="utf-8")
+    for bot in (
+        "OAI-SearchBot",
+        "ChatGPT-User",
+        "Claude-SearchBot",
+        "PerplexityBot",
+        "Google-Extended",
+        "Google-InspectionTool",
+        "Bingbot",
+    ):
+        assert f"User-agent: {bot}" in robots
+    assert "Disallow:" not in robots
+    assert "search=yes" in robots
+    assert "ai-input=yes" in robots
+    llms = (FRONTEND / "public/llms.txt").read_text(encoding="utf-8")
+    assert "https://citealpha.com/llms-full.txt" in llms
+    assert "/sights/ask" not in llms
+    full = (FRONTEND / "public/llms-full.txt").read_text(encoding="utf-8")
+    assert "Guidance Credibility Index (GCI)" in full
+    assert "Not a Buy, Hold, or Sell recommendation." in full
+
+
 def test_badge_and_trust_api_strings_ban_legacy_voice():
     badge = client.get("/api/badge/INFY").json()
     svg = client.get("/api/badge/INFY/svg").text
@@ -159,6 +204,7 @@ def test_methodology_names_promise_keeping_and_constants():
     assert "analyst" not in review.lower()
     limits = data["method.page.limitations.i3"]
     assert "±2%" in limits
+    assert "0.1 percentage point" in limits
     comparable = data["method.page.company.comparable.text"]
     assert "half-width" in comparable
     assert "not adjusted by sector" in comparable

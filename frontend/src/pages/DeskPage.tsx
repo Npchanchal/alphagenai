@@ -63,6 +63,7 @@ import {
   postTierFoundation,
   fetchLabelingQueue,
   postLabelingQueue,
+  patchLabelingQueue,
   fetchEmFactorCsvUrl,
   type BadgePayload,
   type CompanyGCIDetail,
@@ -75,7 +76,7 @@ import {
   type WordmapPayload,
   type LabelingQueueItem,
 } from "../lib/api";
-import { formatScore, formatCompanyScore } from "../lib/score";
+import { formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
 import { useEntitlements } from "../lib/entitlements";
@@ -521,7 +522,8 @@ export default function DeskPage() {
           companyId={companyId}
           onSelectCompany={setCompanyId}
           onJumpTab={(id) => {
-            if (id === "tracker" || id === "sectors") navigate("/tracker");
+            if (id === "tracker") navigate("/tracker");
+            else if (id === "sectors") navigate("/tracker?tab=sectors");
             else if (id === "evidence") navigate(`/companies/${companyId}`);
             else if (TABS.some((x) => x.id === id)) setTab(id as TabId);
           }}
@@ -1817,12 +1819,59 @@ export default function DeskPage() {
                 return note.includes("nifty");
               })
               .slice(0, 20)
-              .map((item) => (
-              <li key={item.id}>
-                <strong>{item.company_name || item.company_id}</strong> · {item.priority} ·{" "}
-                {item.status} · {item.data_quality}
+              .map((item) => {
+                const kindLabel =
+                  item.kind === "match_conflict"
+                    ? t("ui.DeskPage.labeling.conflict")
+                    : item.kind === "guidance_drop_suggestion"
+                      ? t("ui.DeskPage.labeling.drop")
+                      : "";
+                return (
+              <li key={item.id} data-testid={`queue-item-${item.id}`}>
+                <strong>{item.company_name || item.company_id}</strong>
+                {item.period ? ` · ${item.period}` : ""}
+                {item.metric ? ` · ${metricDisplayName(item.metric)}` : ""}
+                {kindLabel ? ` · ${kindLabel}` : ""}
+                {" · "}
+                {item.priority} · {item.status}
+                {item.note ? <p className="muted queue-quote">{item.note}</p> : null}
+                {item.status === "queued" || item.status === "in_progress" ? (
+                  <span style={{ display: "inline-flex", gap: 8, marginLeft: 8 }}>
+                    <button
+                      type="button"
+                      className="btn ghost small"
+                      data-testid={`queue-done-${item.id}`}
+                      onClick={async () => {
+                        try {
+                          await patchLabelingQueue(item.id, "done");
+                          setLabelQueue((await fetchLabelingQueue()).items || []);
+                        } catch (e) {
+                          setMsg((e as Error).message);
+                        }
+                      }}
+                    >
+                      {t("ui.DeskPage.labeling.markDone")}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost small"
+                      data-testid={`queue-dismiss-${item.id}`}
+                      onClick={async () => {
+                        try {
+                          await patchLabelingQueue(item.id, "cancelled");
+                          setLabelQueue((await fetchLabelingQueue()).items || []);
+                        } catch (e) {
+                          setMsg((e as Error).message);
+                        }
+                      }}
+                    >
+                      {t("ui.DeskPage.labeling.dismiss")}
+                    </button>
+                  </span>
+                ) : null}
               </li>
-            ))}
+                );
+              })}
             {!labelQueue?.length && <li className="muted">{t("ui.DeskPage.labeling.empty")}</li>}
           </ul>
           <p className="muted" style={{ fontSize: 12 }}>
@@ -1977,7 +2026,7 @@ export default function DeskPage() {
             {t("ui.DeskPage.csm.contact")} <strong>{csmDash?.csm?.email ?? "csm@citealpha.com"}</strong> {t("ui.DeskPage.csm.sales")}{" "}
             <strong>sales@citealpha.com</strong>
           </p>
-          <Link className="btn" to="/package" style={{ marginTop: 12 }}>
+          <Link className="btn" to="/products#plans" style={{ marginTop: 12 }}>
             {t("ui.DeskPage.csm.viewPackage")}
           </Link>
           <div className="panel" style={{ marginTop: 24 }} data-testid="org-settings-cta">

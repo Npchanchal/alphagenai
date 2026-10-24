@@ -80,10 +80,14 @@ def create_msa_invoice(
     return inv
 
 
-def sign_msa(invoice_id: str, *, signer_email: str) -> Dict[str, Any]:
+def sign_msa(invoice_id: str, *, signer_email: str, org_id: str) -> Dict[str, Any]:
     store = _store()
     for inv in store["invoices"]:
-        if inv["id"] == invoice_id and inv.get("kind") == "msa":
+        if (
+            inv["id"] == invoice_id
+            and inv.get("kind") == "msa"
+            and str(inv.get("org_id") or "") == org_id
+        ):
             inv["esign_status"] = "signed"
             inv["signed_by"] = signer_email
             inv["signed_at"] = _now()

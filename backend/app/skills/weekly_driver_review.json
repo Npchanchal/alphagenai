@@ -1,0 +1,15 @@
+{
+  "id": "weekly_driver_review",
+  "version": "1.0.0",
+  "title": "Weekly Driver Review",
+  "audience": "Analysts maintaining their own model of the company",
+  "description": "Reads the drivers in your uploaded model (XLSX or CSV, driver names in the first column) and sets each against the latest company filing on it, flagging which drivers had new evidence this week. Your numbers stay yours; we add no estimates. Run inside a Project.",
+  "inputs": ["company_id", "project_id"],
+  "requires_project": true,
+  "sections": [
+    {"id": "drivers", "title": "Your model drivers and the latest filing evidence", "builder": "model_drivers", "args": {"limit": 10, "lookback_days": 7}},
+    {"id": "open", "title": "Open guidance", "builder": "open_guidance"},
+    {"id": "commitments", "title": "Open commitments", "builder": "commitments_open"}
+  ],
+  "disproof": {"queries": []}
+}

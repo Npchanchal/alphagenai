@@ -31,6 +31,8 @@ def enqueue(
     requested_by: str = "api",
     kind: str = "label",
     flag: Optional[str] = None,
+    period: Optional[str] = None,
+    metric: Optional[str] = None,
 ) -> Dict[str, Any]:
     from app.services import repository
 
@@ -54,6 +56,8 @@ def enqueue(
         "created_at": _now(),
         "kind": kind or "label",
         "flag": flag,
+        "period": period,
+        "metric": metric,
     }
     data = get_data()
     q = data.setdefault("labeling_queue", [])
@@ -105,6 +109,86 @@ def enqueue_flag_suggestions(
             )
         )
     return created
+
+
+def _open_finding(company_id: str, kind: str, period: str, metric: str) -> bool:
+    for row in list_queue():
+        if (
+            row.get("company_id") == company_id
+            and row.get("kind") == kind
+            and row.get("period") == period
+            and row.get("metric") == metric
+            and row.get("status") in ("queued", "in_progress")
+        ):
+            return True
+    return False
+
+
+def sync_reconcile_findings(company_id: str, result: Dict[str, Any]) -> Dict[str, Any]:
+    """Queue metric/unit conflicts and numeric quiet-drop proposals. Does not change GCI.
+
+    A second run does not stack an open item. A metric that is guided again cancels
+    its open quiet-drop proposal.
+    """
+    from app.services import repository
+
+    try:
+        repository.get_company_gci(company_id)
+    except Exception:
+        return {"enqueued": 0, "cleared": 0, "skipped": "unknown_company"}
+
+    conflicts = list(result.get("conflicts") or [])
+    drops = list(result.get("quiet_drops") or [])
+    want_drops = {(str(d.get("period")), str(d.get("metric"))) for d in drops}
+    cleared = 0
+    for row in list_queue():
+        if (
+            row.get("company_id") == company_id
+            and row.get("kind") == "guidance_drop_suggestion"
+            and row.get("status") in ("queued", "in_progress")
+            and (str(row.get("period")), str(row.get("metric"))) not in want_drops
+        ):
+            update_status(row["id"], "cancelled")
+            cleared += 1
+
+    enqueued = 0
+    for item in conflicts:
+        period, metric = str(item.get("period") or ""), str(item.get("promise_metric") or "")
+        if _open_finding(company_id, "match_conflict", period, metric):
+            continue
+        enqueue(
+            company_id=company_id,
+            kind="match_conflict",
+            period=period,
+            metric=metric,
+            priority="high",
+            requested_by="job:disclosure_reconcile",
+            note=(
+                f"{period} {metric} vs {item.get('result_metric')} ({item.get('reason')}). "
+                f"Promise: {item.get('promise_quote')} "
+                f"Result: {item.get('result_quote')}"
+            ),
+        )
+        enqueued += 1
+    for item in drops:
+        period, metric = str(item.get("period") or ""), str(item.get("metric") or "")
+        if _open_finding(company_id, "guidance_drop_suggestion", period, metric):
+            continue
+        docs = ", ".join(str(d) for d in (item.get("doc_ids") or []))
+        enqueue(
+            company_id=company_id,
+            kind="guidance_drop_suggestion",
+            period=period,
+            metric=metric,
+            priority="normal",
+            requested_by="job:disclosure_reconcile",
+            note=(
+                f"{period} {metric} was absent from the next two guidance filings ({docs}). "
+                "Not applied to the score until a reviewer sets the withdrawal flag."
+            ),
+        )
+        enqueued += 1
+    return {"enqueued": enqueued, "cleared": cleared}
 
 
 def update_status(item_id: str, status: str, *, org_id: Optional[str] = None) -> Dict[str, Any]:

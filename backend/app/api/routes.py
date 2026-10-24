@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import date as _date
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 from app.data.seed import get_data, reset_data
 from app.models.schemas import (
@@ -54,7 +56,6 @@ from app.models.schemas import (
     RetailCheckoutRequest,
     RetailPayConfirm,
     ReviewRequest,
-    SightsAgentRunRequest,
     SightsAskRequest,
     SightsDeepDiveRequest,
     SightsGridRequest,
@@ -70,6 +71,13 @@ from app.services import research as research_svc
 from app.version import APP_VERSION
 
 router = APIRouter()
+
+
+def _moved(feature: str, moved_to: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=410,
+        content={"detail": f"{feature} moved to CiteAlpha Analyst", "moved_to": moved_to},
+    )
 
 
 @router.get("/api/status")
@@ -192,15 +200,20 @@ def score_universe(
 def company_gci(
     company_id: str,
     authorization: Optional[str] = Header(default=None),
+    user_agent: Optional[str] = Header(default=None),
 ) -> CompanyGCIDetail:
     from app.services import session_auth
+    from app.services.indexing_crawler import is_indexing_crawler
 
-    try:
-        session_auth.bump_guest_dossier(session_auth.extract_bearer(authorization))
-    except HTTPException:
-        raise
-    except Exception:
-        pass
+    # An indexer is here to record the public dossier. The 15-open guest cap
+    # would stop that crawl. A visitor without an indexer user agent still hits it.
+    if not is_indexing_crawler(user_agent):
+        try:
+            session_auth.bump_guest_dossier(session_auth.extract_bearer(authorization))
+        except HTTPException:
+            raise
+        except Exception:
+            pass
     return repository.get_company_gci(company_id)
 
 
@@ -251,6 +264,53 @@ def products_catalog() -> Dict[str, Any]:
     from app.services import portfolio as portfolio_svc
 
     return portfolio_svc.list_products()
+
+
+def _require_holdings(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+    if ent.get("kind") == "guest" or ent.get("source") == "guest":
+        if ent.get("user_id"):
+            raise HTTPException(status_code=403, detail="Sign in with a desk seat to open Holdings")
+        raise HTTPException(status_code=401, detail="Authentication required")
+    if not has_feature(ent, "holdings"):
+        from app.services.pilot_checklist import pilot_evaluation_ended
+
+        if ent.get("plan") == "pilot" and pilot_evaluation_ended(str(ent.get("org_id") or "")):
+            raise HTTPException(
+                status_code=403,
+                detail="This evaluation has ended. Holdings stays on a paid desk.",
+            )
+        if ent.get("plan") == "pilot":
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Holdings look-through is open during an admin-approved evaluation "
+                    "of 30, 45, or 60 days, and on a paid desk after that."
+                ),
+            )
+        raise HTTPException(
+            status_code=403,
+            detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks holdings",
+        )
+    if not ent.get("org_id"):
+        raise HTTPException(status_code=403, detail="Holdings is saved on a desk, not a personal guest session")
+    return ent
+
+
+@router.post("/api/holdings/lookthrough")
+def holdings_lookthrough(
+    body: Dict[str, Any],
+    ent: Dict[str, Any] = Depends(_require_holdings),
+) -> Dict[str, Any]:
+    from app.services.holdings import submit_lookthrough
+
+    return submit_lookthrough(str(ent["org_id"]), body)
+
+
+@router.get("/api/holdings/latest")
+def holdings_latest(ent: Dict[str, Any] = Depends(_require_holdings)) -> Dict[str, Any]:
+    from app.services.holdings import latest_lookthrough
+
+    return latest_lookthrough(str(ent["org_id"]))
 
 
 @router.get("/api/radar/feed")
@@ -353,36 +413,18 @@ def radar_calendar(limit: int = 30) -> Dict[str, Any]:
 
 
 @router.get("/api/radar/digest/preview")
-def radar_digest_preview(limit: int = 15) -> Dict[str, Any]:
-    from app.services import portfolio_phases as phases
-
-    return phases.radar_digest_preview(limit=limit)
+def radar_digest_preview() -> JSONResponse:
+    return _moved("Radar digest", "/api/analyst/digest")
 
 
 @router.post("/api/radar/digest/send")
-def radar_digest_send(
-    body: Dict[str, Any],
-    auth=Depends(require_feature("desk_write")),
-) -> Dict[str, Any]:
-    from app.services import portfolio_phases as phases
-
-    to = (body.get("to") or "").strip()
-    if not to:
-        raise HTTPException(status_code=400, detail="to email required")
-    return phases.send_radar_digest(to=to, limit=int(body.get("limit") or 15))
+def radar_digest_send() -> JSONResponse:
+    return _moved("Radar digest", "/api/analyst/digest")
 
 
 @router.post("/api/radar/webhooks")
-def radar_webhook_register(
-    body: Dict[str, Any],
-    auth=Depends(require_feature("desk_write")),
-) -> Dict[str, Any]:
-    from app.services import portfolio_phases as phases
-
-    url = (body.get("url") or "").strip()
-    if not url:
-        raise HTTPException(status_code=400, detail="url required")
-    return phases.register_radar_webhook(url, secret=body.get("secret"))
+def radar_webhook_register() -> JSONResponse:
+    return _moved("Radar webhooks", "/api/analyst/destinations")
 
 
 # --- Portfolio P4 Cite / Data ---
@@ -662,9 +704,9 @@ def review(body: ReviewRequest, auth=Depends(require_feature("desk_write"))) -> 
 @router.get("/api/reviews")
 def reviews(_auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     rows = list(get_data().get("reviews", []))
-    if _auth.get("role") != "admin":
-        org = _auth.get("org")
-        rows = [r for r in rows if r.get("org_id", org) == org]
+    if not _auth.get("platform_admin_role"):
+        org = _auth.get("org") or _auth.get("org_id")
+        rows = [r for r in rows if r.get("org_id") == org]
     return {"reviews": rows}
 
 
@@ -706,8 +748,7 @@ def org(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     """G16 / P2.1 — org seats + plan entitlements."""
     from app.services import orgs as org_svc
 
-    if auth.get("org") != org_id and auth.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Org mismatch")
+    org_svc.assert_org_access(auth, org_id)
     return org_svc.org_snapshot(org_id)
 
 
@@ -1060,7 +1101,7 @@ def trust_center() -> Dict[str, Any]:
             "links": {
                 "terms": "/terms",
                 "privacy": "/privacy",
-                "package": "/package",
+                "package": "/products#plans",
                 "help": "/help",
                 "about": "/about",
             },
@@ -1090,8 +1131,8 @@ def trust_center() -> Dict[str, Any]:
                 "optional": False,
             },
             {
-                "name": "Transactional email (SMTP)",
-                "role": "Verify / reset mail when SMTP_HOST is set",
+                "name": "Amazon SES",
+                "role": "Account email: verification, password reset, invites, and pilot requests",
                 "optional": True,
             },
             {
@@ -1269,13 +1310,27 @@ def research_search(
     company_id: Optional[str] = None,
     doc_type: Optional[str] = None,
     limit: int = 25,
+    expand: bool = False,
 ) -> Dict[str, Any]:
-    return research_svc.search_documents(q, company_id=company_id, doc_type=doc_type, limit=limit)
+    """Filing search for one company, or all covered companies when company_id is omitted.
+
+    ``expand=true`` adds India IR synonyms (e.g. "EBITDA margin" also finds "operating margin").
+    """
+    from app.services.sights import expand_query_lexicon
+
+    query = expand_query_lexicon(q) if expand else q
+    out = research_svc.search_documents(query, company_id=company_id, doc_type=doc_type, limit=limit)
+    if expand:
+        out.update(original_query=q, expanded_query=query)
+    return out
 
 
 @router.post("/api/research/chat")
 def research_chat(body: ResearchChatRequest, _auth=Depends(require_feature("research_chat"))) -> Dict[str, Any]:
-    return research_svc.research_chat(body.question, company_id=body.company_id)
+    from app.services.sights import expand_query_lexicon
+
+    question = expand_query_lexicon(body.question) if body.expand else body.question
+    return research_svc.research_chat(question, company_id=body.company_id)
 
 
 @router.get("/api/citations")
@@ -1434,37 +1489,23 @@ def sights_fundamentals(company_id: str) -> Dict[str, Any]:
 
 
 @router.get("/api/sights/agents")
-def sights_agents() -> Dict[str, Any]:
-    from app.services import sights as sights_svc
-
-    return sights_svc.list_agents()
+def sights_agents() -> JSONResponse:
+    return _moved("Desk Agents", "/api/analyst/skills")
 
 
 @router.post("/api/sights/agents/run")
-def sights_agents_run(body: SightsAgentRunRequest) -> Dict[str, Any]:
-    from app.services import sights as sights_svc
-
-    try:
-        return sights_svc.run_agent(body.template_id, company_id=body.company_id)
-    except Exception as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+def sights_agents_run() -> JSONResponse:
+    return _moved("Desk Agents", "/api/analyst/run")
 
 
 @router.get("/api/sights/hooks")
-def sights_hooks() -> Dict[str, Any]:
-    from app.services import sights as sights_svc
-
-    return sights_svc.notify_hooks_meta()
+def sights_hooks() -> JSONResponse:
+    return _moved("Notify Hooks", "/api/analyst/destinations")
 
 
 @router.get("/api/sights/export/{company_id}")
-def sights_export(company_id: str, format: str = "markdown") -> Dict[str, Any]:
-    from app.services import sights as sights_svc
-
-    try:
-        return sights_svc.cite_export(company_id, fmt=format)
-    except Exception as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+def sights_export(company_id: str) -> JSONResponse:
+    return _moved("Cite Export", "/api/analyst/runs/{run_id}/export")
 
 
 @router.get("/api/sights/enterprise")
@@ -2008,14 +2049,21 @@ def audit_list(org: Optional[str] = None, limit: int = 100, auth=Depends(resolve
 
     if auth.get("role") not in ("admin", "reviewer", "analyst"):
         raise HTTPException(status_code=403, detail="Insufficient role")
-    rows = audit_log.list_audit(org=org or auth.get("org"), limit=limit)
+    caller = str(auth.get("org") or "")
+    if org and org != caller and not auth.get("platform_admin_role"):
+        raise HTTPException(status_code=403, detail="Org mismatch")
+    if not auth.get("platform_admin_role"):
+        org = caller
+    rows = audit_log.list_audit(org=org or caller, limit=limit)
     return {"count": len(rows), "events": rows}
 
 
 @router.get("/api/analytics/events")
-def analytics_events(limit: int = 50, _auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def analytics_events(limit: int = 50, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.analytics import recent_events
 
+    if not auth.get("platform_admin_role"):
+        raise HTTPException(status_code=403, detail="Platform operator required")
     return {"events": recent_events(limit)}
 
 
@@ -2420,7 +2468,11 @@ def org_invite(
     if user.get("org_id") != org_id or user.get("role") not in ("owner", "admin"):
         raise HTTPException(status_code=403, detail="Owner or admin required")
     return org_svc.create_invite(
-        org_id=org_id, email=body.email, invited_by=user["id"], role=body.role
+        org_id=org_id,
+        email=body.email,
+        invited_by=user["id"],
+        role=body.role,
+        actor_role=str(user.get("role") or ""),
     )
 
 
@@ -2519,8 +2571,8 @@ def infra_db_migrate(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     """Apply SQL auth schema (SQLite or Postgres). Admin/demo key."""
     from app.db.auth_db import apply_schema, backend_name
 
-    if _auth.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Admin role required")
+    if not _auth.get("platform_admin_role"):
+        raise HTTPException(status_code=403, detail="Platform operator required")
     return {**apply_schema(), "backend": backend_name()}
 
 
@@ -2532,7 +2584,7 @@ def legal_attest(body: LegalAttestRequest, auth=Depends(resolve_api_key)) -> Dic
         kind=body.kind,
         attested_by=body.attested_by,
         note=body.note,
-        admin_key_ok=auth.get("role") == "admin",
+        admin_key_ok=bool(auth.get("platform_admin_role")),
     )
 
 
@@ -2580,8 +2632,13 @@ def billing_msa_sign(
     from app.services import billing
     from app.services import session_auth
 
-    session_auth.require_session(session_auth.extract_bearer(authorization))
-    return billing.sign_msa(invoice_id, signer_email=body.signer_email)
+    user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    if user.get("role") not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Owner or admin required")
+    oid = user.get("org_id")
+    if not oid:
+        raise HTTPException(status_code=400, detail="No org on session")
+    return billing.sign_msa(invoice_id, signer_email=body.signer_email, org_id=str(oid))
 
 
 @router.post("/api/billing/retail/checkout")
@@ -2617,9 +2674,11 @@ def billing_invoices(authorization: Optional[str] = Header(default=None)) -> Dic
 
     user = session_auth.require_session(session_auth.extract_bearer(authorization))
     oid = user.get("org_id")
+    if not oid:
+        return {"invoices": [], "subscription": None}
     return {
-        "invoices": billing.list_invoices(str(oid) if oid else None),
-        "subscription": billing.subscription_for(str(oid)) if oid else None,
+        "invoices": billing.list_invoices(str(oid)),
+        "subscription": billing.subscription_for(str(oid)),
     }
 
 
@@ -2733,8 +2792,9 @@ def nifty_enqueue_labeling(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 def csm_dashboard(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.csm_sla import csm_dashboard as dash
 
-    if auth.get("org") != org_id and auth.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Org mismatch")
+    from app.services import orgs as org_svc
+
+    org_svc.assert_org_access(auth, org_id)
     return dash(org_id)
 
 
@@ -2742,8 +2802,9 @@ def csm_dashboard(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 def sla_for_org(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.csm_sla import sla_status
 
-    if auth.get("org") != org_id and auth.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Org mismatch")
+    from app.services import orgs as org_svc
+
+    org_svc.assert_org_access(auth, org_id)
     return sla_status(org_id)
 
 
@@ -2751,8 +2812,9 @@ def sla_for_org(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 def csm_ticket(org_id: str, body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.csm_sla import create_ticket
 
-    if auth.get("org") != org_id and auth.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Org mismatch")
+    from app.services import orgs as org_svc
+
+    org_svc.assert_org_access(auth, org_id)
     ticket = create_ticket(
         org_id=org_id,
         subject=str(body.get("subject") or ""),
@@ -3143,8 +3205,9 @@ def ops_corpus_coverage(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 @router.get("/api/ops/coverage-progress")
 def ops_coverage_progress(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.india_coverage import coverage_progress
+    from app.services.us_coverage import coverage_progress as us_progress
 
-    return coverage_progress()
+    return {**coverage_progress(), "us": us_progress()}
 
 
 @router.get("/api/ops/throughput")
@@ -3158,17 +3221,14 @@ def ops_throughput(auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 def orgs_provision_pilot(body: Dict[str, Any], auth=Depends(resolve_api_key)) -> Dict[str, Any]:
     from app.services.pilot_checklist import provision_pilot_org
 
-    if auth.get("role") not in ("admin", "member", None) and auth.get("role") not in (
-        "admin",
-        "owner",
-        "member",
-    ):
-        pass  # demo key allowed
+    if not auth.get("platform_admin_role") and auth.get("key") != "intellens-demo":
+        raise HTTPException(status_code=403, detail="Platform operator required")
     name = (body.get("name") or "").strip() or "Pilot Desk"
     return provision_pilot_org(
         name=name,
         owner_email=body.get("owner_email"),
         seats=int(body.get("seats") or 5),
+        term_days=body.get("term_days"),
     )
 
 
@@ -3177,9 +3237,7 @@ def org_pilot_checklist(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str,
     from app.services import orgs as org_svc
     from app.services.pilot_checklist import get_pilot_checklist
 
-    # Demo / admin keys may inspect any pilot checklist during evaluation
-    if auth.get("role") != "admin" and auth.get("key") != "intellens-demo":
-        org_svc.assert_org_access(auth, org_id)
+    org_svc.assert_org_access(auth, org_id)
     return get_pilot_checklist(org_id)
 
 
@@ -3190,8 +3248,7 @@ def org_pilot_checklist_patch(
     from app.services import orgs as org_svc
     from app.services.pilot_checklist import patch_pilot_checklist
 
-    if auth.get("role") != "admin" and auth.get("key") != "intellens-demo":
-        org_svc.assert_org_access(auth, org_id)
+    org_svc.assert_org_access(auth, org_id)
     return patch_pilot_checklist(
         org_id,
         item_id=body.get("item_id"),
@@ -3222,16 +3279,31 @@ def public_gci_rankings(
 # --- Index integrity: score ledger + public changelog (W1.6 / W1.7) ---
 
 
+def _as_of_param(as_of: Optional[str]) -> Optional[str]:
+    if as_of is None:
+        return None
+    try:
+        return _date.fromisoformat(as_of.strip()).isoformat()
+    except ValueError:
+        raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD") from None
+
+
 @router.get("/api/v1/index/ledger")
-def index_ledger(company_id: Optional[str] = None, limit: int = 200) -> Dict[str, Any]:
+def index_ledger(
+    company_id: Optional[str] = None, limit: int = 200, as_of: Optional[str] = None
+) -> Dict[str, Any]:
     """Append-only record of every published GCI level (newest last)."""
     from app.services import score_ledger
 
+    cutoff = _as_of_param(as_of)
     rows = score_ledger.rows_for(company_id) if company_id else score_ledger.read_all()
+    if cutoff:
+        rows = [r for r in rows if str(r.get("as_of") or "") <= cutoff]
     lim = max(1, min(int(limit), 1000))
     rows = rows[-lim:]
     return {
         "company_id": company_id,
+        "as_of": cutoff,
         "count": len(rows),
         "rows": rows,
         "note": (
@@ -3239,6 +3311,41 @@ def index_ledger(company_id: Optional[str] = None, limit: int = 200) -> Dict[str
             "and a reason; earlier rows are never edited."
         ),
     }
+
+
+@router.get("/api/v1/index/levels")
+def index_levels(as_of: Optional[str] = None) -> Dict[str, Any]:
+    """The level each company was published at on a given day, from the ledger alone."""
+    from app.services import score_ledger
+
+    cutoff = _as_of_param(as_of) or _date.today().isoformat()
+    latest: Dict[str, Dict[str, Any]] = {}
+    for row in score_ledger.read_all():
+        if str(row.get("as_of") or "") <= cutoff:
+            latest[str(row.get("company_id"))] = row
+    levels = [
+        {k: r.get(k) for k in ("company_id", "gci", "confidence_tier", "as_of", "algorithm_id", "dataset_version", "reason")}
+        for r in latest.values()
+        if r.get("gci") is not None
+    ]
+    levels.sort(key=lambda r: r["company_id"])
+    return {
+        "as_of": cutoff,
+        "count": len(levels),
+        "levels": levels,
+        "note": "Rebuilt from the append-only ledger. Rows dated after as_of are ignored.",
+    }
+
+
+@router.get("/api/v1/index/evidence")
+def index_evidence(checksum: str) -> Dict[str, Any]:
+    """Stored filing for a SHA-256 content hash: URL, filing date, ingestion time."""
+    from app.data import doc_store
+
+    doc = doc_store.find_by_hash(checksum)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="No stored filing with that SHA-256")
+    return doc
 
 
 @router.get("/api/v1/index/changelog")
@@ -3363,6 +3470,27 @@ def admin_portal_orgs(actor=Depends(admin_portal_svc.require_platform_perm("orgs
     return {"orgs": admin_portal_svc.list_orgs()}
 
 
+@router.delete("/api/admin/portal/orgs/{org_id}")
+def admin_portal_delete_org(
+    org_id: str,
+    actor=Depends(admin_portal_svc.require_platform_perm("orgs.write")),
+) -> Dict[str, Any]:
+    """Delete an empty organisation. Standing desks and occupied seats are refused."""
+    return admin_portal_svc.delete_org(org_id)
+
+
+@router.post("/api/admin/portal/orgs/{org_id}/owner-invite")
+def admin_portal_owner_invite(
+    org_id: str,
+    actor=Depends(admin_portal_svc.require_platform_perm("pilot.manage")),
+) -> Dict[str, Any]:
+    """Email the recorded owner a link to join this desk as admin."""
+    from app.services import orgs as org_svc
+
+    invited_by = str(actor.get("email") or actor.get("user_id") or "platform")
+    return org_svc.invite_recorded_owner(org_id=org_id, invited_by=invited_by)
+
+
 @router.get("/api/admin/portal/users")
 def admin_portal_users(actor=Depends(admin_portal_svc.require_platform_perm("users.read"))) -> Dict[str, Any]:
     return {"users": admin_portal_svc.list_users()}
@@ -3377,6 +3505,25 @@ def admin_portal_user_platform_role(
     return admin_portal_svc.assign_platform_admin_role(
         user_id, body.platform_admin_role, actor=actor
     )
+
+
+@router.delete("/api/admin/portal/users/{user_id}")
+def admin_portal_delete_user(
+    user_id: str,
+    actor=Depends(admin_portal_svc.require_platform_perm("users.write")),
+) -> Dict[str, Any]:
+    """Delete a login and free the seat. Standing team accounts are refused."""
+    return admin_portal_svc.delete_user(user_id, actor=actor)
+
+
+@router.post("/api/admin/portal/cleanup-test-tenants")
+def admin_portal_cleanup_test_tenants(
+    body: Dict[str, Any],
+    actor=Depends(admin_portal_svc.require_platform_perm("system.ops")),
+) -> Dict[str, Any]:
+    """Remove e2e tenants and guests. dry_run defaults on. Approved desks are kept."""
+    dry_run = body.get("dry_run", True)
+    return admin_portal_svc.cleanup_test_tenants(dry_run=bool(dry_run))
 
 
 @router.get("/api/admin/portal/feedback")
@@ -3457,6 +3604,57 @@ def admin_portal_audit(
     return admin_portal_svc.audit_summary()
 
 
+@router.get("/api/admin/portal/board")
+def admin_portal_board(actor=Depends(admin_portal_svc.resolve_platform_admin)) -> Dict[str, Any]:
+    return admin_portal_svc.portal_board(actor)
+
+
+@router.get("/api/admin/portal/labeling")
+def admin_portal_labeling(
+    actor=Depends(admin_portal_svc.require_platform_perm("audit.read")),
+) -> Dict[str, Any]:
+    return admin_portal_svc.labeling_queue_view()
+
+
+@router.get("/api/admin/portal/commitments")
+def admin_portal_commitments(
+    actor=Depends(admin_portal_svc.require_platform_perm("audit.read")),
+) -> Dict[str, Any]:
+    return admin_portal_svc.unreviewed_commitments()
+
+
+@router.get("/api/admin/portal/system")
+def admin_portal_system(
+    actor=Depends(admin_portal_svc.require_platform_perm("system.ops")),
+) -> Dict[str, Any]:
+    return admin_portal_svc.system_status()
+
+
+@router.post("/api/admin/portal/billing/invoices")
+def admin_portal_create_invoice(
+    body: Dict[str, Any],
+    actor=Depends(admin_portal_svc.require_platform_perm("billing.write")),
+) -> Dict[str, Any]:
+    return admin_portal_svc.create_msa(body)
+
+
+@router.get("/api/admin/portal/reports")
+def admin_portal_reports(actor=Depends(admin_portal_svc.resolve_platform_admin)) -> Dict[str, Any]:
+    return admin_portal_svc.report_catalog(actor)
+
+
+@router.get("/api/admin/portal/reports/{report_id}")
+def admin_portal_report(
+    report_id: str,
+    format: Optional[str] = None,
+    actor=Depends(admin_portal_svc.resolve_platform_admin),
+):
+    body = admin_portal_svc.portal_report(actor, report_id)
+    if format == "csv" and report_id == "audit-events":
+        return PlainTextResponse(admin_portal_svc.audit_events_csv(body), media_type="text/csv")
+    return body
+
+
 @router.post("/api/admin/portal/pilot")
 def admin_portal_provision_pilot(
     body: Dict[str, Any],
@@ -3465,7 +3663,7 @@ def admin_portal_provision_pilot(
     from app.services.pilot_checklist import provision_pilot_org
 
     name = str(body.get("name") or "New Pilot Desk")
-    return provision_pilot_org(name=name)
+    return provision_pilot_org(name=name, term_days=body.get("term_days"))
 
 
 @router.get("/api/admin/portal/pilot-requests")
@@ -3491,4 +3689,16 @@ def admin_portal_pilot_request_review(
         action=body.action,
         actor=actor,
         note=body.note,
+        term_days=body.term_days,
     )
+
+
+@router.delete("/api/admin/portal/pilot-requests/{request_id}")
+def admin_portal_delete_pilot_request(
+    request_id: str,
+    actor=Depends(admin_portal_svc.require_platform_perm("pilot.manage")),
+) -> Dict[str, Any]:
+    """Delete the intake row. A provisioned organisation is left in place."""
+    from app.services import pilot_request as pr
+
+    return pr.delete_request(request_id)

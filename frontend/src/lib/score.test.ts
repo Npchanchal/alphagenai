@@ -6,7 +6,7 @@ import {
   formatGuideGap,
   metricDisplayName,
 } from "./score";
-import { dossierSeo } from "./seo";
+import { dossierSeo, resolveSeo } from "./seo";
 
 describe("score helpers (W3)", () => {
   it("maps metric ids to display names and never leaves a raw id", () => {
@@ -72,5 +72,27 @@ describe("dossier SEO (W5.1)", () => {
       recordSentence: "No closed, dual-cited results yet.",
     });
     expect(hidden.robots).toBe("noindex,follow");
+  });
+
+  it("does not flip a published dossier to noindex before the company request returns", () => {
+    const seo = resolveSeo("/companies/infy");
+    expect(seo.robots).toBe("index,follow");
+    expect(seo.path).toBe("/companies/infy");
+    expect(seo.title).toContain("Infosys");
+    expect(seo.title).toContain("Guidance Credibility Index (GCI)");
+    expect(resolveSeo("/companies/not-a-listed-company").robots).toBe("noindex,follow");
+    expect(resolveSeo("/companies/INFY").robots).toBe("index,follow");
+    expect(resolveSeo("/companies/INFY").path).toBe("/companies/infy");
+  });
+
+  it("indexes public product routes and noindexes unknown or private ones", () => {
+    expect(resolveSeo("/analyst").robots ?? "index,follow").not.toMatch(/noindex/);
+    expect(resolveSeo("/analyst").title).toContain("CiteAlpha Analyst");
+    expect(resolveSeo("/sights/themes").robots ?? "index,follow").not.toMatch(/noindex/);
+    expect(resolveSeo("/sights/grid").title).toContain("Compare Grid");
+    expect(resolveSeo("/account").robots).toMatch(/noindex/);
+    expect(resolveSeo("/org/settings").robots).toMatch(/noindex/);
+    expect(resolveSeo("/sights/settings").robots).toMatch(/noindex/);
+    expect(resolveSeo("/this-route-does-not-exist").robots).toBe("noindex,follow");
   });
 });

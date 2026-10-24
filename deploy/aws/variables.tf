@@ -108,7 +108,7 @@ variable "gemini_api_key" {
 
 variable "gemini_chat_model" {
   type        = string
-  default     = "gemini-3.5-flash"
+  default     = "gemini-3.8-flash"
   description = "Gemini model for extract and web-search discovery."
 }
 
@@ -332,8 +332,14 @@ variable "intellens_abuse_secret" {
 
 variable "pilot_request_to" {
   type        = string
-  default     = ""
-  description = "Inbound pilot request mailbox (PILOT_REQUEST_TO)"
+  default     = "sales@citealpha.com,contact@ocotilloinnovation.com"
+  description = "Comma-separated inboxes for a new pilot request (PILOT_REQUEST_TO)"
+}
+
+variable "enable_ses" {
+  type        = bool
+  default     = true
+  description = "Verify the site domain in SES and let the task send mail. Hostinger MX is unchanged."
 }
 
 variable "enable_index_bucket" {

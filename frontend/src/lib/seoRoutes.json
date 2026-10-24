@@ -19,32 +19,68 @@
   },
   {
     "path": "/research",
-    "title": "Filing Search: Cite-Only Search of One Company's Filings — CiteAlpha",
-    "description": "Search filings and transcripts with cite-only chat. No hallucinated actuals. Built for Indian IR and concall workflows.",
+    "title": "Filing Search: Cite-Only Search of Indian Company Filings — CiteAlpha",
+    "description": "Search filings and transcripts for one Indian company or all covered companies, with India IR synonyms and cite-only answers. No invented actuals.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.8" }
+  },
+  {
+    "path": "/analyst",
+    "title": "CiteAlpha Analyst — Cited workflows for Indian equity desks",
+    "description": "Cited research workflows for Indian equity desks, exported to Excel, PowerPoint, or PDF. Every claim stays tied to a filing. Not investment advice.",
     "sitemap": { "changefreq": "weekly", "priority": "0.8" }
   },
   {
     "path": "/sights",
     "title": "Disclosure Explorer: Compare Indian Company Disclosures — CiteAlpha",
-    "description": "Search, cite-only Ask, Compare Grid, and agents across Indian companies' public IR and CiteAlpha evidence. Not investment advice.",
+    "description": "Delivery themes, street context, field evidence, Compare Grid and deep dives across Indian companies' public disclosures. Not investment advice.",
     "sitemap": { "changefreq": "weekly", "priority": "0.85" }
   },
   {
-    "path": "/sights/search",
-    "title": "Disclosure Explorer Search: India IR Documents — CiteAlpha",
-    "description": "Search Indian IR decks, filings, and transcripts with Business Lexicon synonym expand. Evidence-first disclosure research.",
-    "sitemap": { "changefreq": "weekly", "priority": "0.7" }
+    "path": "/sights/themes",
+    "title": "Delivery themes — Disclosure Explorer — CiteAlpha",
+    "description": "Recurring topics in Indian company management commentary, each linked to the filing it came from. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.6" }
   },
   {
-    "path": "/sights/ask",
-    "title": "Disclosure Explorer Ask: Cite-Only Answers — CiteAlpha",
-    "description": "Cite-only answers from the India disclosure corpus. Refuses without evidence. Built for equity research desks.",
-    "sitemap": { "changefreq": "weekly", "priority": "0.65" }
+    "path": "/sights/street",
+    "title": "Street context — Disclosure Explorer — CiteAlpha",
+    "description": "Street context placed next to Indian company disclosures, with the source attached. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.6" }
+  },
+  {
+    "path": "/sights/field",
+    "title": "Field evidence — Disclosure Explorer — CiteAlpha",
+    "description": "Labeled guidance outcomes and the citations behind them, for Indian listed companies. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.6" }
+  },
+  {
+    "path": "/sights/grid",
+    "title": "Compare Grid — Disclosure Explorer — CiteAlpha",
+    "description": "The same disclosure question across covered Indian companies. Every cell is cited. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.6" }
+  },
+  {
+    "path": "/sights/deep-dive",
+    "title": "Deep dive — Disclosure Explorer — CiteAlpha",
+    "description": "One topic across one Indian company's filings, with every claim cited. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.6" }
+  },
+  {
+    "path": "/sights/fundamentals",
+    "title": "Fundamentals — Disclosure Explorer — CiteAlpha",
+    "description": "Filing-backed fundamentals for one Indian company, beside its Guidance Credibility Index dossier. Not investment advice.",
+    "sitemap": { "changefreq": "weekly", "priority": "0.6" }
+  },
+  {
+    "path": "/sights/settings",
+    "title": "Disclosure Explorer settings — CiteAlpha",
+    "description": "Disclosure Explorer settings for a signed-in desk.",
+    "robots": "noindex,nofollow"
   },
   {
     "path": "/products",
-    "title": "What you get: Screener, Workbench, Filing Search, API — CiteAlpha",
-    "description": "GCI Screener, Analyst Workbench, Filing Search, and API for guidance delivery on Indian listed companies. SKU names in the appendix. Not investment advice.",
+    "title": "Products and plans: Screener, Analyst, Filing Search, API — CiteAlpha",
+    "description": "GCI Screener, CiteAlpha Analyst, Filing Search, Disclosure Explorer and API for Indian listed companies, with Pilot, Desk seat and Enterprise API plans. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.8" }
   },
   {
@@ -60,15 +96,9 @@
     "sitemap": { "changefreq": "daily", "priority": "0.3" }
   },
   {
-    "path": "/package",
-    "title": "Pilot, Desk seat, and Enterprise API — CiteAlpha",
-    "description": "Three ways to use the Guidance Credibility Index. Request a quote — there is no self-serve checkout. Not investment advice.",
-    "sitemap": { "changefreq": "monthly", "priority": "0.8" }
-  },
-  {
     "path": "/pilot",
-    "title": "Request a CiteAlpha GCI Pilot — Ocotillo Innovation",
-    "description": "Time-boxed GCI pilot for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Not investment advice.",
+    "title": "Request a CiteAlpha evaluation — Ocotillo Innovation",
+    "description": "Time-boxed GCI evaluation for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.85" }
   },
   {
@@ -106,12 +136,6 @@
     "title": "About CiteAlpha — GCI by Ocotillo Innovation",
     "description": "How CiteAlpha builds the Guidance Credibility Index: ingest, extract, match, score, and cite — for Indian equity desks.",
     "sitemap": { "changefreq": "monthly", "priority": "0.7" }
-  },
-  {
-    "path": "/about/tiers",
-    "title": "Tier Features: Screener, Workbench, Filing Search — CiteAlpha",
-    "description": "Feature map across CiteAlpha tiers: GCI Screener, Analyst Workbench, Filing Search, and Enterprise API capabilities for Indian equity desks.",
-    "sitemap": { "changefreq": "monthly", "priority": "0.5" }
   },
   {
     "path": "/help",
@@ -189,6 +213,18 @@
     "path": "/accept-invite",
     "title": "Accept Invite — CiteAlpha",
     "description": "Join your organization on CiteAlpha.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/account",
+    "title": "Account — CiteAlpha",
+    "description": "Account settings for a signed-in CiteAlpha user.",
+    "robots": "noindex,nofollow"
+  },
+  {
+    "path": "/org/settings",
+    "title": "Organization settings — CiteAlpha",
+    "description": "Organization settings for a CiteAlpha desk.",
     "robots": "noindex,nofollow"
   },
   {

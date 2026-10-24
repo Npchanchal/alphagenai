@@ -2,6 +2,30 @@
   "note": "Public GCI changelog. Mirrors the Methodology changelog table in docs/kb/03-scoring.md. Every entry that moves a published number has matching rows in score_ledger.jsonl.",
   "entries": [
     {
+      "date": "2026-10-24",
+      "reason": "new_filing",
+      "companies": ["infy"],
+      "change": "Infosys FY24 operating margin is now on the record: guided 20%–22% in the 13 April 2023 results release, actual 20.7% in the 18 April 2024 results release, inside the band. The row is one closed period, so it stays beside the score and the composite stays 76.5. A second metric moves the confidence tier from provisional to deep, so Infosys can appear on the Public Snapshot."
+    },
+    {
+      "date": "2026-10-24",
+      "reason": "methodology",
+      "companies": [],
+      "change": "Each scored row can now record the reporting basis, unit, and scope of the guidance and of the actual. When both sides are filled and they differ, that row stays outside the score. A blank side is treated as unknown and still scores, so no published level moves. Infosys FY24 constant-currency revenue remains a miss: guided 4–7%, actual 1.4% in constant currency, and the January revision was 1.5–2%. Reported rupee revenue growth of 4.7% is a different basis and cannot close the constant-currency row."
+    },
+    {
+      "date": "2026-10-18",
+      "reason": "data_correction",
+      "companies": ["axisbank", "adani_ports", "apollohosp", "hdfclife"],
+      "change": "Ledger correction, no score changed on the site. When the v4.2 release was deployed, the score ledger recorded Axis Bank, Adani Ports, Apollo Hospitals and HDFC Life as withdrawn. Their scores had been read while the service was still loading their filing citations. The published levels were never withdrawn. Correcting rows restore Axis Bank 90.7 (the v4.2 level), Adani Ports 58.7, Apollo Hospitals 60.4 and HDFC Life 87.8. The earlier rows stay in the ledger, which is append-only."
+    },
+    {
+      "date": "2026-10-18",
+      "reason": "methodology",
+      "companies": ["axisbank"],
+      "change": "Two changes to how a result is compared with its guided range (v4.2). First, each metric now has a direction. For most metrics a result above the range is a beat. For working-capital days the beat is below the range. For capex and R&D spend, landing outside the range either way counts as a miss. Second, every guided range has a minimum half-width before scoring: 2% of the midpoint and, for percentage metrics, never less than 0.1 percentage point. The minimum used to apply only to single-figure guidance and had no absolute floor, so a 3.80% NIM guide was scored against ±0.08 pp. Axis Bank 83.8 → 90.7 (FY25 NIM guided 3.80%, reported 3.98%; still scored as a beat). Infosys 76.5, Cipla 65.5, Adani Ports 58.7, Apollo Hospitals 60.4 and HDFC Life 87.8 are unchanged. Company pages also now say how results have landed against guidance and how guidance moved during the year. That description is not part of the GCI."
+    },
+    {
       "date": "2026-10-02",
       "reason": "methodology",
       "companies": [],

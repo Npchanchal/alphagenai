@@ -15,6 +15,7 @@ Audited 2026-09-28 (account `884686184601`, ap-south-1). Cost Explorer is not en
 | CloudWatch | 3 alarms, logs 7-day retention (~20 MB) | ~0.35 |
 | EFS (`auth.db`) + AWS Backup | ~100 KB, 8 recovery points | <0.10 |
 | ECR ×2 | lifecycle keep 3 (~0.3 GB) | ~0.03 |
+| SES | Product mail, $0.10 / 1,000 messages | <0.10 |
 | **Total** | | **~$40** |
 
 No NAT gateway, EC2, EBS, snapshots, VPC endpoints or Container Insights; nothing in other regions.

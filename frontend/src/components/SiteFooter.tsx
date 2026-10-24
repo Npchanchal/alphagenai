@@ -1,12 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 import { useAuth } from "../lib/auth";
 /** Persistent copyright + legal links — Ocotillo Innovation Private Limited. */
 export default function SiteFooter() {
   const { t } = useI18n();
+  const { pathname } = useLocation();
   const { token, user } = useAuth();
   const signedIn = Boolean(token && user?.kind !== "guest");
+  const onHome = pathname === "/";
 
   return (
     <footer className="site-footer" data-testid="site-footer">
@@ -26,8 +28,12 @@ export default function SiteFooter() {
           {signedIn ? <Link to="/billing">{t("footer.billing")}</Link> : null}
           <Link to="/developers">API</Link>
           <Link to="/status">Status</Link>
-          <Link to="/package">{t("footer.package")}</Link>
-          <Link to="/pilot">{t("footer.pilot")}</Link>
+          <Link to="/products#plans">{t("footer.package")}</Link>
+          {onHome ? (
+            <a href="#pilot-request">{t("footer.pilot")}</a>
+          ) : (
+            <Link to="/pilot">{t("footer.pilot")}</Link>
+          )}
           <Link to="/about">{t("footer.about")}</Link>
         </nav>
         <p className="muted site-footer-note">

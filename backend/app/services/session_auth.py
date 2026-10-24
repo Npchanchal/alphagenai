@@ -87,6 +87,31 @@ def _load_users() -> Dict[str, Any]:
     return _USERS
 
 
+def _user_by_id(user_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    if not user_id:
+        return None
+    return next((u for u in _load_users().get("users", []) if u.get("id") == user_id), None)
+
+
+def user_watchlist(user_id: Optional[str]) -> List[str]:
+    """Company IDs on an active user's watchlist (empty if the user is gone or inactive)."""
+    u = _user_by_id(user_id)
+    if not u or u.get("active") is False:
+        return []
+    return [str(c) for c in ((u.get("preferences") or {}).get("watchlist") or [])]
+
+
+def org_member_emails(org_id: str, roles: Optional[tuple] = None) -> List[str]:
+    out = []
+    for u in _load_users().get("users", []):
+        if u.get("org_id") != org_id or u.get("active") is False or not u.get("email"):
+            continue
+        if roles and str(u.get("role") or "").lower() not in roles:
+            continue
+        out.append(str(u["email"]))
+    return sorted(set(out))
+
+
 def _load_sessions() -> Dict[str, Any]:
     global _SESSIONS
     if _SESSIONS is None:
@@ -646,6 +671,13 @@ def list_org_members(org_id: str) -> List[Dict[str, Any]]:
     ]
 
 
+def _refuse_if_protected(user: Dict[str, Any]) -> None:
+    from app.services.protected_users import is_protected
+
+    if is_protected(user):
+        raise HTTPException(status_code=400, detail="Protected team account — managed in protected_users.json")
+
+
 def revoke_org_member(*, org_id: str, user_id: str, actor: Dict[str, Any]) -> Dict[str, Any]:
     from app.services import orgs as org_svc
 
@@ -659,6 +691,12 @@ def revoke_org_member(*, org_id: str, user_id: str, actor: Dict[str, Any]) -> Di
         raise HTTPException(status_code=404, detail="Member not found")
     if user.get("role") == "owner":
         raise HTTPException(status_code=400, detail="Cannot revoke org owner")
+    if user.get("role") == "admin" and actor.get("role") != "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="Only the organisation owner can remove an admin",
+        )
+    _refuse_if_protected(user)
     if user.get("id") == actor.get("id"):
         raise HTTPException(status_code=400, detail="Cannot revoke yourself")
     user["active"] = False
@@ -697,21 +735,44 @@ def accept_org_invite(
     )
 
 
+_DESK_ASSIGNABLE = frozenset({"viewer", "analyst", "labeler", "reviewer"})
+
+
+def seat_role_for_actor(actor_role: str, requested: str) -> str:
+    """Owner may appoint an admin. An admin may appoint the working seats only."""
+    mapped = (requested or "viewer").strip().lower()
+    if mapped in ("member", "partner"):
+        mapped = "viewer"
+    if mapped == "admin" and actor_role != "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="Only the organisation owner can appoint an admin",
+        )
+    allowed = set(_DESK_ASSIGNABLE)
+    if actor_role == "owner":
+        allowed.add("admin")
+    if mapped not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    return mapped
+
+
 def set_member_role(*, org_id: str, user_id: str, role: str, actor: Dict[str, Any]) -> Dict[str, Any]:
     if actor.get("org_id") != org_id:
         raise HTTPException(status_code=403, detail="Org mismatch")
     if actor.get("role") not in ("owner", "admin"):
         raise HTTPException(status_code=403, detail="Owner or admin required")
-    mapped = (role or "viewer").strip().lower()
-    if mapped in ("member", "partner"):
-        mapped = "viewer"
-    if mapped not in ALLOWED_ROLES or mapped in ("guest", "owner"):
-        raise HTTPException(status_code=400, detail="Invalid role")
+    mapped = seat_role_for_actor(str(actor.get("role") or ""), role)
     user = _find_user(user_id)
     if user is None or user.get("org_id") != org_id:
         raise HTTPException(status_code=404, detail="Member not found")
     if user.get("role") == "owner":
         raise HTTPException(status_code=400, detail="Cannot change owner role")
+    if user.get("role") == "admin" and actor.get("role") != "owner":
+        raise HTTPException(
+            status_code=403,
+            detail="Only the organisation owner can change an admin",
+        )
+    _refuse_if_protected(user)
     user["role"] = mapped
     _save_users()
     return {"ok": True, "user": _public_user(user)}

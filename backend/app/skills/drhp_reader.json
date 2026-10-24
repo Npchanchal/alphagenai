@@ -1,0 +1,26 @@
+{
+  "id": "drhp_reader",
+  "version": "1.0.0",
+  "title": "DRHP Reader",
+  "audience": "IPO and QIP analysts, anchor investors and diligence teams",
+  "description": "Reads an offer document (DRHP, RHP, letter of offer or placement document) filed with the exchanges or uploaded to a Project: what the money is for, who is selling, the stated risks, outstanding litigation, related-party dealings and the plans the company commits to.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "objects", "title": "Objects of the issue", "builder": "passages",
+     "args": {"terms": ["objects of the issue", "objects of the offer", "net proceeds", "utilisation of proceeds", "utilization of proceeds", "fresh issue"],
+              "figures": true, "limit": 6, "empty": "No statement of the issue's objects in the offer documents on record."}},
+    {"id": "holders", "title": "Who is selling: promoter group and other shareholders", "builder": "passages",
+     "args": {"terms": ["offer for sale", "selling shareholder", "promoter group", "pre-issue", "post-issue", "pre-offer", "post-offer"],
+              "limit": 5, "empty": "No promoter or selling-shareholder detail in the offer documents on record."}},
+    {"id": "risks", "title": "Risks the company states", "builder": "passages",
+     "args": {"terms": ["risk factor", "we depend", "significant portion of our revenue", "concentration", "adversely affect"],
+              "limit": 6, "empty": "No risk-factor passage in the offer documents on record."}},
+    {"id": "litigation", "title": "Outstanding litigation and related parties", "builder": "passages",
+     "args": {"terms": ["outstanding litigation", "criminal proceeding", "tax proceeding", "show cause", "related party", "related-party"],
+              "limit": 6, "empty": "No litigation or related-party passage in the offer documents on record."}},
+    {"id": "plans", "title": "Plans the company commits to", "builder": "passages",
+     "args": {"terms": ["we intend to", "we propose to", "we plan to", "proposed to be", "we expect to", "is expected to be completed"],
+              "limit": 6, "empty": "No dated plans in the offer documents on record."}}
+  ],
+  "disproof": {"queries": []}
+}

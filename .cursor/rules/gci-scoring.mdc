@@ -12,6 +12,9 @@ alwaysApply: false
 - **Beats ≠ misses**: v3/v4 use γ=1.4 only below band; v4 beats ≥ `GCI_BEAT_FLOOR` (60); v2 exceeded ≥85.
 - `dropped` is not a full miss — v3/v4 exclude the row and apply −15 withdrawal deduction; v2 ≈35.
 - Exclude `pending` / `unmapped` from company GCI averages.
+- **Direction (v4.2):** set `direction` in `metric_catalog` for any metric where above the range is not good news (`lower` for costs/days, `two_sided` for spend plans). Never hard-code "actual > high = beat".
+- **Width floor (v4.2):** bands are widened to `max(2% of midpoint, 0.1 pp)` for percentage metrics and 2% for levels before scoring and labelling. Changing `RATE_FLOOR_PP` / `LEVEL_FLOOR_FRAC` moves published numbers: run `python -m app.jobs.validation_gates` (gate 3) and follow the ledger + changelog protocol.
+- The guidance profile (`guidance_profile.py`) is descriptive and must never feed the GCI.
 - Every persisted outcome carries `source_url` / `source_ref` / `quote_span` (actual) **and** `guidance_source_url` / `guidance_quote` / `guidance_as_of` (promise). Missing guidance cite → row excluded from the score.
 - Company composite weights metrics by evidence (closed periods), not a flat mean — one single-period metric must not move a five-year record by double digits. A metric enters the composite only with ≥ 2 closed periods (else shown as context).
 - Confidence tier is part of the score contract (`score_policy.py`): `provisional` (<3 closed periods or 1 metric) · `established` (≥3 periods, ≥2 metrics) · `deep` (≥5 periods, ≥2 metrics). No rank below `established`.

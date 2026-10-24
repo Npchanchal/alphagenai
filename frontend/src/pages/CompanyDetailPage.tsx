@@ -17,6 +17,7 @@ import ThreadTimeline from "../components/ThreadTimeline";
 import Toast from "../components/Toast";
 import WatchlistToggle from "../components/WatchlistToggle";
 import GuestPaywallModal from "../components/GuestPaywallModal";
+import GuidanceProfileNote from "../components/GuidanceProfileNote";
 import { useSourceViewer } from "../lib/SourceViewerContext";
 import { withTextHighlight } from "../lib/sourceHighlight";
 import {
@@ -24,6 +25,8 @@ import {
   downloadLedgerPdf,
   fetchCompanyAnalytics,
   fetchCompanyChanges,
+  fetchCompanyCommitments,
+  fetchNinjaProfile,
   fetchCompanyDocs,
   fetchCompanyGci,
   fetchCompanyLedger,
@@ -37,6 +40,7 @@ import {
   fetchVernacular,
   fetchVernacularDigest,
   fetchWordmap,
+  type CommitmentView,
   postExtract,
   postFeedback,
   postGenerateReport,
@@ -57,6 +61,7 @@ import { severityLabel } from "../lib/severity";
 import { CONTACT_EMAIL } from "../lib/legal";
 import { useI18n } from "../i18n";
 import { useEntitlements } from "../lib/entitlements";
+import { useAuth } from "../lib/auth";
 import { trackEvent } from "../lib/analytics";
 
 const TOC_PUBLIC = [
@@ -88,8 +93,10 @@ export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t, lang: uiLang } = useI18n();
   const { has, entitlements } = useEntitlements();
+  const { token } = useAuth();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
+  const [commitments, setCommitments] = useState<CommitmentView | null>(null);
   const [history, setHistory] = useState<
     {
       as_of: string;
@@ -183,7 +190,10 @@ export default function CompanyDetailPage() {
   // narrative-consistency use synthetic inputs. Workbench seats only; never guests.
   const canAnalytics = has("analytics_experimental");
   const canWordmap = has("wordmap");
+  const canNinja = has("ninja");
+  const canNotes = canNinja || has("analyst_agent");
   const showWorkbench = has("desk");
+  const [layerNotes, setLayerNotes] = useState<Awaited<ReturnType<typeof fetchNinjaProfile>> | null>(null);
   const isGuest = entitlements.plan === "guest" || entitlements.kind === "guest";
   const [citeCopied, setCiteCopied] = useState(false);
 
@@ -283,7 +293,41 @@ export default function CompanyDetailPage() {
   }, [id, lang, creditOnly, canAnalytics, canWordmap]);
 
   useEffect(() => {
+    if (!id || !canNotes || !token) {
+      setLayerNotes(null);
+      return;
+    }
+    let cancelled = false;
+    fetchNinjaProfile(id, token)
+      .then((view) => {
+        if (!cancelled) setLayerNotes(view);
+      })
+      .catch(() => {
+        if (!cancelled) setLayerNotes(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, canNotes, token]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    fetchCompanyCommitments(id)
+      .then((view) => {
+        if (!cancelled) setCommitments(view);
+      })
+      .catch(() => {
+        if (!cancelled) setCommitments(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
     setDetail(null);
+    setCommitments(null);
     reload();
   }, [reload]);
 
@@ -396,6 +440,7 @@ export default function CompanyDetailPage() {
           <ScoreReveal
             score={detail.gci_score}
             coverageStatus={detail.coverage_status}
+            coverageReason={detail.coverage_reason}
             testId="gci-score"
           />
           <AuditBadges
@@ -403,7 +448,7 @@ export default function CompanyDetailPage() {
             deduction={detail.audit_deduction}
             note={detail.audit_note}
           />
-          <RecordSentence outcomes={detail.outcomes} />
+          <RecordSentence outcomes={detail.outcomes} coverageReason={detail.coverage_reason} />
           <div style={{ marginTop: 6 }}>
             {hasCiteableDeltas ? (
               <ChangeTriple
@@ -422,6 +467,97 @@ export default function CompanyDetailPage() {
           </div>
         </div>
       </div>
+
+      {(showWorkbench || (commitments?.commitments.length ?? 0) > 0) && commitments ? (
+        <section className="panel" id="commitments" data-testid="commitment-record">
+          <div className="panel-head">
+            <h2>{t("dossier.commitment.title")}</h2>
+          </div>
+          <p className="muted">{commitments.note}</p>
+          {commitments.commitments.length === 0 ? (
+            <p>{t("dossier.commitment.empty")}</p>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>{t("analyst.commitments.subject")}</th>
+                  <th>{t("analyst.commitments.due")}</th>
+                  <th>{t("analyst.commitments.status")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {commitments.commitments.slice(0, 8).map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.subject}</td>
+                    <td>{row.due_date || row.due_period || "—"}</td>
+                    <td>{row.state_label || row.state}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      ) : null}
+
+      {(canNinja || (layerNotes?.notes || []).some((note) => note.claims.length > 0)) && layerNotes ? (
+        <section className="panel" id="layer-notes" data-testid="dossier-layers">
+          <div className="panel-head">
+            <h2>{t("dossier.layers.title")}</h2>
+          </div>
+          <p className="muted">{layerNotes.note}</p>
+          {layerNotes.sector ? (
+            <p data-testid="dossier-sector">{t("dossier.layers.sector", { sector: layerNotes.sector })}</p>
+          ) : null}
+          {canNinja
+            ? (["accounting", "causality", "conduct", "execution"] as const).map((layer) => {
+                const rows = layerNotes.layers[layer] || [];
+                return (
+                  <div key={layer}>
+                    <h3>{t(`ninja.layer.${layer}`)}</h3>
+                    {rows.length === 0 ? (
+                      <p>{t("dossier.layers.empty")}</p>
+                    ) : (
+                      <ul>
+                        {rows.map((row) => (
+                          <li key={`${layer}-${row.as_of}-${row.quote}`}>
+                            {row.quote}{" "}
+                            <a href={row.source_url} target="_blank" rel="noreferrer">
+                              {row.as_of}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })
+            : null}
+          <div data-testid="dossier-analyst-notes">
+            <h3>{t("dossier.layers.notes")}</h3>
+            {(layerNotes.notes || []).filter((note) => note.claims.length > 0).length === 0 ? (
+              <p>{t("dossier.layers.notesEmpty")}</p>
+            ) : (
+              (layerNotes.notes || [])
+                .filter((note) => note.claims.length > 0)
+                .map((note) => (
+                  <div key={note.skill_id}>
+                    <h4>{note.title}</h4>
+                    <ul>
+                      {note.claims.map((claim) => (
+                        <li key={`${note.skill_id}-${claim.source_url}-${claim.quote}`}>
+                          {claim.text || claim.quote}{" "}
+                          <a href={claim.source_url} target="_blank" rel="noreferrer">
+                            {claim.as_of || claim.quote}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))
+            )}
+          </div>
+        </section>
+      ) : null}
 
       <Disclaimer compact />
 
@@ -508,6 +644,7 @@ export default function CompanyDetailPage() {
             </li>
           ))}
         </ul>
+        <GuidanceProfileNote profile={detail.guidance_profile} />
       </div>
 
       <div className="panel" id="evidence">
@@ -608,6 +745,15 @@ export default function CompanyDetailPage() {
             }
           />
         )}
+        {hasThreads ? (
+          <div id="threads" data-testid="promise-threads">
+            <h3 style={{ marginBottom: 4 }}>{t("ui.CompanyDetailPage.threads.title")}</h3>
+            <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+              {t("ui.CompanyDetailPage.threads.lede")}
+            </p>
+            <ThreadTimeline threads={detail.threads!} />
+          </div>
+        ) : null}
       </div>
 
       <div className="panel" id="revisions" data-testid="revision-panel">
@@ -1332,18 +1478,6 @@ export default function CompanyDetailPage() {
           </pre>
         )}
       </div>
-
-      {hasThreads && (
-        <div className="panel" id="threads" data-testid="promise-threads">
-          <h2>
-            {t("ui.CompanyDetailPage.threads.title")} <InfoTip termId="thread" />
-          </h2>
-          <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-            {t("ui.CompanyDetailPage.threads.lede")}
-          </p>
-          <ThreadTimeline threads={detail.threads!} />
-        </div>
-      )}
 
       {hasMetricChanges && (
         <div className="panel" id="metrics">

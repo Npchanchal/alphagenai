@@ -1,4 +1,5 @@
 import { getBlogMeta, listBlogMeta } from "./blogMeta";
+import dossierSnap from "./seoDossiers.json";
 import seoRoutes from "./seoRoutes.json";
 import {
   blogSeoTitle,
@@ -39,6 +40,23 @@ const DEFAULT: SeoConfig = {
 const STATIC: Record<string, Omit<SeoConfig, "path">> = Object.fromEntries(
   (seoRoutes as SeoRouteEntry[]).map(({ path, ...rest }) => [path, rest]),
 );
+
+type DossierSnap = {
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+};
+
+/** Hand-labeled dossiers already published for crawlers. First paint must match that HTML. */
+const DOSSIER_BY_ID = new Map<string, DossierSnap>(
+  ((dossierSnap as { dossiers?: DossierSnap[] }).dossiers ?? []).map((row) => [row.id, row]),
+);
+
+function cleanPath(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith("/")) return pathname.replace(/\/+$/, "");
+  return pathname;
+}
 
 function blogIndexJsonLd(): Record<string, unknown> {
   return {
@@ -86,8 +104,10 @@ function blogPostJsonLd(post: NonNullable<ReturnType<typeof getBlogMeta>>): Reco
 
 /** Resolve SEO config for a React Router pathname. */
 export function resolveSeo(pathname: string): SeoConfig {
-  if (pathname.startsWith("/blog/") && pathname !== "/blog/") {
-    const slug = pathname.slice("/blog/".length).replace(/\/$/, "");
+  const path = cleanPath(pathname);
+
+  if (path.startsWith("/blog/") && path !== "/blog") {
+    const slug = path.slice("/blog/".length).replace(/\/$/, "");
     const post = getBlogMeta(slug);
     if (post) {
       const title = blogSeoTitle(slug, post.title);
@@ -103,9 +123,24 @@ export function resolveSeo(pathname: string): SeoConfig {
     }
   }
 
-  if (pathname.startsWith("/companies/")) {
+  if (path.startsWith("/companies/")) {
+    const id = path.slice("/companies/".length);
+    const published =
+      id && !id.includes("/")
+        ? DOSSIER_BY_ID.get(id) ?? DOSSIER_BY_ID.get(id.toLowerCase())
+        : undefined;
+    if (published) {
+      return {
+        path: published.path,
+        title: published.title,
+        description: published.description,
+        robots: "index,follow",
+        ogImage: `${SITE}/api/og/${id}.png`,
+        ogImageAlt: published.title,
+      };
+    }
     return {
-      path: pathname,
+      path,
       title: "Company GCI Dossier — CiteAlpha",
       description:
         "Company Guidance Credibility Index dossier with evidence trail. Factual research; not investment advice.",
@@ -113,43 +148,56 @@ export function resolveSeo(pathname: string): SeoConfig {
     };
   }
 
-  if (pathname.startsWith("/c/")) {
+  if (path.startsWith("/c/")) {
     return {
-      path: pathname,
+      path,
       title: "Citation — CiteAlpha",
       description: "Evidence citation for a Guidance Credibility Index score point.",
       robots: "noindex,follow",
     };
   }
 
-  if (pathname.startsWith("/sights")) {
-    const hit = STATIC[pathname] || STATIC["/sights"];
+  if (path.startsWith("/sights")) {
+    const hit = STATIC[path];
+    if (!hit) {
+      return {
+        path,
+        title: "Disclosure Explorer — CiteAlpha",
+        description:
+          "Compare public disclosures across Indian listed companies. Not investment advice.",
+        robots: "noindex,follow",
+      };
+    }
     const title = hit.title;
     return {
-      path: pathname,
+      path,
       ...hit,
       ogImageAlt: title,
-      extraJsonLd: extraJsonLdForPath(pathname, title),
+      extraJsonLd: extraJsonLdForPath(path, title),
     };
   }
 
-  const staticHit = STATIC[pathname];
+  const staticHit = STATIC[path];
   if (staticHit) {
     const seo: SeoConfig = {
-      path: pathname,
+      path,
       ...staticHit,
       ogImageAlt: staticHit.title,
     };
-    if (pathname === "/blog") {
+    if (path === "/blog") {
       seo.jsonLd = blogIndexJsonLd();
-    } else if (pathname === "/") {
+    } else if (path === "/") {
       seo.jsonLd = websiteJsonLd();
     }
-    seo.extraJsonLd = extraJsonLdForPath(pathname, staticHit.title);
+    seo.extraJsonLd = extraJsonLdForPath(path, staticHit.title);
     return seo;
   }
 
-  return { ...DEFAULT, path: pathname };
+  return {
+    ...DEFAULT,
+    path,
+    robots: "noindex,follow",
+  };
 }
 
 /** Per-company SEO once the dossier payload is loaded (W5.1). */

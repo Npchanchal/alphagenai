@@ -1,0 +1,15 @@
+{
+  "id": "board_scorecard",
+  "version": "1.0.0",
+  "title": "Board Scorecard",
+  "audience": "Independent directors, IR teams and governance analysts",
+  "description": "Management's record against what it guided and committed to, in plain counts, with the follow-up questions a board should ask. Factual record only.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "record", "title": "Guidance delivery", "builder": "delivery_record"},
+    {"id": "commitments_closed", "title": "Commitments closed", "builder": "commitments_closed"},
+    {"id": "commitments_open", "title": "Commitments still open", "builder": "commitments_open"},
+    {"id": "questions", "title": "Follow-up questions", "builder": "questions"}
+  ],
+  "disproof": {"queries": ["delay deferred postponed", "penalty order show cause"]}
+}

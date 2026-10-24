@@ -39,6 +39,14 @@ def _maybe_india_coverage() -> None:
             print(json.dumps({"india_coverage": report}), flush=True)
     except Exception as exc:  # noqa: BLE001 — coverage walk must not stop refresh
         print(json.dumps({"india_coverage": "error", "detail": type(exc).__name__}), flush=True)
+    try:
+        from app.services.us_coverage import run_daily_from_env as run_us
+
+        report = run_us()
+        if report is not None:
+            print(json.dumps({"us_coverage": report}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — the US walk must not stop refresh
+        print(json.dumps({"us_coverage": "error", "detail": type(exc).__name__}), flush=True)
 
 
 def _maybe_ledger_digest() -> None:

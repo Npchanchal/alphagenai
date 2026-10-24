@@ -1,0 +1,132 @@
+{
+  "_note": "Stub filings for tests only (example.invalid URLs). Each case lists passages the Skill must cite and sections that must report nothing found.",
+  "cases": [
+    {
+      "id": "usfda-483-observations", "skill": "usfda_watch", "company_id": "cipla",
+      "docs": [{"doc_type": "usfda", "title": "Stub intimation: USFDA inspection at Goa facility", "date": "2026-09-20",
+                "text": "Stub intimation for tests. The USFDA conducted an inspection at our Goa facility from 4 March to 15 March 2026. The inspection concluded with 3 observations in Form 483. We will submit a comprehensive response and corrective action plan within 15 days."}],
+      "expect": [{"section": "inspections", "quote": "3 observations in Form 483"},
+                 {"section": "remediation", "quote": "corrective action plan within 15 days"}],
+      "not_found": ["Product approvals"]
+    },
+    {
+      "id": "usfda-warning-letter", "skill": "usfda_watch", "company_id": "sunpharma",
+      "docs": [{"doc_type": "usfda", "title": "Stub intimation: warning letter for Halol facility", "date": "2026-09-22",
+                "text": "Stub intimation for tests. The company has received a warning letter from the USFDA for its Halol facility. The import alert on the Halol facility remains in place. Remediation at Halol is under way and we have requested a re-inspection in Q3 FY27."}],
+      "expect": [{"section": "inspections", "quote": "received a warning letter from the USFDA"},
+                 {"section": "remediation", "quote": "requested a re-inspection in Q3 FY27"}],
+      "not_found": []
+    },
+    {
+      "id": "usfda-anda-approval", "skill": "usfda_watch", "company_id": "drreddy",
+      "docs": [{"doc_type": "usfda", "title": "Stub intimation: ANDA approval", "date": "2026-09-25",
+                "text": "Stub intimation for tests. The company received final approval from the USFDA for its ANDA for a stub generic tablet in 10 mg strength."}],
+      "expect": [{"section": "approvals", "quote": "final approval from the USFDA for its ANDA"}],
+      "not_found": ["Inspection outcomes disclosed"]
+    },
+    {
+      "id": "rating-reaffirmed", "skill": "rating_tracker", "company_id": "tatasteel",
+      "docs": [{"doc_type": "credit_rating", "title": "Stub intimation: credit rating", "date": "2026-09-18",
+                "text": "Stub rating intimation for tests. CRISIL has reaffirmed the long-term rating of AA+ with a Stable outlook on bank facilities of Rs 10,000 crore. Key rating drivers include a strong market position and moderate leverage. Rating sensitivities: net debt to EBITDA sustained above 3.0 times could lead to a revision."}],
+      "expect": [{"section": "actions", "quote": "reaffirmed the long-term rating of AA+"},
+                 {"section": "drivers", "quote": "Key rating drivers include a strong market position"}],
+      "not_found": []
+    },
+    {
+      "id": "rating-upgrade-and-management", "skill": "rating_tracker", "company_id": "jswsteel",
+      "docs": [{"doc_type": "credit_rating", "title": "Stub intimation: rating upgrade", "date": "2026-09-19",
+                "text": "Stub rating intimation for tests. ICRA has upgraded the long-term rating to AA from AA- with the outlook revised to Stable."},
+               {"doc_type": "transcript", "title": "Stub Q1 FY27 earnings call", "date": "2026-08-01",
+                "text": "Stub transcript for tests. We expect net debt to come down to Rs 70,000 crore by March 2027 as capex moderates."}],
+      "expect": [{"section": "actions", "quote": "ICRA has upgraded the long-term rating to AA"},
+                 {"section": "management", "quote": "net debt to come down to Rs 70,000 crore"}],
+      "not_found": []
+    },
+    {
+      "id": "rating-watch", "skill": "rating_tracker", "company_id": "hindalco",
+      "docs": [{"doc_type": "credit_rating", "title": "Stub intimation: rating watch", "date": "2026-09-21",
+                "text": "Stub rating intimation for tests. India Ratings has placed the rating on Rating Watch with Negative implications following the proposed acquisition."}],
+      "expect": [{"section": "actions", "quote": "placed the rating on Rating Watch with Negative implications"}],
+      "not_found": []
+    },
+    {
+      "id": "scheme-demerger", "skill": "corporate_action_brief", "company_id": "adanient",
+      "docs": [{"doc_type": "corporate_action", "title": "Stub intimation: scheme of arrangement", "date": "2026-09-15",
+                "text": "Stub intimation for tests. The Board approved a Scheme of Arrangement for the demerger of the stub airports business. The share exchange ratio is 1 equity share of the resulting company for every 1 equity share held. The appointed date is 1 April 2026. The scheme is subject to approval of the NCLT, shareholders and creditors."}],
+      "expect": [{"section": "announced", "quote": "Scheme of Arrangement for the demerger"},
+                 {"section": "terms", "quote": "share exchange ratio is 1 equity share"},
+                 {"section": "approvals", "quote": "subject to approval of the NCLT"}],
+      "not_found": []
+    },
+    {
+      "id": "buyback", "skill": "corporate_action_brief", "company_id": "infy",
+      "docs": [{"doc_type": "corporate_action", "title": "Stub intimation: buyback", "date": "2026-10-20",
+                "text": "Stub intimation for tests. The Board approved a buyback of equity shares at a price of Rs 1,800 per equity share through the tender offer route. The record date for the buyback is 14 November 2026."}],
+      "expect": [{"section": "announced", "quote": "approved a buyback of equity shares"},
+                 {"section": "terms", "quote": "record date for the buyback is 14 November 2026"}],
+      "not_found": []
+    },
+    {
+      "id": "open-offer", "skill": "corporate_action_brief", "company_id": "reliance",
+      "docs": [{"doc_type": "corporate_action", "title": "Stub public announcement: open offer", "date": "2026-09-30",
+                "text": "Stub announcement for tests. The acquirer made a public announcement of an open offer to acquire up to 26% of the voting share capital at an offer price of Rs 250 per equity share. The tendering period is expected to open on 10 December 2026. The open offer is subject to approval from the Competition Commission of India."}],
+      "expect": [{"section": "announced", "quote": "open offer to acquire up to 26%"},
+                 {"section": "approvals", "quote": "approval from the Competition Commission of India"}],
+      "not_found": []
+    },
+    {
+      "id": "drhp-letter-of-offer", "skill": "drhp_reader", "company_id": "divislab",
+      "docs": [{"doc_type": "offer_document", "title": "Stub letter of offer", "date": "2026-09-10",
+                "text": "Stub letter of offer for tests. The objects of the issue are repayment of borrowings of Rs 500 crore and general corporate purposes. Risk factor: we depend on a small number of customers for a significant portion of our revenue. There is outstanding litigation involving our promoters in 2 criminal proceedings."}],
+      "expect": [{"section": "objects", "quote": "objects of the issue are repayment of borrowings of Rs 500 crore"},
+                 {"section": "risks", "quote": "we depend on a small number of customers"},
+                 {"section": "litigation", "quote": "outstanding litigation involving our promoters"}],
+      "not_found": []
+    },
+    {
+      "id": "drhp-placement-document", "skill": "drhp_reader", "company_id": "cipla",
+      "docs": [{"doc_type": "offer_document", "title": "Stub placement document", "date": "2026-09-12",
+                "text": "Stub placement document for tests. The net proceeds of the fresh issue will be used to fund capex of Rs 1,200 crore at the stub Kurkumbh plant. We intend to commission the new line by March 2028. The offer for sale comprises up to 5,000,000 equity shares by the selling shareholder."}],
+      "expect": [{"section": "objects", "quote": "net proceeds of the fresh issue will be used"},
+                 {"section": "plans", "quote": "We intend to commission the new line by March 2028"},
+                 {"section": "holders", "quote": "offer for sale comprises up to 5,000,000 equity shares"}],
+      "not_found": []
+    },
+    {
+      "id": "drhp-project-upload", "skill": "drhp_reader", "company_id": "sunpharma",
+      "docs": [],
+      "upload": {"filename": "stub-drhp.txt",
+                 "text": "Stub DRHP extract for tests.\n\nThe objects of the offer include setting up a new plant at a cost of Rs 300 crore.\n\nRelated party transactions with the promoter group amounted to Rs 45 crore in FY26."},
+      "expect": [{"section": "objects", "quote": "objects of the offer include setting up a new plant"},
+                 {"section": "litigation", "quote": "Related party transactions with the promoter group"}],
+      "not_found": []
+    },
+    {
+      "id": "debate-capex-agency-vs-company", "skill": "debate_map", "company_id": "tatasteel",
+      "docs": [{"doc_type": "credit_rating", "title": "Stub rating rationale", "date": "2026-09-18",
+                "text": "Stub rationale for tests. CRISIL notes that leverage will remain elevated due to the capex programme of Rs 15,000 crore."},
+               {"doc_type": "transcript", "title": "Stub Q1 FY27 earnings call", "date": "2026-08-05",
+                "text": "Stub transcript for tests. We expect capex of Rs 15,000 crore this year and leverage to peak in FY27."}],
+      "expect": [{"section": "debate", "quote": "CRISIL notes that leverage will remain elevated", "voice": "Rating agency"},
+                 {"section": "debate", "quote": "We expect capex of Rs 15,000 crore this year", "voice": "Company"}],
+      "not_found": []
+    },
+    {
+      "id": "debate-plant-regulator-vs-company", "skill": "debate_map", "company_id": "sunpharma",
+      "docs": [{"doc_type": "usfda", "title": "Stub USFDA inspection intimation", "date": "2026-09-22",
+                "text": "Stub intimation for tests. The USFDA issued 5 observations after the inspection of the Halol plant."},
+               {"doc_type": "transcript", "title": "Stub Q1 FY27 earnings call", "date": "2026-08-07",
+                "text": "Stub transcript for tests. We expect the Halol plant capacity to be fully utilised after the inspection closes."}],
+      "expect": [{"section": "debate", "quote": "The USFDA issued 5 observations", "voice": "Regulator"},
+                 {"section": "debate", "quote": "Halol plant capacity to be fully utilised", "voice": "Company"}],
+      "not_found": []
+    },
+    {
+      "id": "debate-company-only", "skill": "debate_map", "company_id": "drreddy",
+      "docs": [{"doc_type": "transcript", "title": "Stub Q1 FY27 earnings call", "date": "2026-08-09",
+                "text": "Stub transcript for tests. We expect demand in the US generics market to remain stable through FY27."}],
+      "expect": [{"section": "debate", "quote": "demand in the US generics market to remain stable", "voice": "Company"}],
+      "not_found": ["Demand: only the company view is on record"]
+    }
+  ]
+}

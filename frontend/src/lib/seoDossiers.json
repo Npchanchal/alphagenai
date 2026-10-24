@@ -291,7 +291,7 @@
       "name": "Infosys Ltd.",
       "ticker": "INFY",
       "gci_score": 76.5,
-      "confidence_tier": "provisional",
+      "confidence_tier": "deep",
       "as_of": "2026-04-23",
       "data_quality": "hand_labeled",
       "record_sentence": "Met or beat Revenue growth (constant currency) % guidance in 4 of 5 closed years; missed FY24.",

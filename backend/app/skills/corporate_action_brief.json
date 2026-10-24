@@ -1,0 +1,24 @@
+{
+  "id": "corporate_action_brief",
+  "version": "1.0.0",
+  "title": "Open Offer, Delisting and Scheme Brief",
+  "audience": "Event-driven analysts, special-situations desks and independent directors",
+  "description": "What the company announced on an open offer, delisting, buyback, merger, demerger or scheme of arrangement: the terms and dates as filed, the approvals still needed, and the commitments the company made about the transaction.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "announced", "title": "What was announced", "builder": "passages",
+     "args": {"terms": ["open offer", "delisting", "scheme of arrangement", "amalgamation", "demerger", "buyback", "merger"],
+              "limit": 6, "empty": "No open offer, delisting, buyback or scheme announcement in the filings on record."}},
+    {"id": "terms", "title": "Terms and dates as filed", "builder": "passages",
+     "args": {"terms": ["offer price", "floor price", "swap ratio", "share exchange ratio", "entitlement ratio", "record date",
+                        "appointed date", "effective date", "tendering period", "bid period", "per equity share"],
+              "figures": true, "limit": 6, "empty": "No prices, ratios or dates for the transaction in the filings on record."}},
+    {"id": "approvals", "title": "Approvals and conditions", "builder": "passages",
+     "args": {"terms": ["nclt", "tribunal", "shareholder approval", "shareholders' approval", "observation letter", "no-objection",
+                        "no objection", "competition commission", "stock exchange approval", "creditors", "condition precedent"],
+              "limit": 6, "empty": "No approval or condition stated in the filings on record."}},
+    {"id": "commitments", "title": "Commitments the company made about the transaction", "builder": "linked_commitments",
+     "args": {"types": ["corporate_action"], "terms": ["merger", "demerger", "scheme", "open offer", "delisting", "buyback"]}}
+  ],
+  "disproof": {"queries": ["withdrawn objection rejected", "delay extension deferred"]}
+}

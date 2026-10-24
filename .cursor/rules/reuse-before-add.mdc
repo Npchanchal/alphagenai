@@ -1,0 +1,23 @@
+---
+description: Extend the existing owner before adding a second module, route, page, or job
+alwaysApply: true
+---
+
+# Reuse before you add
+
+Search before you create. A second module that does the same job is a defect.
+
+1. Read `docs/kb/19-reuse-and-source-once.md` and the progress log of the plan you are in (`docs/PLAN_WORLDCLASS_GCI.md`, `docs/PLAN_CITEALPHA_ANALYST.md`, `docs/PLAN_WHITESPACE.md`).
+2. If an owner exists, extend it. Load skill `citealpha-reuse-sources` before a new service, route, page, or job.
+3. A plan item marked done is finished. Continue its module. Do not open a parallel stack for the leftovers.
+
+```text
+# ❌ BAD — sibling of a shipped owner
+backend/app/services/sec_client_v2.py
+frontend/src/pages/FilingSearchPage.tsx   # Filing Search is /research
+
+# ✅ GOOD — extend the owner named in kb 19
+backend/app/services/sec_filings.py
+```
+
+Retired surfaces stay retired: Sights search, ask, boards, agents, and export; Radar digest and webhooks. They redirect or return `410` with `moved_to`.

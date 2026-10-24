@@ -50,15 +50,17 @@ export const NAV_ENTRIES: NavEntry[] = [
     tipId: "research_terminal",
   },
   {
+    kind: "link",
+    to: "/analyst",
+    labelKey: "nav.analyst",
+  },
+  {
     kind: "group",
     id: "sights",
     labelKey: "nav.sights",
     matchPrefixes: ["/sights"],
     children: [
       { to: "/sights", end: true, labelKey: "nav.sights_hub", tipId: "sights" },
-      { to: "/sights/search", labelKey: "nav.sights_search" },
-      { to: "/sights/ask", labelKey: "nav.sights_ask" },
-      { to: "/sights/boards", labelKey: "nav.sights_boards" },
       { labelKey: "nav.sights_more", heading: true },
       { to: "/sights/themes", labelKey: "nav.sights_themes" },
       { to: "/sights/street", labelKey: "nav.sights_street" },
@@ -66,8 +68,18 @@ export const NAV_ENTRIES: NavEntry[] = [
       { to: "/sights/grid", labelKey: "nav.sights_grid" },
       { to: "/sights/deep-dive", labelKey: "nav.sights_deep_dive" },
       { to: "/sights/fundamentals", labelKey: "nav.sights_fundamentals" },
-      { to: "/sights/agents", labelKey: "nav.sights_agents" },
-      { to: "/sights/export", labelKey: "nav.sights_export" },
+    ],
+  },
+  {
+    kind: "group",
+    id: "ninja",
+    labelKey: "nav.ninja",
+    matchPrefixes: ["/ninja"],
+    children: [
+      { to: "/ninja", end: true, labelKey: "nav.ninja_valuation" },
+      { to: "/ninja/indices", labelKey: "nav.ninja_indices" },
+      { to: "/ninja/tests", labelKey: "nav.ninja_tests" },
+      { to: "/holdings", labelKey: "nav.ninja_holdings" },
     ],
   },
   {
@@ -76,7 +88,7 @@ export const NAV_ENTRIES: NavEntry[] = [
     labelKey: "nav.more",
     matchPrefixes: [
       "/products",
-      "/package",
+      "/holdings",
       "/billing",
       "/about",
       "/blog",
@@ -87,10 +99,9 @@ export const NAV_ENTRIES: NavEntry[] = [
       "/changelog",
     ],
     children: [
-      { to: "/products", end: true, labelKey: "nav.products_overview", tipId: "gci" },
-      { to: "/package", labelKey: "nav.package_plans", tipId: "one_stop" },
+      { to: "/products", end: true, labelKey: "nav.products_plans", tipId: "one_stop" },
+      { to: "/holdings", labelKey: "nav.holdings" },
       { to: "/billing", labelKey: "nav.billing" },
-      { to: "/about/tiers", labelKey: "nav.tier_features" },
       { labelKey: "nav.by_desk", heading: true },
       { to: "/products#desk-buy-side", labelKey: "nav.desk_buy_side" },
       { to: "/products#desk-sell-side", labelKey: "nav.desk_sell_side" },

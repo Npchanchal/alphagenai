@@ -22,6 +22,8 @@ export type CompanySummary = {
   as_of?: string | null;
   algorithm_id?: string | null;
   coverage_status?: CoverageStatus | null;
+  /** Plain sentence shown instead of a number, e.g. "First guided year (FY27) closes Mar 2027". */
+  coverage_reason?: string | null;
 };
 
 export type CoverageStatus =
@@ -82,6 +84,12 @@ export type OutcomeView = {
   span_end?: number | null;
   reviewed_by?: string | null;
   reviewed_at?: string | null;
+  reporting_basis?: string | null;
+  actual_reporting_basis?: string | null;
+  unit?: string | null;
+  actual_unit?: string | null;
+  scope?: string | null;
+  actual_scope?: string | null;
 };
 
 export type CompanyGCIDetail = {
@@ -117,6 +125,7 @@ export type CompanyGCIDetail = {
   reviewed_at?: string | null;
   algorithm_id?: string | null;
   coverage_status?: CoverageStatus | null;
+  coverage_reason?: string | null;
   gci_change_pct?: number | null;
   gci_change_horizon?: string | null;
   by_metric_changes?: Record<
@@ -168,7 +177,39 @@ export type CompanyGCIDetail = {
     direction: "raised" | "cut" | "unchanged" | string;
     average_abs_move: number;
   }>;
+  guidance_profile?: GuidanceProfile | null;
   audit_note?: string | null;
+};
+
+export type GuidanceProfilePart = {
+  label: string | null;
+  label_text: string | null;
+  sentence: string;
+};
+
+/** Descriptive record next to the GCI. Labels appear from `min_for_label` closed figures. */
+export type GuidanceProfile = {
+  closed_figures: number;
+  min_for_label: number;
+  results_vs_range: GuidanceProfilePart & {
+    above: number;
+    inside: number;
+    below: number;
+    bias_index: number | null;
+  };
+  in_year_revisions: GuidanceProfilePart & {
+    revised: number;
+    toward_weaker: number;
+    toward_stronger: number;
+  };
+  divergences: Array<{
+    period: string;
+    kind: "revenue_above_margin_below" | "margin_above_revenue_below" | string;
+    metrics: string[];
+    sentence: string;
+    sources: string[];
+  }>;
+  note: string;
 };
 
 export type AlertItem = {
@@ -925,46 +966,6 @@ export function fetchSightsMeta(): Promise<SightsMeta> {
   return getJson("/api/sights/meta");
 }
 
-export function fetchSightsSearch(opts: {
-  q: string;
-  companyId?: string;
-  limit?: number;
-}): Promise<{
-  product: string;
-  query: string;
-  original_query?: string;
-  expanded_query?: string;
-  lexicon_expanded?: boolean;
-  count: number;
-  results: ResearchDoc[];
-  disclaimer?: string;
-}> {
-  const params = new URLSearchParams();
-  params.set("q", opts.q);
-  if (opts.companyId) params.set("company_id", opts.companyId);
-  if (opts.limit) params.set("limit", String(opts.limit));
-  return getJson(`/api/sights/search?${params}`);
-}
-
-export function postSightsAsk(body: {
-  question: string;
-  company_id?: string;
-  web_assist?: boolean;
-}): Promise<{
-  product: string;
-  answer: string;
-  refused: boolean;
-  citations: CitationRecord[];
-  web_assist?: { requested: boolean; enabled: boolean; used: boolean; note: string };
-  disclaimer?: string;
-}> {
-  return getJson("/api/sights/ask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-}
-
 export function fetchSightsThemes(opts?: {
   companyId?: string;
   sector?: string;
@@ -1074,59 +1075,434 @@ export function fetchSightsFundamentals(companyId: string): Promise<{
   return getJson(`/api/sights/fundamentals/${encodeURIComponent(companyId)}`);
 }
 
-export function fetchSightsAgents(): Promise<{
-  product: string;
-  enabled: boolean;
-  templates: { id: string; name: string; description: string }[];
-  disclaimer?: string;
-}> {
-  return getJson("/api/sights/agents");
+// ── CiteAlpha Analyst (cited research agent) ─────────────────────────────────
+
+export type AnalystSkill = {
+  id: string;
+  version: string;
+  title: string;
+  audience?: string;
+  description?: string;
+  inputs?: string[];
+  requires_project?: boolean;
+};
+
+export type AnalystClaim = {
+  text: string;
+  cites: number[];
+  kind: "quoted" | "computed" | "record";
+};
+
+export type AnalystSection = {
+  id: string;
+  title: string;
+  claims: AnalystClaim[];
+  empty?: string | null;
+};
+
+export type AnalystCitation = {
+  n: number;
+  kind?: string;
+  title?: string | null;
+  quote?: string | null;
+  source_url?: string | null;
+  date?: string | null;
+  period?: string | null;
+  permalink?: string | null;
+};
+
+export type AnalystRun = {
+  run_id: string;
+  engine: string;
+  skill: { id: string; version: string; title: string; description?: string };
+  company_id: string;
+  company_name: string;
+  ticker: string;
+  as_of: string;
+  generated_at: string;
+  headline?: string | null;
+  sections: AnalystSection[];
+  not_found: string[];
+  citations: AnalystCitation[];
+  refused: boolean;
+  verifier: { kept: number; removed: number };
+  llm: { used: boolean; model?: string };
+  includes_unreviewed: boolean;
+  trigger?: { doc_id: string; title?: string | null; date?: string | null; url?: string | null } | null;
+  project?: { project_id: string; name: string; memory_items: number } | null;
+  disclaimer: string;
+  markdown: string;
+  evidence_receipt: Record<string, unknown>;
+};
+
+export type AnalystRunSummary = {
+  run_id: string;
+  skill_id: string;
+  skill_title: string;
+  company_id: string;
+  company_name: string;
+  generated_at: string;
+  claims_kept: number;
+  claims_removed: number;
+  monitor_id?: string | null;
+  trigger?: { doc_id: string; title?: string | null; date?: string | null; doc_type?: string | null } | null;
+};
+
+export type AnalystMonitorScope = "company" | "watchlist" | "project";
+
+export type AnalystMonitor = {
+  monitor_id: string;
+  scope?: AnalystMonitorScope;
+  company_id?: string | null;
+  project_id?: string | null;
+  user_id?: string | null;
+  skill_id: string;
+  email?: string | null;
+  created_at: string;
+  last_run_id?: string | null;
+  last_triggered_at?: string | null;
+};
+
+export type AnalystUpload = {
+  upload_id: string;
+  filename: string;
+  kind: string;
+  bytes: number;
+  passages: number;
+  uploaded_at: string;
+};
+
+export type AnalystProject = {
+  project_id: string;
+  name: string;
+  company_ids: string[];
+  memory: { id: string; text: string; created_at: string }[];
+  models?: { model_id: string; name: string; figure: number; unit: string; as_of: string; statement: string }[];
+  uploads: AnalystUpload[];
+  created_at: string;
+};
+
+const analystHeaders = () => ({ "Content-Type": "application/json", "X-API-Key": API_KEY });
+
+export function fetchAnalystProjects(): Promise<{ projects: AnalystProject[] }> {
+  return getJson("/api/analyst/projects", { headers: { "X-API-Key": API_KEY } });
 }
 
-export function postSightsAgentRun(body: {
-  template_id: string;
+export function postAnalystProject(body: { name: string; company_ids: string[] }): Promise<AnalystProject> {
+  return getJson("/api/analyst/projects", { method: "POST", headers: analystHeaders(), body: JSON.stringify(body) });
+}
+
+export function deleteAnalystProject(projectId: string): Promise<{ deleted: string }> {
+  return getJson(`/api/analyst/projects/${encodeURIComponent(projectId)}`, {
+    method: "DELETE",
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function postAnalystMemory(projectId: string, text: string): Promise<{ id: string }> {
+  return getJson(`/api/analyst/projects/${encodeURIComponent(projectId)}/memory`, {
+    method: "POST",
+    headers: analystHeaders(),
+    body: JSON.stringify({ text }),
+  });
+}
+
+export function deleteAnalystMemory(projectId: string, memoryId: string): Promise<{ deleted: string }> {
+  return getJson(
+    `/api/analyst/projects/${encodeURIComponent(projectId)}/memory/${encodeURIComponent(memoryId)}`,
+    { method: "DELETE", headers: { "X-API-Key": API_KEY } },
+  );
+}
+
+export function postAnalystUpload(
+  projectId: string,
+  body: { filename: string; content_base64: string },
+): Promise<AnalystUpload> {
+  return getJson(`/api/analyst/projects/${encodeURIComponent(projectId)}/uploads`, {
+    method: "POST",
+    headers: analystHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteAnalystUpload(projectId: string, uploadId: string): Promise<{ deleted: string }> {
+  return getJson(
+    `/api/analyst/projects/${encodeURIComponent(projectId)}/uploads/${encodeURIComponent(uploadId)}`,
+    { method: "DELETE", headers: { "X-API-Key": API_KEY } },
+  );
+}
+
+export function fetchAnalystMonitors(): Promise<{ monitors: AnalystMonitor[]; limit: number }> {
+  return getJson("/api/analyst/monitors", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function postAnalystMonitor(body: {
+  skill_id: string;
+  scope?: AnalystMonitorScope;
+  company_id?: string;
+  project_id?: string;
+  email?: string;
+}): Promise<AnalystMonitor> {
+  return getJson("/api/analyst/monitors", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteAnalystMonitor(monitorId: string): Promise<{ deleted: string }> {
+  return getJson(`/api/analyst/monitors/${encodeURIComponent(monitorId)}`, {
+    method: "DELETE",
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+export function fetchAnalystFeed(): Promise<{ runs: AnalystRunSummary[] }> {
+  return getJson("/api/analyst/feed", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function fetchAnalystSkills(): Promise<{ product: string; skills: AnalystSkill[] }> {
+  return getJson("/api/analyst/skills", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function postAnalystRun(body: {
+  skill_id: string;
   company_id: string;
-}): Promise<{
-  product: string;
-  template_id: string;
-  company_id: string;
-  ticker: string;
-  body: unknown;
-  citations: CitationRecord[];
-  refused: boolean;
-  disclaimer?: string;
-}> {
-  return getJson("/api/sights/agents/run", {
+  include_unreviewed?: boolean;
+  project_id?: string;
+}): Promise<AnalystRun> {
+  return getJson("/api/analyst/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchAnalystRuns(companyId?: string): Promise<{ runs: AnalystRunSummary[] }> {
+  const q = companyId ? `?company_id=${encodeURIComponent(companyId)}` : "";
+  return getJson(`/api/analyst/runs${q}`, { headers: { "X-API-Key": API_KEY } });
+}
+
+export type AnalystExportFormat = "xlsx" | "pptx" | "pdf" | "md";
+
+async function downloadAnalystFile(path: string, fallbackName: string): Promise<void> {
+  const headers: Record<string, string> = { "X-API-Key": API_KEY };
+  try {
+    const tkn = localStorage.getItem("intellens.auth.token");
+    if (tkn) headers.Authorization = `Bearer ${tkn}`;
+  } catch {
+    /* ignore */
+  }
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (!res.ok) throw new Error((await res.text()) || `Download failed (${res.status})`);
+  const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") || "")?.[1] || fallbackName;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function downloadAnalystExport(runId: string, format: AnalystExportFormat): Promise<void> {
+  return downloadAnalystFile(
+    `/api/analyst/runs/${encodeURIComponent(runId)}/export?format=${format}`,
+    `citealpha-${runId}.${format}`
+  );
+}
+
+export function downloadHouseStylePreview(): Promise<void> {
+  return downloadAnalystFile("/api/analyst/house-style/preview", "citealpha-house-style-preview.pptx");
+}
+
+// ── Analyst settings: digest, org API keys, destinations, house style ───────
+
+export type AnalystDigestSettings = { enabled: boolean; emails: string[]; last_sent_at?: string | null };
+
+export function fetchAnalystDigest(): Promise<{ settings: AnalystDigestSettings; text: string }> {
+  return getJson("/api/analyst/digest", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function putAnalystDigest(body: { enabled: boolean; emails: string[] }): Promise<AnalystDigestSettings> {
+  return getJson("/api/analyst/digest", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    body: JSON.stringify(body),
+  });
+}
+
+export type AnalystOrgKey = {
+  key_id: string;
+  label: string;
+  role: "analyst" | "viewer";
+  prefix: string;
+  created_at: string;
+  created_by?: string;
+  last_used_at?: string | null;
+};
+
+export function fetchAnalystKeys(): Promise<{ keys: AnalystOrgKey[]; limit: number }> {
+  return getJson("/api/analyst/keys");
+}
+
+export function postAnalystKey(body: { label: string; role: "analyst" | "viewer" }): Promise<AnalystOrgKey & { key: string; note: string }> {
+  return getJson("/api/analyst/keys", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 }
 
-export function fetchSightsHooks(): Promise<{
-  product: string;
-  channels: { id: string; path: string; enabled?: boolean; flag?: string; note?: string }[];
-  deferred: string[];
-  disclaimer?: string;
-}> {
-  return getJson("/api/sights/hooks");
+export function deleteAnalystKey(keyId: string): Promise<{ revoked: string }> {
+  return getJson(`/api/analyst/keys/${encodeURIComponent(keyId)}`, { method: "DELETE" });
 }
 
-export function fetchSightsExport(
-  companyId: string,
-  format: "markdown" | "csv" | "json" = "markdown",
-): Promise<{
-  product: string;
-  format: string;
-  company_id: string;
-  content?: string;
-  payload?: unknown;
-  pdf_hint?: string;
-  disclaimer?: string;
+export type AnalystDestinationKind = "webhook" | "slack" | "teams";
+
+export type AnalystDestination = {
+  destination_id: string;
+  kind: AnalystDestinationKind;
+  label: string;
+  url: string;
+  events: string[];
+  created_at: string;
+  last_status?: number | null;
+  last_delivered_at?: string | null;
+  secret?: string;
+};
+
+export type AnalystDeliveryLogRow = {
+  at: string;
+  destination_id: string;
+  kind: AnalystDestinationKind;
+  event: string;
+  status: number;
+  ok: boolean;
+  error?: string | null;
+};
+
+export function fetchAnalystDestinations(): Promise<{
+  destinations: AnalystDestination[];
+  log: AnalystDeliveryLogRow[];
+  events: string[];
+  kinds: AnalystDestinationKind[];
 }> {
-  return getJson(
-    `/api/sights/export/${encodeURIComponent(companyId)}?format=${encodeURIComponent(format)}`,
-  );
+  return getJson("/api/analyst/destinations");
+}
+
+export function postAnalystDestination(body: {
+  kind: AnalystDestinationKind;
+  url: string;
+  events: string[];
+  label?: string;
+}): Promise<AnalystDestination> {
+  return getJson("/api/analyst/destinations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteAnalystDestination(destinationId: string): Promise<{ deleted: string }> {
+  return getJson(`/api/analyst/destinations/${encodeURIComponent(destinationId)}`, { method: "DELETE" });
+}
+
+export function testAnalystDestination(destinationId: string): Promise<{ result: AnalystDeliveryLogRow | null }> {
+  return getJson(`/api/analyst/destinations/${encodeURIComponent(destinationId)}/test`, { method: "POST" });
+}
+
+export type AnalystHouseStyle = {
+  firm_name: string;
+  primary_color: string;
+  accent_color: string;
+  font: string;
+  footer: string;
+  classification: string;
+  has_logo: boolean;
+  has_template: boolean;
+  configured: boolean;
+  fonts: string[];
+};
+
+export function fetchAnalystHouseStyle(): Promise<AnalystHouseStyle> {
+  return getJson("/api/analyst/house-style", { headers: { "X-API-Key": API_KEY } });
+}
+
+export function putAnalystHouseStyle(
+  body: Omit<AnalystHouseStyle, "has_logo" | "has_template" | "configured" | "fonts"> & { logo_base64?: string }
+): Promise<AnalystHouseStyle> {
+  return getJson("/api/analyst/house-style", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function resetAnalystHouseStyle(): Promise<AnalystHouseStyle> {
+  return getJson("/api/analyst/house-style", { method: "DELETE" });
+}
+
+export function postAnalystHouseTemplate(body: { filename: string; content_base64: string }): Promise<AnalystHouseStyle> {
+  return getJson("/api/analyst/house-style/template", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function clearAnalystHouseAsset(asset: "template" | "logo"): Promise<AnalystHouseStyle> {
+  return getJson(`/api/analyst/house-style/${asset}`, { method: "DELETE" });
+}
+
+export function fetchAnalystRun(runId: string): Promise<AnalystRun> {
+  return getJson(`/api/analyst/runs/${encodeURIComponent(runId)}`, {
+    headers: { "X-API-Key": API_KEY },
+  });
+}
+
+// ── Commitment Record ────────────────────────────────────────────────────────
+
+export type Commitment = {
+  id: string;
+  company_id: string;
+  type: string;
+  type_label: string;
+  subject: string;
+  outcome: string;
+  due_period: string;
+  due_date: string | null;
+  quote: string;
+  source_url: string;
+  as_of: string;
+  state: string;
+  state_label: string;
+  review_status: "unreviewed" | "accepted" | "rejected";
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  proof?: { quote?: string; source_url?: string; as_of?: string } | null;
+};
+
+export type CommitmentView = {
+  company_id: string;
+  as_of: string;
+  summary: {
+    due: number;
+    delivered: number;
+    awaiting_proof: number;
+    open_not_yet_due: number;
+    sentence: string;
+  };
+  commitments: Commitment[];
+  includes_unreviewed: boolean;
+  note: string;
+};
+
+export function fetchCompanyCommitments(
+  companyId: string,
+  opts?: { includeUnreviewed?: boolean },
+): Promise<CommitmentView> {
+  const q = opts?.includeUnreviewed ? "?include_unreviewed=true" : "";
+  return getJson(`/api/companies/${encodeURIComponent(companyId)}/commitments${q}`);
 }
 
 export function fetchSightsEnterprise(): Promise<{
@@ -1246,10 +1622,6 @@ export function fetchRadarCalendar(limit = 15): Promise<{
   return getJson(`/api/radar/calendar?limit=${limit}`);
 }
 
-export function fetchRadarDigestPreview(): Promise<{ subject: string; body: string }> {
-  return getJson("/api/radar/digest/preview");
-}
-
 export function fetchCiteTiers(): Promise<{
   tiers: { id: string; name: string; rpm: number; note: string }[];
 }> {
@@ -1332,19 +1704,6 @@ export async function downloadOutcomesExport(
     throw new Error(err || `Export failed (${res.status})`);
   }
   return res.blob();
-}
-
-export function postRadarDigestSend(to: string, limit = 15): Promise<{
-  status: string;
-  detail?: string;
-  mail?: { status: string };
-  preview?: { subject: string };
-}> {
-  return getJson("/api/radar/digest/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
-    body: JSON.stringify({ to, limit }),
-  });
 }
 
 export function fetchKpiDictionary(sector?: string): Promise<{
@@ -1745,21 +2104,29 @@ export function fetchConsensusStats(): Promise<{
 
 export function fetchResearchSearch(
   q: string,
-  companyId?: string
-): Promise<{ results: ResearchDoc[]; count: number }> {
+  companyId?: string,
+  opts: { expand?: boolean } = {}
+): Promise<{
+  results: ResearchDoc[];
+  count: number;
+  original_query?: string;
+  expanded_query?: string;
+}> {
   const params = new URLSearchParams({ q });
   if (companyId) params.set("company_id", companyId);
+  if (opts.expand) params.set("expand", "true");
   return getJson(`/api/research/search?${params}`);
 }
 
 export function fetchResearchChat(
   question: string,
-  companyId?: string
+  companyId?: string,
+  opts: { expand?: boolean } = {}
 ): Promise<{ answer: string; citations: CitationRecord[]; refused?: boolean }> {
   return getJson("/api/research/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, company_id: companyId }),
+    body: JSON.stringify({ question, company_id: companyId, expand: !!opts.expand }),
   });
 }
 
@@ -1980,6 +2347,8 @@ export type LabelingQueueItem = {
   note?: string;
   kind?: string;
   flag?: string | null;
+  period?: string | null;
+  metric?: string | null;
   requested_by?: string;
 };
 
@@ -2006,6 +2375,28 @@ export type BadgePayload = {
   data_quality?: string | null;
 };
 
+export type OwnerInviteResult = {
+  status?: string;
+  org_id?: string;
+  email?: string;
+  mail_status?: string;
+  role?: string;
+  detail?: string;
+  sent_at?: string;
+  dev_token?: string;
+  dev_link?: string;
+};
+
+export type OrgSeat = {
+  id: string;
+  email?: string | null;
+  name?: string;
+  role?: string;
+  active?: boolean;
+  protected?: boolean;
+  platform_admin_role?: string | null;
+};
+
 export type OrgPayload = {
   id: string;
   name?: string;
@@ -2015,6 +2406,12 @@ export type OrgPayload = {
   plan?: string;
   csm?: string;
   features?: string[];
+  owner_email?: string | null;
+  owner_invite?: OwnerInviteResult | null;
+  protected?: boolean;
+  members?: OrgSeat[];
+  deletable?: boolean;
+  delete_block?: string | null;
   [key: string]: unknown;
 };
 
@@ -2202,6 +2599,17 @@ export function postLabelingQueue(body: {
   });
 }
 
+export function patchLabelingQueue(
+  itemId: string,
+  status: "done" | "cancelled" | "in_progress" | "queued",
+): Promise<{ ok: boolean; item: LabelingQueueItem }> {
+  return getJson(`/api/labeling/queue/${encodeURIComponent(itemId)}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
+}
+
 export function postCompanyAuditFlag(
   companyId: string,
   body: { flag: string; source_url: string; note?: string },
@@ -2303,6 +2711,7 @@ export type AdminPortalUser = {
   platform_admin_role?: string | null;
   email_verified?: boolean;
   active?: boolean;
+  protected?: boolean;
   created_at?: string;
 };
 
@@ -2316,6 +2725,20 @@ export function fetchAdminPortalOrgs(token?: string | null): Promise<{ orgs: Org
 
 export function fetchAdminPortalUsers(token?: string | null): Promise<{ users: AdminPortalUser[] }> {
   return authJson("/api/admin/portal/users", undefined, token);
+}
+
+export function deleteAdminPortalOrg(
+  orgId: string,
+  token?: string | null,
+): Promise<{ deleted: string; name?: string }> {
+  return authJson(`/api/admin/portal/orgs/${encodeURIComponent(orgId)}`, { method: "DELETE" }, token);
+}
+
+export function deleteAdminPortalUser(
+  userId: string,
+  token?: string | null,
+): Promise<{ deleted: string; email?: string | null; org_id?: string | null }> {
+  return authJson(`/api/admin/portal/users/${encodeURIComponent(userId)}`, { method: "DELETE" }, token);
 }
 
 export function patchAdminPortalUserRole(
@@ -2378,13 +2801,124 @@ export function fetchAdminPortalAudit(token?: string | null): Promise<Record<str
   return authJson("/api/admin/portal/audit", undefined, token);
 }
 
+export type AdminBoardRow = {
+  id: string;
+  label: string;
+  count: number;
+  section: string;
+  running?: boolean;
+};
+
+export function fetchAdminPortalBoard(token?: string | null): Promise<{ as_of: string; rows: AdminBoardRow[] }> {
+  return authJson("/api/admin/portal/board", undefined, token);
+}
+
+export type AdminLabelingItem = {
+  id: string;
+  company_id?: string;
+  company_name?: string;
+  org_id?: string;
+  kind?: string;
+  status?: string;
+  priority?: string;
+  created_at?: string;
+  age_days?: number | null;
+};
+
+export type AdminLabelingView = {
+  as_of: string;
+  items: AdminLabelingItem[];
+  extracts: { id: string; company_id?: string; status?: string; statements: number }[];
+  source_checks: {
+    as_of?: string | null;
+    checked: number;
+    verified: number;
+    failed: number;
+    fetch_failed: number;
+    note?: string;
+    failures: { company_id?: string; period?: string; metric?: string; kind?: string }[];
+  };
+  note: string;
+};
+
+export function fetchAdminPortalLabeling(token?: string | null): Promise<AdminLabelingView> {
+  return authJson("/api/admin/portal/labeling", undefined, token);
+}
+
+export type AdminCommitmentItem = {
+  id: string;
+  company_id?: string;
+  type?: string;
+  subject?: string;
+  due_period?: string;
+  proposed_at?: string;
+  quote?: string;
+};
+
+export function fetchAdminPortalCommitments(
+  token?: string | null,
+): Promise<{ as_of: string; items: AdminCommitmentItem[]; note: string }> {
+  return authJson("/api/admin/portal/commitments", undefined, token);
+}
+
+export type AdminFlag = { id: string; label: string; on: boolean };
+
+export type AdminSystemStatus = {
+  as_of: string;
+  guidance_review: { ran: boolean; market_id?: string | null; date?: string | null; at?: string | null; bound_rows?: number | null };
+  monitors: { monitors: number; orgs: number; last_triggered_at?: string | null; seen_documents: number; baselined_at?: string | null };
+  india_coverage: Record<string, unknown>;
+  us_coverage: Record<string, unknown>;
+  source_verification: { as_of?: string | null; checked: number; verified: number; failed: number; fetch_failed: number; note?: string };
+  flags: AdminFlag[];
+  note: string;
+};
+
+export function fetchAdminPortalSystem(token?: string | null): Promise<AdminSystemStatus> {
+  return authJson("/api/admin/portal/system", undefined, token);
+}
+
+export function postAdminPortalCleanup(
+  dryRun: boolean,
+  token?: string | null,
+): Promise<{ dry_run: boolean; users_removed: string[]; orgs_removed: string[]; users_kept: number; orgs_kept: number }> {
+  return authJson(
+    "/api/admin/portal/cleanup-test-tenants",
+    { method: "POST", body: JSON.stringify({ dry_run: dryRun }) },
+    token,
+  );
+}
+
+export function postAdminPortalInvoice(
+  body: { org_id: string; plan: string; seats: number; amount_inr?: number; po_number?: string; signer_email?: string },
+  token?: string | null,
+): Promise<Record<string, unknown>> {
+  return authJson("/api/admin/portal/billing/invoices", { method: "POST", body: JSON.stringify(body) }, token);
+}
+
+export type AdminReportMeta = { id: string; label: string; permission: string };
+
+export function fetchAdminPortalReportCatalog(
+  token?: string | null,
+): Promise<{ reports: AdminReportMeta[] }> {
+  return authJson("/api/admin/portal/reports", undefined, token);
+}
+
+export function fetchAdminPortalReport(
+  reportId: string,
+  token?: string | null,
+): Promise<Record<string, unknown>> {
+  return authJson(`/api/admin/portal/reports/${encodeURIComponent(reportId)}`, undefined, token);
+}
+
 export function postAdminPortalPilot(
   name: string,
+  termDays: 30 | 45 | 60,
   token?: string | null,
 ): Promise<Record<string, unknown>> {
   return authJson(
     "/api/admin/portal/pilot",
-    { method: "POST", body: JSON.stringify({ name }) },
+    { method: "POST", body: JSON.stringify({ name, term_days: termDays }) },
     token,
   );
 }
@@ -2403,6 +2937,7 @@ export type PilotRequestItem = {
   reviewed_by?: string | null;
   reviewed_at?: string | null;
   created_at?: string;
+  owner_invite?: OwnerInviteResult | null;
 };
 
 export function fetchAdminPortalPilotRequests(
@@ -2413,14 +2948,184 @@ export function fetchAdminPortalPilotRequests(
   return authJson(`/api/admin/portal/pilot-requests${q}`, undefined, token);
 }
 
+export function deleteAdminPortalPilotRequest(
+  requestId: string,
+  token?: string | null,
+): Promise<{ deleted: string; org_id?: string | null }> {
+  return authJson(
+    `/api/admin/portal/pilot-requests/${encodeURIComponent(requestId)}`,
+    { method: "DELETE" },
+    token,
+  );
+}
+
+export type HoldingsLine = {
+  isin?: string;
+  weight: number;
+  residual?: string;
+  name?: string;
+  company_id?: string;
+  ticker?: string | null;
+  gci_score?: number | null;
+  confidence_tier?: string | null;
+  reason?: string;
+  kind?: string;
+  open_commitments?: number | null;
+};
+
+export type HoldingsReport = {
+  product: string;
+  as_of: string;
+  covered_gci: number | null;
+  covered_weight_pct: number;
+  unscored_weight_pct: number;
+  residual_weight_pct: number;
+  statement: string;
+  note: string;
+  scored: HoldingsLine[];
+  gaps: HoldingsLine[];
+  residual: HoldingsLine[];
+  manager?: {
+    equal_weight_gci: number | null;
+    delivery_tilt: number | null;
+    universe_gci: number | null;
+    versus_universe: number | null;
+    statement: string;
+  };
+  scheme?: {
+    available: boolean;
+    change_pct: number | null;
+    statement: string;
+    points?: { as_of: string; value: number }[];
+  };
+  lines?: { isin?: string; weight: number; residual?: string; name?: string }[];
+  diff?: {
+    prior_as_of?: string;
+    prior_covered_gci?: number | null;
+    covered_gci_change?: number | null;
+    weight_changes?: { name?: string; prior_weight?: number; weight?: number }[];
+  } | null;
+};
+
+export function postHoldingsLookthrough(
+  body: {
+    as_of: string;
+    lines: { isin?: string; weight: number; residual?: string; name?: string }[];
+    scheme?: { as_of: string; value: number }[];
+  },
+  token?: string | null,
+): Promise<HoldingsReport> {
+  return authJson(
+    "/api/holdings/lookthrough",
+    { method: "POST", body: JSON.stringify(body) },
+    token,
+  );
+}
+
+export function fetchHoldingsLatest(token?: string | null): Promise<HoldingsReport> {
+  return authJson("/api/holdings/latest", { method: "GET" }, token);
+}
+
+export type NinjaWorksheet = {
+  template: string;
+  figure: number;
+  unit: string;
+  statement: string;
+};
+
+export type NinjaProfile = {
+  company_id: string;
+  note: string;
+  layers: Record<string, { quote: string; source_url: string; as_of: string; stance: string }[]>;
+  notes?: {
+    skill_id: string;
+    title: string;
+    generated_at?: string;
+    claims: { text?: string; quote: string; source_url: string; as_of?: string }[];
+  }[];
+  sector?: string | null;
+};
+
+export function postNinjaWorksheet(
+  template: string,
+  body: Record<string, unknown>,
+  token?: string | null,
+): Promise<NinjaWorksheet> {
+  return authJson(`/api/ninja/worksheets/${encodeURIComponent(template)}`, { method: "POST", body: JSON.stringify(body) }, token);
+}
+
+export function fetchNinjaIndex(
+  companyId: string,
+  token?: string | null,
+): Promise<{ statement: string; layers: { layer: string; level: number | null; supported: number; contradicted: number; published: boolean }[] }> {
+  return authJson(`/api/ninja/indices/${encodeURIComponent(companyId)}`, { method: "GET" }, token);
+}
+
+export function postNinjaObservation(
+  body: { company_id: string; layer: string; stance: string; quote: string; source_url: string; as_of: string },
+  token?: string | null,
+): Promise<Record<string, unknown>> {
+  return authJson("/api/ninja/observations", { method: "POST", body: JSON.stringify(body) }, token);
+}
+
+export function fetchNinjaTests(token?: string | null): Promise<{
+  statement: string;
+  downward_revision: { sufficient: boolean; statement: string; with_revision: { n: number; miss_share_pct: number | null }; without_revision: { n: number; miss_share_pct: number | null } };
+  persistence: { sufficient: boolean; statement: string; companies: number; both_missed_share_pct: number | null };
+}> {
+  return authJson("/api/ninja/tests", { method: "GET" }, token);
+}
+
+export function fetchNinjaProfile(companyId: string, token?: string | null): Promise<NinjaProfile> {
+  return authJson(`/api/ninja/profile/${encodeURIComponent(companyId)}`, { method: "GET" }, token);
+}
+
+export function fetchNinjaTaxonomy(token?: string | null): Promise<{
+  note: string;
+  sectors: { sector: string; companies: number }[];
+}> {
+  return authJson("/api/ninja/taxonomy", { method: "GET" }, token);
+}
+
+export function postAnalystModel(
+  projectId: string,
+  body: {
+    company_id: string;
+    name: string;
+    figure: number;
+    unit: string;
+    as_of: string;
+    assumptions: string;
+    sources: string;
+    not_found: string;
+  },
+): Promise<{ model_id: string; statement: string; figure: number; unit: string; name: string }> {
+  return getJson(`/api/analyst/projects/${encodeURIComponent(projectId)}/models`, {
+    method: "POST",
+    headers: analystHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
 export function patchAdminPortalPilotRequest(
   requestId: string,
-  body: { action: "approve" | "reject"; note?: string },
+  body: { action: "approve" | "reject"; note?: string; term_days?: 30 | 45 | 60 },
   token?: string | null,
-): Promise<{ ok: boolean; request: PilotRequestItem }> {
+): Promise<{ ok: boolean; request: PilotRequestItem; owner_invite?: OwnerInviteResult }> {
   return authJson(
     `/api/admin/portal/pilot-requests/${encodeURIComponent(requestId)}`,
     { method: "PATCH", body: JSON.stringify(body) },
+    token,
+  );
+}
+
+export function postAdminPortalOwnerInvite(
+  orgId: string,
+  token?: string | null,
+): Promise<OwnerInviteResult> {
+  return authJson(
+    `/api/admin/portal/orgs/${encodeURIComponent(orgId)}/owner-invite`,
+    { method: "POST" },
     token,
   );
 }
@@ -2637,6 +3342,10 @@ export function fetchOrgMembers(
   token: string,
 ): Promise<{ org_id: string; members: AuthUser[] }> {
   return authJson(`/api/orgs/${encodeURIComponent(orgId)}/members`, undefined, token);
+}
+
+export function fetchMyOrg(token: string): Promise<OrgPayload> {
+  return authJson("/api/orgs/me", undefined, token);
 }
 
 export function postOrgInvite(

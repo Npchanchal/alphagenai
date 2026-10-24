@@ -4,17 +4,18 @@ import { buildRecordParts } from "../lib/score";
 
 type Props = {
   outcomes: OutcomeView[];
+  coverageReason?: string | null;
   testId?: string;
 };
 
 /** One-sentence delivery record for the dossier header (plan W3.1). */
-export default function RecordSentence({ outcomes, testId = "dossier-record" }: Props) {
+export default function RecordSentence({ outcomes, coverageReason, testId = "dossier-record" }: Props) {
   const { t } = useI18n();
   const parts = buildRecordParts(outcomes);
   if (parts.closed === 0) {
     return (
       <p className="dossier-record" data-testid={testId}>
-        {t("dossier.record.empty")}
+        {coverageReason || t("dossier.record.empty")}
       </p>
     );
   }

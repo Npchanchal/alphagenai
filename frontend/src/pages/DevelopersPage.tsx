@@ -34,7 +34,7 @@ export default function DevelopersPage() {
             OpenAPI
           </a>
           {" · "}
-          <Link to="/package">Request a quote</Link>
+          <Link to="/products#plans">Request a quote</Link>
           {" · "}
           <Link to="/changelog">Changelog</Link>
         </p>

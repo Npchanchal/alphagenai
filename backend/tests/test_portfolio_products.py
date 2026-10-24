@@ -19,7 +19,7 @@ def test_us_p01_products_catalog():
     body = r.json()
     assert body["product"] == "CiteAlpha Portfolio"
     ids = {p["id"] for p in body["products"]}
-    assert ids == {"score", "cite", "radar", "ledger", "data", "sights"}
+    assert ids == {"score", "cite", "radar", "ledger", "data", "sights", "holdings"}
     assert "Not investment advice" in body["disclaimer"]
 
 

@@ -1,0 +1,14 @@
+{
+  "id": "thematic_note",
+  "version": "1.0.0",
+  "title": "Thematic note",
+  "audience": "An analyst writing across companies that share a stored sector",
+  "description": "Peers in the sector already stored on the company, plus the commitments and filing quotes that sit under that theme. No second sector map.",
+  "inputs": ["company_id"],
+  "sections": [
+    {"id": "peers", "title": "Companies in the same stored sector", "builder": "peers"},
+    {"id": "commitments", "title": "Commitments at stake", "builder": "commitments_open"},
+    {"id": "quotes", "title": "Filing quotes on the theme", "builder": "filing_quotes", "args": {"queries": ["demand outlook", "capacity expansion", "margin guidance"]}}
+  ],
+  "disproof": {"queries": ["weaker than expected", "postponed"]}
+}
