@@ -3,9 +3,10 @@ import { dismissOverlays, ensurePrimaryNav } from "../helpers";
 
 const NAV_TARGETS: { label: RegExp; url: RegExp; menu?: RegExp }[] = [
   { label: /^GCI Screener$/i, url: /\/tracker$/ },
-  { label: /^Analyst Workbench$/i, url: /\/desk/ },
-  { label: /^Filing Search$/i, url: /\/research/ },
-  { label: /^Overview$/i, url: /\/sights/, menu: /^Disclosure Explorer$/i },
+  { label: /^Filing Search$/i, url: /\/research/, menu: /^Research$/i },
+  { label: /^Analyst Workbench$/i, url: /\/desk/, menu: /^Workspace$/i },
+  { label: /^Overview$/i, url: /\/sights$/, menu: /^Workspace$/i },
+  { label: /^Pricing$/i, url: /\/products/ },
 ];
 
 const FOOTER_TARGETS: { label: RegExp; url: RegExp }[] = [

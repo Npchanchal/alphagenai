@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import LandingProofPanel from "../components/LandingProofPanel";
+import LandingProof from "../components/LandingProof";
 import LandingWorkedExample, { EXAMPLE_COMPANY_ID } from "../components/LandingWorkedExample";
 import PilotRequestForm from "../components/PilotRequestForm";
 import { useI18n } from "../i18n";
@@ -29,10 +30,10 @@ const METHOD_STEPS = [
 
 const SURFACES = [
   { id: "tracker", to: "/tracker", beta: false },
-  { id: "desk", to: "/desk", beta: false },
-  { id: "research", to: "/research", beta: false },
-  { id: "sights", to: "/sights", beta: true },
   { id: "rankings", to: "/rankings", beta: false },
+  { id: "research", to: "/research", beta: false },
+  { id: "desk", to: "/desk", beta: false },
+  { id: "sights", to: "/sights", beta: true },
 ] as const;
 
 /** Public marketing home — citealpha.com apex. */
@@ -92,6 +93,13 @@ export default function LandingPage() {
       </div>
 
       <LandingWorkedExample />
+      <LandingProof />
+      <nav className="landing-workflows" aria-label={t("workflows.toc")} data-testid="landing-workflows">
+        <Link to="/workflows#earnings-season">{t("workflows.earnings.title")}</Link>
+        <Link to="/workflows#management-delivery">{t("workflows.delivery.title")}</Link>
+        <Link to="/workflows#coverage">{t("workflows.coverage.title")}</Link>
+        <Link to="/workflows#desk-note">{t("workflows.note.title")}</Link>
+      </nav>
 
       <div className="panel landing-explain" data-testid="landing-explain">
         <h2 style={{ marginTop: 0 }}>{t("landing.define.title")}</h2>

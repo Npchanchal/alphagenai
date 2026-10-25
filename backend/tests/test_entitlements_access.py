@@ -286,6 +286,44 @@ def test_trust_labeling_governance_and_csp():
     assert "plausible.io" in csp
 
 
+def test_vernacular_and_notes_follow_the_seat():
+    admin = {"X-API-Key": "intellens-admin"}
+    viewer = {"X-API-Key": "intellens-viewer"}
+    analyst = {"X-API-Key": "intellens-demo"}
+    labeler = {"X-API-Key": "intellens-onestop-labeler"}
+
+    opened = client.get("/api/vernacular/infy?lang=en", headers=admin)
+    assert opened.status_code == 200, opened.text
+    assert opened.json()["lang"] == "en"
+
+    closed = client.get("/api/vernacular/infy?lang=en", headers=viewer)
+    assert closed.status_code == 403
+
+    guest = client.get("/api/vernacular/infy?lang=en")
+    assert guest.status_code == 401
+
+    saved = client.post(
+        "/api/notes",
+        headers=analyst,
+        json={"company_id": "infy", "title": "Focus", "body": "Watch the FY26 band."},
+    )
+    assert saved.status_code == 200, saved.text
+
+    refused = client.post(
+        "/api/notes",
+        headers=labeler,
+        json={"company_id": "infy", "title": "Focus", "body": "Should not save."},
+    )
+    assert refused.status_code == 403
+
+    viewer_note = client.post(
+        "/api/notes",
+        headers=viewer,
+        json={"company_id": "infy", "title": "Focus", "body": "Should not save."},
+    )
+    assert viewer_note.status_code == 403
+
+
 def test_csm_labeling_audit_shape():
     r = client.get("/api/csm/demo", headers={"X-API-Key": "intellens-demo"})
     assert r.status_code == 200

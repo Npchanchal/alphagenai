@@ -102,7 +102,10 @@ export async function ensurePrimaryNav(page: Page): Promise<void> {
 }
 
 /** Open a header nav dropdown by `nav-dropdown-{id}`. */
-export async function openNavDropdown(page: Page, id: "sights" | "more"): Promise<void> {
+export async function openNavDropdown(
+  page: Page,
+  id: "research" | "workspace" | "learn",
+): Promise<void> {
   await ensurePrimaryNav(page);
   const root = page.getByTestId(`nav-dropdown-${id}`);
   await root.getByRole("button").click();
@@ -112,7 +115,7 @@ export async function openNavDropdown(page: Page, id: "sights" | "more"): Promis
 /** Click a submenu item inside an open nav dropdown. */
 export async function clickNavDropdownItem(
   page: Page,
-  id: "sights" | "more",
+  id: "research" | "workspace" | "learn",
   name: RegExp | string,
 ): Promise<void> {
   await openNavDropdown(page, id);

@@ -494,3 +494,74 @@ def test_desk_key_cannot_read_another_organisation():
     desk_reviews = client.get("/api/reviews", headers={"Authorization": f"Bearer {token}"})
     assert desk_reviews.status_code == 200
     assert all(row.get("comment") != "iso-demo-only" for row in desk_reviews.json()["reviews"])
+
+
+def test_org_admin_audit_signin_and_checklist(monkeypatch, tmp_path):
+    from app.data import audit_log
+
+    owner = _register_desk("owner.audit@desk.test", "Audit Desk")
+    token = owner["token"]
+    org_id = owner["user"]["org_id"]
+    headers = {"Authorization": f"Bearer {token}"}
+    other = _register_desk("other.audit@desk.test", "Other Audit")
+
+    invited = client.post(
+        f"/api/orgs/{org_id}/invites",
+        headers=headers,
+        json={"email": "viewer.audit@desk.test", "role": "viewer"},
+    )
+    assert invited.status_code == 200, invited.text
+    viewer = _accept(invited.json()["dev_token"], "viewer.audit@desk.test", "Viewer")
+    viewer_headers = {"Authorization": f"Bearer {viewer['token']}"}
+
+    analyst_inv = client.post(
+        f"/api/orgs/{org_id}/invites",
+        headers=headers,
+        json={"email": "analyst.audit@desk.test", "role": "analyst"},
+    )
+    analyst = _accept(analyst_inv.json()["dev_token"], "analyst.audit@desk.test", "Analyst")
+    analyst_headers = {"Authorization": f"Bearer {analyst['token']}"}
+
+    audit_path = tmp_path / "audit.json"
+    audit_path.write_text("[]", encoding="utf-8")
+    monkeypatch.setattr(audit_log, "_PATH", audit_path)
+    monkeypatch.setattr(audit_log, "_LOG", None)
+    audit_log.record(
+        "login",
+        org=org_id,
+        actor="owner.audit@desk.test",
+        detail={"password": "secret-value", "method": "session"},
+    )
+
+    own = client.get("/api/audit", headers=headers)
+    assert own.status_code == 200, own.text
+    assert "secret-value" not in own.text
+    assert own.json()["events"][0]["action"] == "login"
+    assert own.json()["events"][0]["detail"]["method"] == "session"
+
+    foreign = client.get("/api/audit", headers=headers, params={"org": other["user"]["org_id"]})
+    assert foreign.status_code == 403
+    assert client.get("/api/audit", headers=viewer_headers).status_code == 403
+
+    blocked = client.put(
+        f"/api/orgs/{org_id}/oidc",
+        headers=analyst_headers,
+        json={"oidc_issuer": "https://idp.example", "oidc_client_id": "desk", "email_domain": "desk.test"},
+    )
+    assert blocked.status_code == 403
+    saved = client.put(
+        f"/api/orgs/{org_id}/oidc",
+        headers=headers,
+        json={"oidc_issuer": "https://idp.example", "oidc_client_id": "desk", "email_domain": "desk.test"},
+    )
+    assert saved.status_code == 200, saved.text
+    assert saved.json()["email_domain"] == "desk.test"
+
+    checklist = client.get(f"/api/orgs/{org_id}/pilot-checklist", headers=headers)
+    assert checklist.status_code == 200, checklist.text
+    assert checklist.json()["org_id"] == org_id
+    crossed = client.get(
+        f"/api/orgs/{other['user']['org_id']}/pilot-checklist",
+        headers=headers,
+    )
+    assert crossed.status_code == 403

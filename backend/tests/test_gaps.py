@@ -169,9 +169,15 @@ def test_g18_alerts():
 
 
 def test_g19_vernacular():
-    hi = client.get("/api/vernacular/infy?lang=hi").json()
+    hi = client.get(
+        "/api/vernacular/infy?lang=hi",
+        headers={"X-API-Key": "intellens-admin"},
+    ).json()
     assert hi["lang"] == "hi" and "GCI" in hi["text"] or "स्कोर" in hi["text"]
-    ta = client.get("/api/vernacular/infy?lang=ta").json()
+    ta = client.get(
+        "/api/vernacular/infy?lang=ta",
+        headers={"X-API-Key": "intellens-admin"},
+    ).json()
     assert ta["lang"] == "ta"
 
 
@@ -215,7 +221,10 @@ def test_g22_em_factor():
 
 
 def test_g23_japan():
-    ja = client.get("/api/vernacular/infy?lang=ja").json()
+    ja = client.get(
+        "/api/vernacular/infy?lang=ja",
+        headers={"X-API-Key": "intellens-admin"},
+    ).json()
     assert "GCI" in ja["text"] or "スコア" in ja["text"]
 
 

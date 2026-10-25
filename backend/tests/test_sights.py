@@ -146,12 +146,17 @@ def test_retired_sights_tools_point_to_analyst():
 
 
 def test_filing_search_expands_and_spans_all_companies():
-    r = client.get("/api/research/search", params={"q": "revenue guidance", "expand": "true", "limit": 10})
+    headers = {"X-API-Key": "intellens-demo"}
+    r = client.get(
+        "/api/research/search",
+        params={"q": "revenue guidance", "expand": "true", "limit": 10},
+        headers=headers,
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["expanded_query"] != body["original_query"]
     assert len({d["company_id"] for d in body["results"]}) > 1
-    plain = client.get("/api/research/search", params={"q": "revenue guidance"}).json()
+    plain = client.get("/api/research/search", params={"q": "revenue guidance"}, headers=headers).json()
     assert "expanded_query" not in plain
 
 

@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import { useI18n } from "../i18n";
-import { CONTACT_EMAIL, copyrightLine } from "../lib/legal";
+import { CONTACT_EMAIL, LEGAL_ENTITY, copyrightLine } from "../lib/legal";
 const PIPELINE = [
   { step: "1", tip: "source", titleKey: "about.pipeline.1.title", textKey: "about.pipeline.1.text" },
   { step: "2", tip: "extract", titleKey: "about.pipeline.2.title", textKey: "about.pipeline.2.text" },
@@ -50,6 +51,13 @@ const HOW_TO = [
 
 export default function AboutPage() {
   const { t } = useI18n();
+  const location = useLocation();
+
+  useEffect(() => {
+    const id = location.hash.replace(/^#/, "");
+    if (!id) return;
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location.hash]);
 
   return (
     <section className="about-page" data-testid="about-page">
@@ -58,6 +66,17 @@ export default function AboutPage() {
         {t("about.title")} <InfoTip termId="gci" />
       </h1>
       <p className="muted lede">{t("about.lede")}</p>
+      <div className="panel" id="company" data-testid="about-company">
+        <h2 style={{ marginTop: 0 }}>{t("about.company.title")}</h2>
+        <p>{t("about.company.body", { entity: LEGAL_ENTITY })}</p>
+        <p className="muted">
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          {" · "}
+          <Link to="/trust#security">{t("about.company.security")}</Link>
+          {" · "}
+          <Link to="/workflows">{t("nav.workflows")}</Link>
+        </p>
+      </div>
       <p className="muted" data-testid="about-owner">
         {copyrightLine()} {t("about.contactBefore")}{" "}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. {t("about.contactAfter")}{" "}

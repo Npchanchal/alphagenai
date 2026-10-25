@@ -220,6 +220,42 @@ def count_companies(
     return len(markets_data.list_stocks(market_id=mid, index_id=None))
 
 
+def list_published_companies() -> List[CompanySummary]:
+    """Companies that carry a published GCI. The reading room searches this list."""
+    from app.data.gci_score_cache import load_cache
+    from app.data.india_listings import find_listing
+    from app.data.us_listings import find_us_listing
+
+    seed = {c["id"]: c for c in list_companies()}
+    rows: List[CompanySummary] = []
+    for cid, cached in (load_cache().get("scores") or {}).items():
+        if not isinstance(cached, dict) or cached.get("gci_score") is None:
+            continue
+        seeded = seed.get(cid) or {}
+        listing = find_listing(cid) or find_us_listing(cid) or {}
+        ticker = seeded.get("ticker") or listing.get("ticker") or cached.get("ticker") or cid
+        rows.append(
+            CompanySummary(
+                id=cid,
+                name=seeded.get("name") or listing.get("name") or str(ticker),
+                ticker=str(ticker),
+                sector=seeded.get("sector") or listing.get("sector") or cached.get("sector") or "Equity",
+                gci_score=cached.get("gci_score"),
+                data_quality=cached.get("data_quality") or seeded.get("data_quality") or "hand_labeled",
+                confidence_tier=cached.get("confidence_tier"),
+                closed_periods=int(cached.get("closed_periods") or 0),
+                metrics_scored=int(cached.get("metrics_scored") or 0),
+                as_of=cached.get("as_of"),
+                algorithm_id=cached.get("algorithm_id"),
+                coverage_status=cached.get("coverage_status"),
+                market_id=(listing.get("market_id") or seeded.get("market_id") or "IN"),
+                index_ids=listing.get("index_ids"),
+            )
+        )
+    rows.sort(key=lambda row: (-(row.gci_score or 0), row.ticker))
+    return rows
+
+
 def list_company_summaries(
     market: Optional[str] = None,
     index: Optional[str] = None,

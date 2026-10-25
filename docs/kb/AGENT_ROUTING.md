@@ -22,7 +22,7 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 | Billing / paywall / legal attest | `platform-engineer` | `citealpha-production` | production-monetization, compliance-sebi | 09, 13 |
 | Sights SKU | `sights-engineer` | `citealpha-sights` | sights, compliance-sebi | 14 |
 | Portfolio SKUs (Score/Cite/Radar/Ledger/Data) | `portfolio-engineer` | `citealpha-portfolio` | portfolio, api-contracts | 13, PRODUCT_PORTFOLIO |
-| Platform admin portal / super board, workflows, reports | `platform-engineer` | `citealpha-production` | production-monetization, reuse-before-add | 15, ADMIN_PORTAL, `docs/PLAN_SUPER_ADMIN.md` |
+| Platform admin portal / super board, workflows, reports / org admin menu | `platform-engineer` | `citealpha-production` | production-monetization, reuse-before-add | 15, `docs/PRD_ADMIN.md`, ADMIN_PORTAL, `docs/PLAN_SUPER_ADMIN.md` |
 | CiteAlpha Analyst (skills, verifier, runs) / Commitment Record | `gci-engineer` (agent) · `index-steward` (commitment governance) | `citealpha-gci-dev` | index-integrity, public-copy-voice, compliance-sebi | 16, 17, `docs/PLAN_CITEALPHA_ANALYST.md` |
 | Architecture map | `architect` | `citealpha-architecture` | python-backend, frontend | 02 |
 | New feature, route, page, job, or external fetch (NSE, BSE, EDGAR, model) | `architect` | `citealpha-reuse-sources` | reuse-before-add, source-once | 19 |

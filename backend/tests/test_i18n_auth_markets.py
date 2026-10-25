@@ -133,12 +133,18 @@ def test_register_login_guest_preferences_roundtrip():
 
 
 def test_vernacular_fallback_flag():
-    hi = client.get("/api/vernacular/infy?lang=hi").json()
+    hi = client.get(
+        "/api/vernacular/infy?lang=hi",
+        headers={"X-API-Key": "intellens-admin"},
+    ).json()
     assert hi["fallback"] is False
     assert "GCI" in hi["text"] or "स्कोर" in hi["text"]
 
     # unknown code falls back to en
-    xx = client.get("/api/vernacular/infy?lang=xx").json()
+    xx = client.get(
+        "/api/vernacular/infy?lang=xx",
+        headers={"X-API-Key": "intellens-admin"},
+    ).json()
     assert xx["fallback"] is True
     assert xx["lang"] == "en"
 

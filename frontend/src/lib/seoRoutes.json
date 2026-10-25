@@ -132,6 +132,12 @@
     "sitemap": { "changefreq": "weekly", "priority": "0.7" }
   },
   {
+    "path": "/workflows",
+    "title": "Workflows: Earnings, Delivery, Coverage, and Desk Notes — CiteAlpha",
+    "description": "Four jobs for an Indian equity desk: earnings season, management delivery, coverage, and a note in the desk's format. Each one opens a route that already exists. Not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.6" }
+  },
+  {
     "path": "/about",
     "title": "About CiteAlpha — GCI by Ocotillo Innovation",
     "description": "How CiteAlpha builds the Guidance Credibility Index: ingest, extract, match, score, and cite — for Indian equity desks.",

@@ -209,6 +209,16 @@ export default function ProductsPage() {
       <section id="plans" className="products-section" data-testid="plans-section">
         <h2>{t("package.plans.title")}</h2>
         <p className="muted">{t("package.plans.lede")}</p>
+        <article className="panel" data-testid="evaluation-scope">
+          <h3 style={{ marginTop: 0 }}>{t("products.evaluation.title")}</h3>
+          <ul className="about-list">
+            <li>{t("products.evaluation.i1")}</li>
+            <li>{t("products.evaluation.i2")}</li>
+            <li>{t("products.evaluation.i3")}</li>
+            <li>{t("products.evaluation.i4")}</li>
+          </ul>
+          <p className="muted">{t("products.evaluation.price")}</p>
+        </article>
         <aside className="disclaimer" role="note" data-testid="retail-marketing-gate">
           {t("package.retailGate")}
         </aside>

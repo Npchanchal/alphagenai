@@ -133,6 +133,7 @@ export default function AdminPortalPage() {
   const [reports, setReports] = useState<AdminReportMeta[]>([]);
   const [reportId, setReportId] = useState("");
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
+  const [reportDenied, setReportDenied] = useState(false);
   const [system, setSystem] = useState<AdminSystemStatus | null>(null);
   const [cleanupPreview, setCleanupPreview] = useState<{ users_removed: string[]; orgs_removed: string[] } | null>(null);
   const [standingOnly, setStandingOnly] = useState(false);
@@ -148,6 +149,7 @@ export default function AdminPortalPage() {
   const [attestKind, setAttestKind] = useState("terms_privacy");
 
   const section = searchParams.get("section") || "overview";
+  const reportParam = searchParams.get("report") || "";
   const can = useCallback(
     (perm: string) => (portal?.permissions || []).includes(perm),
     [portal?.permissions],
@@ -176,6 +178,8 @@ export default function AdminPortalPage() {
 
   const loadSection = useCallback(async () => {
     if (!token || !portal) return;
+    const allowed = new Set((portal.sections || []).map((s) => s.id));
+    if (!allowed.has(section)) return;
     setErr(null);
     try {
       if (section === "orgs" && can("orgs.read")) {
@@ -236,6 +240,26 @@ export default function AdminPortalPage() {
     void loadSection();
   }, [loadSection]);
 
+  useEffect(() => {
+    if (!token || section !== "reports") return;
+    if (!reportParam) {
+      setReportDenied(false);
+      return;
+    }
+    if (reports.length === 0) return;
+    if (!reports.some((item) => item.id === reportParam)) {
+      setReport(null);
+      setReportId("");
+      setReportDenied(true);
+      return;
+    }
+    setReportDenied(false);
+    setReportId(reportParam);
+    void fetchAdminPortalReport(reportParam, token)
+      .then((body) => setReport(body))
+      .catch((ex) => setErr((ex as Error).message));
+  }, [token, section, reportParam, reports]);
+
   const sections = useMemo(() => portal?.sections || [], [portal?.sections]);
 
   if (authLoading || (token && loading)) {
@@ -254,9 +278,8 @@ export default function AdminPortalPage() {
     return (
       <AdminGate title="Platform admin portal" testId="admin-portal-signin">
         <p className="muted lede">
-          Cross-tenant operations for {LEGAL_ENTITY}: orgs, users, legal attestations, billing,
-          and partner feedback. Org seat admin stays on Desk — this console is for platform
-          operators only.
+          Cross-tenant operations for {LEGAL_ENTITY}: organisations, users, legal attestations,
+          billing, and partner feedback. Organisation administration does not unlock this portal.
         </p>
         <div className="admin-portal-cta row gap">
           <Link to="/login" state={{ from: "/admin" }} className="btn-primary">
@@ -282,8 +305,8 @@ export default function AdminPortalPage() {
       <AdminGate title="Access denied" testId="admin-access-denied">
         <p className="error">{accessError || "Platform admin access required"}</p>
         <p className="muted">
-          Signed in as <strong>{user?.email || user?.name}</strong> (org role{" "}
-          <code>{user?.role || "—"}</code>). Org admin on Desk does not unlock this portal.
+          Signed in as <strong>{user?.email || user?.name}</strong> (organisation role{" "}
+          <code>{user?.role || "—"}</code>). An organisation admin does not unlock this portal.
         </p>
         <ul className="admin-steps muted">
           <li>
@@ -327,25 +350,25 @@ export default function AdminPortalPage() {
       </header>
 
       <div className="admin-portal-layout">
-        <nav className="admin-portal-nav panel" aria-label="Admin sections">
-          {sections.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={section === s.id ? "active" : ""}
-              data-testid={`admin-nav-${s.id}`}
-              onClick={() => setSearchParams({ section: s.id })}
-            >
-              {s.label}
-            </button>
-          ))}
-        </nav>
-
         <div className="admin-portal-main panel desk-panel">
           {msg && <p className="muted admin-flash">{msg}</p>}
           {err && <p className="error">{err}</p>}
 
-          {section === "overview" && (
+          {!sections.some((s) => s.id === section) && (
+            <div data-testid="admin-section-denied">
+              <h2 style={{ marginTop: 0 }}>This section is not open for your role</h2>
+              <p className="muted">The platform menu lists the sections this role can open.</p>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setSearchParams({ section: sections[0]?.id || "overview" })}
+              >
+                Back to {sections[0]?.label || "Board"}
+              </button>
+            </div>
+          )}
+
+          {sections.some((s) => s.id === section) && section === "overview" && (
             <div data-testid="admin-section-overview">
               <h2 style={{ marginTop: 0 }}>Work board</h2>
               <p className="muted">Queues waiting on an operator. A row appears only when this role can open it.</p>
@@ -619,7 +642,19 @@ export default function AdminPortalPage() {
                               aria-label={`Platform role for ${u.email || u.id}`}
                               onChange={(e) => {
                                 if (!token) return;
-                                const val = e.target.value || null;
+                                const select = e.target;
+                                const prev = u.platform_admin_role || "";
+                                const val = select.value || null;
+                                const who = u.email || u.name || u.id;
+                                const next = val || "no platform role";
+                                if (
+                                  !window.confirm(
+                                    `Platform roles are for Ocotillo operators. Assign ${next} to ${who}? Do not grant these to a customer login.`,
+                                  )
+                                ) {
+                                  select.value = prev;
+                                  return;
+                                }
                                 void patchAdminPortalUserRole(u.id, val, token)
                                   .then(() => loadSection())
                                   .catch((ex) => setErr((ex as Error).message));
@@ -1134,29 +1169,36 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {section === "reports" && (
+          {sections.some((s) => s.id === section) && section === "reports" && (
             <div data-testid="admin-section-reports">
-              <h2 style={{ marginTop: 0 }}>Reports</h2>
+              <h2 style={{ marginTop: 0 }}>
+                {reportParam
+                  ? reports.find((item) => item.id === reportParam)?.label || "Report"
+                  : "Reports"}
+              </h2>
               <p className="muted">Read from the files already on disk. As-of is the time of that file.</p>
+              {reportDenied ? (
+                <div data-testid="admin-section-denied">
+                  <p>This report is not open for your role.</p>
+                  <button type="button" className="btn" onClick={() => setSearchParams({ section: "overview" })}>
+                    Back to Board
+                  </button>
+                </div>
+              ) : (
               <div className="row gap">
-                {reports.map((item) => (
+                {(reportParam ? reports.filter((item) => item.id === reportParam) : reports).map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     className={reportId === item.id ? "btn-primary" : "btn-ghost"}
-                    onClick={() => {
-                      if (!token) return;
-                      setReportId(item.id);
-                      void fetchAdminPortalReport(item.id, token)
-                        .then((body) => setReport(body))
-                        .catch((ex) => setErr((ex as Error).message));
-                    }}
+                    onClick={() => setSearchParams({ section: "reports", report: item.id })}
                   >
                     {item.label}
                   </button>
                 ))}
               </div>
-              {report && (
+              )}
+              {!reportDenied && report && (
                 <div data-testid="admin-report-body">
                   <p className="muted">As of {String(report.as_of || "—")}</p>
                   {report.empty_note ? <p>{String(report.empty_note)}</p> : null}

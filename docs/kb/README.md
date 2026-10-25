@@ -34,6 +34,7 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | MVP scope | `docs/PRODUCT_DEFINITION.md` |
 | Portfolio SKUs | `docs/PRODUCT_PORTFOLIO.md` · `docs/PORTFOLIO_ROADMAP.md` |
 | Stories | `docs/USER_STORIES.md` |
+| Product requirements, one job per file | `docs/prd/README.md` · administration: `docs/PRD_ADMIN.md` |
 | Gaps G01–G23 | `docs/GAPS_AND_ROADMAP.md` |
 | Phases 0–8 | `docs/IMPLEMENTATION_PLAN.md` |
 | Labeling | `docs/LABELING_PLAYBOOK.md` |
@@ -42,6 +43,7 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | Customer pack | `docs/customer/` · `docs/customer/skus/` |
 | B2B/B2C production | `docs/PRODUCTION_B2B_B2C.md` · `docs/INFRA_PRODUCTION.md` |
 | Platform admin portal | `docs/ADMIN_PORTAL.md` |
+| Admin menu PRD (super and org admin) | `docs/PRD_ADMIN.md` |
 | Super admin board, workflows, reports | `docs/PLAN_SUPER_ADMIN.md` |
 | Pitch | `docs/PITCH_DECK.md` |
 

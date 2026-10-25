@@ -131,3 +131,42 @@ def list_audit(org: Optional[str] = None, limit: int = 100) -> List[Dict[str, An
     if org:
         rows = [r for r in rows if r.get("org") == org]
     return rows[-limit:]
+
+
+_SECRET_PARTS = ("password", "token", "secret", "api_key", "authorization", "cookie")
+
+
+def _scrub(value: Any, depth: int = 0) -> Any:
+    if depth > 4:
+        return None
+    if isinstance(value, dict):
+        out: Dict[str, Any] = {}
+        for key, item in value.items():
+            lowered = str(key).lower()
+            if any(part in lowered for part in _SECRET_PARTS):
+                continue
+            out[str(key)] = _scrub(item, depth + 1)
+        return out
+    if isinstance(value, list):
+        return [_scrub(item, depth + 1) for item in value[:20]]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)[:200]
+
+
+def public_events(org: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    """Newest first. Drops password, token, and key fields."""
+    rows = list_audit(org=org, limit=limit)
+    events: List[Dict[str, Any]] = []
+    for row in reversed(rows):
+        events.append(
+            {
+                "ts": row.get("ts"),
+                "action": row.get("action"),
+                "org": row.get("org"),
+                "actor": row.get("actor"),
+                "role": row.get("role"),
+                "detail": _scrub(row.get("detail") or {}),
+            }
+        )
+    return events

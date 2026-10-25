@@ -192,6 +192,7 @@ export default function CompanyDetailPage() {
   const canWordmap = has("wordmap");
   const canNinja = has("ninja");
   const canNotes = canNinja || has("analyst_agent");
+  const canVernacular = has("vernacular");
   const showWorkbench = has("desk");
   const [layerNotes, setLayerNotes] = useState<Awaited<ReturnType<typeof fetchNinjaProfile>> | null>(null);
   const isGuest = entitlements.plan === "guest" || entitlements.kind === "guest";
@@ -206,7 +207,7 @@ export default function CompanyDetailPage() {
       fetchCompanyGci(id),
       fetchHistory(id).catch(() => []),
       canWordmap ? fetchWordmap(id).catch(() => null) : nothing<WordmapPayload>(),
-      fetchVernacular(id, lang).catch(() => null),
+      canVernacular ? fetchVernacular(id, lang).catch(() => null) : nothing<VernacularPayload>(),
       canAnalytics ? fetchStockHistory(id, 5).catch(() => null) : nothing<StockHistory>(),
       fetchCompanyChanges(id).catch(() => null),
       canAnalytics
@@ -236,11 +237,13 @@ export default function CompanyDetailPage() {
             }
           | undefined,
       })),
-      fetchNotes(id).catch(() => ({ notes: [] })),
+      canNotes ? fetchNotes(id).catch(() => ({ notes: [] })) : Promise.resolve({ notes: [] as { id: string; title: string; body: string }[] }),
       fetchReportTemplates().catch(() => ({ templates: [] })),
       fetchRadarDiffBrief(id).catch(() => ({ diffs: [] })),
       fetchCompanyLedger(id, { creditOnly }).catch(() => null),
-      fetchVernacularDigest(id, lang === "hi" ? "hi" : "en").catch(() => null),
+      canVernacular
+        ? fetchVernacularDigest(id, lang === "hi" ? "hi" : "en").catch(() => null)
+        : nothing<Awaited<ReturnType<typeof fetchVernacularDigest>>>(),
       canAnalytics
         ? fetchNarrativeConsistency(id).catch(() => null)
         : nothing<Awaited<ReturnType<typeof fetchNarrativeConsistency>>>(),
@@ -290,7 +293,7 @@ export default function CompanyDetailPage() {
         }
         setError(e.message);
       });
-  }, [id, lang, creditOnly, canAnalytics, canWordmap]);
+  }, [id, lang, creditOnly, canAnalytics, canWordmap, canNotes, canVernacular]);
 
   useEffect(() => {
     if (!id || !canNotes || !token) {
@@ -596,6 +599,8 @@ export default function CompanyDetailPage() {
                 if (s.id === "threads") return hasThreads;
                 if (s.id === "metrics") return hasMetricChanges;
                 if (s.id === "analytics") return canAnalytics;
+                if (s.id === "notes") return canNotes;
+                if (s.id === "context") return canWordmap || canVernacular;
                 if (s.id === "revisions") return false;
                 return true;
               }).map((s) => (
@@ -1366,6 +1371,7 @@ export default function CompanyDetailPage() {
       </div>
       )}
 
+      {canNotes && (
       <div className="panel" id="notes" data-testid="private-notes">
         <h2>{t("ui.CompanyDetailPage.notes.title")}</h2>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
@@ -1400,7 +1406,9 @@ export default function CompanyDetailPage() {
           ))}
         </ul>
       </div>
+      )}
 
+      {has("ic_export") && (
       <div className="panel" id="report" data-testid="report-panel">
         <h2>{t("ui.CompanyDetailPage.report.title")}</h2>
         <p className="muted" style={{ fontSize: 13 }}>
@@ -1478,6 +1486,7 @@ export default function CompanyDetailPage() {
           </pre>
         )}
       </div>
+      )}
 
       {hasMetricChanges && (
         <div className="panel" id="metrics">
@@ -1569,6 +1578,7 @@ export default function CompanyDetailPage() {
         </div>
       </div>
 
+      {(canWordmap || canVernacular) && (
       <div className="panel" id="context">
         <h2>
           {t("ui.CompanyDetailPage.context.title")} <InfoTip termId="sentiment" />
@@ -1590,6 +1600,8 @@ export default function CompanyDetailPage() {
           </>
         )}
 
+        {canVernacular && (
+        <>
         <h3 style={{ marginTop: 24 }}>{t("ui.CompanyDetailPage.context.blurb")}</h3>
         <div className="desk-lang-row">
           {(vernacular?.supported_langs ?? ["en", "hi", "ta"]).map((l) => (
@@ -1638,8 +1650,11 @@ export default function CompanyDetailPage() {
             )}
           </div>
         )}
+        </>
+        )}
         <Disclaimer compact />
       </div>
+      )}
         </>
       )}
 

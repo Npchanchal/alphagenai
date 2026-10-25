@@ -64,6 +64,7 @@ export const CORE_ROUTES: RouteSpec[] = [
   { path: "/pilot", testId: "pilot-request-page" },
   { path: "/rankings", testId: "gci-rankings-page" },
   { path: "/about", testId: "about-page" },
+  { path: "/workflows", testId: "workflows-page" },
   { path: "/blog", testId: "blog-index" },
   { path: "/help", testId: "help-page" },
   { path: "/trust", testId: "trust-page" },

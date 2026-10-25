@@ -5,7 +5,8 @@ import os
 from datetime import date as _date
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Body, Cookie, Depends, Header, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from app.data.seed import get_data, reset_data
@@ -63,7 +64,13 @@ from app.models.schemas import (
 from app.services import repository
 from app.services.auth import optional_api_key, resolve_api_key
 from app.services import admin_portal as admin_portal_svc
-from app.services.entitlements import has_feature, require_feature, resolve_actor
+from app.services.entitlements import (
+    has_feature,
+    require_any_feature,
+    require_feature,
+    require_session_or_key,
+    resolve_actor,
+)
 from app.services.extraction import extract_auto
 from app.services.matching import alphahunter_facts_to_actuals, match_actuals
 from app.services import research as research_svc
@@ -112,7 +119,10 @@ def companies(
     index: Optional[str] = None,
     limit: Optional[int] = None,
     offset: int = 0,
+    scored: bool = False,
 ) -> List[CompanySummary]:
+    if scored:
+        return repository.list_published_companies()
     return repository.list_company_summaries(
         market=market, index=index, limit=limit, offset=offset
     )
@@ -753,7 +763,11 @@ def org(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 
 
 @router.get("/api/vernacular/{company_id}")
-def vernacular(company_id: str, lang: str = "hi") -> Dict[str, Any]:
+def vernacular(
+    company_id: str,
+    lang: str = "hi",
+    _auth=Depends(require_feature("vernacular")),
+) -> Dict[str, Any]:
     """G19 / G23 — localized GCI blurb templates."""
     detail = repository.get_company_gci(company_id)
     score = detail.gci_score
@@ -1304,24 +1318,105 @@ def em_factor(
 # --- Research Terminal (Intellens Search + Intellens Desk, demo) ---
 
 
+def _reading_room_company(company_id: str) -> bool:
+    """A published GCI. Hand-labeled names without a number stay outside the room."""
+    from app.data.gci_score_cache import published_gci
+
+    return published_gci(company_id) is not None
+
+
+def _reading_cookie(response: JSONResponse, browser_id: Optional[str], request: Request) -> JSONResponse:
+    if not browser_id:
+        return response
+    response.set_cookie(
+        key="citealpha_reading",
+        value=browser_id,
+        max_age=30 * 24 * 3600,
+        httponly=True,
+        samesite="lax",
+        secure=request.url.scheme == "https",
+        path="/",
+    )
+    return response
+
+
+@router.get("/api/research/reading-room")
+def research_reading_room(
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+    citealpha_reading: Optional[str] = Cookie(default=None),
+    ent: Dict[str, Any] = Depends(resolve_actor),
+) -> Dict[str, Any]:
+    """Searches left in this browser. Does not count a search."""
+    from app.services.session_auth import READING_ROOM_CAP, extract_bearer, reading_room_status
+
+    if has_feature(ent, "research"):
+        return {"limited": False, "blocked": False, "cap": READING_ROOM_CAP, "used": 0, "remaining": None}
+    _ = request
+    return reading_room_status(extract_bearer(authorization), citealpha_reading)
+
+
 @router.get("/api/research/search")
 def research_search(
+    request: Request,
     q: str = "",
     company_id: Optional[str] = None,
     doc_type: Optional[str] = None,
     limit: int = 25,
     expand: bool = False,
-) -> Dict[str, Any]:
+    reading_room: bool = False,
+    authorization: Optional[str] = Header(default=None),
+    citealpha_reading: Optional[str] = Cookie(default=None),
+    ent: Dict[str, Any] = Depends(resolve_actor),
+) -> Any:
     """Filing search for one company, or all covered companies when company_id is omitted.
 
     ``expand=true`` adds India IR synonyms (e.g. "EBITDA margin" also finds "operating margin").
+    A caller without a research seat always searches one company with a published GCI,
+    and this browser is counted toward 8. ``reading_room`` is accepted and not required.
     """
+    from app.services.session_auth import consume_reading_search, extract_bearer
     from app.services.sights import expand_query_lexicon
 
+    _ = reading_room
+    browser_id = None
+    allowance = None
+    if not has_feature(ent, "research"):
+        if not company_id or not _reading_room_company(company_id):
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "reading_room_scope",
+                    "message": "The reading room searches companies with a published GCI. Pick one from the list.",
+                },
+            )
+        allowance, browser_id = consume_reading_search(extract_bearer(authorization), citealpha_reading)
+        if allowance.get("blocked"):
+            return _reading_cookie(
+                JSONResponse(
+                    status_code=403,
+                    content={
+                        "detail": {
+                            "code": "reading_room_cap",
+                            "message": (
+                                "This browser has used its 8 filing searches on companies with a published GCI. "
+                                "Request an evaluation for the full Filing Search."
+                            ),
+                            "cap": allowance.get("cap"),
+                            "used": allowance.get("used"),
+                        }
+                    },
+                ),
+                browser_id,
+                request,
+            )
     query = expand_query_lexicon(q) if expand else q
     out = research_svc.search_documents(query, company_id=company_id, doc_type=doc_type, limit=limit)
     if expand:
         out.update(original_query=q, expanded_query=query)
+    if allowance is not None:
+        out["reading_room"] = allowance
+        return _reading_cookie(JSONResponse(content=jsonable_encoder(out)), browser_id, request)
     return out
 
 
@@ -1948,6 +2043,35 @@ def documents_date(
     return {"ok": True, **out}
 
 
+@router.get("/api/filings/recent")
+def filings_recent(limit: int = 8) -> Dict[str, Any]:
+    """Newest stored filings for the public homepage. Metadata only — no filing text."""
+    from app.data import doc_store
+    from app.data.india_listings import find_listing
+    from app.data.seed import list_companies
+    from app.data.us_listings import find_us_listing
+
+    names = {c["id"]: c for c in list_companies()}
+    rows = []
+    for doc in doc_store.recent_filings(limit):
+        company_id = doc.get("company_id") or ""
+        company = names.get(company_id) or find_listing(company_id) or find_us_listing(company_id) or {}
+        rows.append(
+            {
+                "doc_id": doc.get("doc_id"),
+                "company_id": company_id,
+                "name": company.get("name"),
+                "ticker": company.get("ticker"),
+                "doc_type": doc.get("doc_type"),
+                "title": doc.get("title"),
+                "url": doc.get("url"),
+                "date": doc.get("date"),
+                "source_type": doc.get("source_type"),
+            }
+        )
+    return {"count": len(rows), "filings": rows}
+
+
 @router.get("/api/documents")
 def documents_list(
     company_id: Optional[str] = None,
@@ -2044,17 +2168,21 @@ def consensus_sample(_auth=Depends(resolve_api_key)) -> Dict[str, Any]:
 
 
 @router.get("/api/audit")
-def audit_list(org: Optional[str] = None, limit: int = 100, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def audit_list(
+    org: Optional[str] = None,
+    limit: int = 100,
+    auth=Depends(require_session_or_key),
+) -> Dict[str, Any]:
     from app.data import audit_log
 
-    if auth.get("role") not in ("admin", "reviewer", "analyst"):
+    if auth.get("role") not in ("owner", "admin", "reviewer", "analyst"):
         raise HTTPException(status_code=403, detail="Insufficient role")
-    caller = str(auth.get("org") or "")
+    caller = str(auth.get("org_id") or auth.get("org") or "")
     if org and org != caller and not auth.get("platform_admin_role"):
         raise HTTPException(status_code=403, detail="Org mismatch")
     if not auth.get("platform_admin_role"):
         org = caller
-    rows = audit_log.list_audit(org=org or caller, limit=limit)
+    rows = audit_log.public_events(org=org or caller, limit=min(max(limit, 1), 200))
     return {"count": len(rows), "events": rows}
 
 
@@ -3078,7 +3206,7 @@ def notes_list(
 
 
 @router.post("/api/notes")
-def notes_upsert(body: Dict[str, Any], auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
+def notes_upsert(body: Dict[str, Any], auth=Depends(require_any_feature("analyst_agent", "ninja"))) -> Dict[str, Any]:
     from app.services import analyst_notes
 
     actor = auth.get("key") or auth.get("email") or "anonymous"
@@ -3096,7 +3224,7 @@ def notes_upsert(body: Dict[str, Any], auth=Depends(require_feature("desk"))) ->
 
 
 @router.delete("/api/notes/{note_id}")
-def notes_delete(note_id: str, auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
+def notes_delete(note_id: str, auth=Depends(require_any_feature("analyst_agent", "ninja"))) -> Dict[str, Any]:
     from app.services import analyst_notes
 
     actor = auth.get("key") or auth.get("email") or "anonymous"
@@ -3233,7 +3361,7 @@ def orgs_provision_pilot(body: Dict[str, Any], auth=Depends(resolve_api_key)) ->
 
 
 @router.get("/api/orgs/{org_id}/pilot-checklist")
-def org_pilot_checklist(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str, Any]:
+def org_pilot_checklist(org_id: str, auth=Depends(require_session_or_key)) -> Dict[str, Any]:
     from app.services import orgs as org_svc
     from app.services.pilot_checklist import get_pilot_checklist
 
@@ -3243,7 +3371,7 @@ def org_pilot_checklist(org_id: str, auth=Depends(resolve_api_key)) -> Dict[str,
 
 @router.patch("/api/orgs/{org_id}/pilot-checklist")
 def org_pilot_checklist_patch(
-    org_id: str, body: Dict[str, Any], auth=Depends(resolve_api_key)
+    org_id: str, body: Dict[str, Any], auth=Depends(require_session_or_key)
 ) -> Dict[str, Any]:
     from app.services import orgs as org_svc
     from app.services.pilot_checklist import patch_pilot_checklist

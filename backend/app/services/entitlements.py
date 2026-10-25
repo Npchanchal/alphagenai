@@ -68,7 +68,7 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
 }
 
 GUEST_FEATURES: Set[str] = {"tracker"}
-GUEST_LIMITS: Dict[str, int] = {"companies_viewed": 15, "chat": 0}
+GUEST_LIMITS: Dict[str, int] = {"companies_viewed": 15, "chat": 0, "searches": 8}
 
 # Paths guests may POST (auth/legal/prefs only).
 GUEST_WRITE_ALLOW: tuple[str, ...] = (
@@ -116,6 +116,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         out["limits"] = {
             **GUEST_LIMITS,
             "companies_viewed_used": int(prefs.get("dossier_opens") or 0),
+            "searches_used": int(prefs.get("reading_searches") or 0),
         }
         return out
     oid = user.get("org_id")
@@ -226,28 +227,61 @@ def require_actor(
     return ent
 
 
+def require_session_or_key(
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
+) -> Dict[str, Any]:
+    """Session wins over a demo key. Guests are not a desk."""
+    ent = resolve_actor(authorization=authorization, x_api_key=x_api_key)
+    if ent.get("source") not in ("session", "api_key"):
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return ent
+
+
+def _deny_feature(ent: Dict[str, Any], feature: str) -> None:
+    if ent.get("plan") == "pilot":
+        from app.services.pilot_checklist import pilot_evaluation_ended
+
+        if pilot_evaluation_ended(str(ent.get("org_id") or "")):
+            raise HTTPException(
+                status_code=403,
+                detail="This evaluation has ended. A paid desk keeps this module.",
+            )
+    raise HTTPException(
+        status_code=403,
+        detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks {feature}",
+    )
+
+
+def _deny_guest(ent: Dict[str, Any]) -> None:
+    if ent.get("user_id"):
+        raise HTTPException(
+            status_code=403,
+            detail="Guest sessions are read-only — register for Desk, chat, and labeling",
+        )
+    raise HTTPException(status_code=401, detail="Authentication required")
+
+
 def require_feature(feature: str, *, allow_guest: bool = False):
     def _dep(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
         if ent.get("kind") == "guest" and not allow_guest:
-            if ent.get("user_id"):
-                raise HTTPException(
-                    status_code=403,
-                    detail="Guest sessions are read-only — register for Desk, chat, and labeling",
-                )
-            raise HTTPException(status_code=401, detail="Authentication required")
+            _deny_guest(ent)
         if not has_feature(ent, feature):
-            if ent.get("plan") == "pilot":
-                from app.services.pilot_checklist import pilot_evaluation_ended
+            _deny_feature(ent, feature)
+        return ent
 
-                if pilot_evaluation_ended(str(ent.get("org_id") or "")):
-                    raise HTTPException(
-                        status_code=403,
-                        detail="This evaluation has ended. A paid desk keeps this module.",
-                    )
-            raise HTTPException(
-                status_code=403,
-                detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks {feature}",
-            )
+    return _dep
+
+
+def require_any_feature(*features: str):
+    """Pass when the seat has at least one of these features."""
+
+    def _dep(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+        if ent.get("kind") == "guest":
+            _deny_guest(ent)
+        if any(has_feature(ent, feature) for feature in features):
+            return ent
+        _deny_feature(ent, " or ".join(features))
         return ent
 
     return _dep

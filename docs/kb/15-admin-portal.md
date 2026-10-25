@@ -1,12 +1,14 @@
 # 15 — Platform Admin Portal
 
-Multi-tenant **platform** administration at `/admin` — separate from **org seat admin** on Desk (`OrgAdminPanel`).
+Multi-tenant **platform** administration at `/admin` — separate from **org seat admin** at `/org/settings` (`OrgAdminPanel`).
+
+Menu contract for both layers (who sees the bar, submenu items, owner vs admin): `docs/PRD_ADMIN.md`. The bar is `AdminMenuBar` under the public nav. Organisation sections are `/org/settings?section=`.
 
 ## Two admin layers
 
 | Layer | Who | Where | Scope |
 |---|---|---|---|
-| **Org admin** | `owner` / `admin` org role | Desk → Seat administration | One tenant: invites, revoke, API keys, OIDC |
+| **Org admin** | `owner` / `admin` org role | `/org/settings` | One tenant: seats, keys, sign-in, billing, audit |
 | **Platform admin** | `platform_admin_role` on user or API key | `/admin` | Cross-tenant: orgs, users, legal, billing, feedback |
 
 Org `admin` alone does **not** unlock `/admin`. User must have `platform_admin_role` set.

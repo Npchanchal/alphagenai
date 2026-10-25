@@ -140,6 +140,17 @@ export function metricDisplayName(metricId: string): string {
   return METRIC_DISPLAY[metricId] || metricId.replace(/_/g, " ");
 }
 
+/** A stored title sometimes is a metric id. Show the period and the metric name. */
+export function publicDocTitle(title: string | null | undefined, docType?: string | null): string {
+  const raw = (title || "").trim();
+  const id = raw.match(/[a-z][a-z0-9]*_[a-z0-9_]+/)?.[0];
+  if (!id) return raw || "Filing";
+  const name = metricDisplayName(id);
+  if (name.includes("_")) return docType ? docType.replace(/_/g, " ") : "Filing";
+  const period = raw.match(/\bFY\d{2,4}\b/)?.[0];
+  return period ? `${period} ${name}` : name;
+}
+
 export function metricUnit(metricId: string): string {
   return METRIC_UNIT[metricId] || (metricId.endsWith("_pct") ? "pct" : "");
 }

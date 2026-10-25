@@ -160,6 +160,21 @@ Full Given/When/Then text: `docs/PLAN_CITEALPHA_ANALYST.md` §7. Tests: `backend
 | US-A11 | Org admin issues API keys; our systems call the public API or MCP server, rate-limited per key | Shipped (`/analyst` → API keys) |
 | US-A12 | Exports in our house style (colours, font, logo, PowerPoint template) without losing the disclaimer, data date, source footers or Evidence Receipt | Shipped; human compliance approver pending |
 
+## US-ADM-01 … US-ADM-08 — Administration menu
+
+Full acceptance criteria: `docs/PRD_ADMIN.md` §11. Implemented 2026-10-25: admin bar, organisation sections, and the platform menu groups.
+
+| ID | Story |
+|---|---|
+| US-ADM-01 | Admin bar appears only for an org owner, org admin, or platform role, with items that role can open |
+| US-ADM-02 | Org owner appoints admin; org admin manages working seats only |
+| US-ADM-03 | Analyst keys, desk key, destinations, and export style sit on the Organisation menu |
+| US-ADM-04 | Org owner or admin saves issuer, client id, and email domain for this desk |
+| US-ADM-05 | Billing and audit show this organisation only |
+| US-ADM-06 | Platform super sees the full platform menu; labeling and commitments stay read-only |
+| US-ADM-07 | Platform billing, ops, compliance, and support see only their permission set |
+| US-ADM-08 | A user who is both org owner and platform ops sees both menus, unmerged |
+
 ## US-M01 — One place for each job (2026-10-17 merge)
 **As a** desk user  
 **I want** each job to live in one place  

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import Skeleton from "../components/Skeleton";
 import { useI18n } from "../i18n";
@@ -10,6 +10,7 @@ import { metricDisplayName } from "../lib/score";
 /** Procurement / security Trust Center — honest status, not marketing. */
 export default function TrustPage() {
   const { t } = useI18n();
+  const location = useLocation();
   const [data, setData] = useState<TrustCenterPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +30,12 @@ export default function TrustPage() {
       cancelled = true;
     };
   }, [t]);
+
+  useEffect(() => {
+    const id = location.hash.replace(/^#/, "");
+    if (!id) return;
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location.hash, data]);
 
   return (
     <section className="trust-page" data-testid="trust-page">
@@ -143,7 +150,7 @@ export default function TrustPage() {
             )}
           </article>
 
-          <article className="panel">
+          <article className="panel" id="security" data-testid="trust-security">
             <h2 style={{ marginTop: 0 }}>{t("ui.TrustPage.security")}</h2>
             <ul className="about-list">
               <li>{t("ui.TrustPage.forceHttps", { value: data.security.force_https ? t("ui.TrustPage.on") : t("ui.TrustPage.offEnv") })}</li>

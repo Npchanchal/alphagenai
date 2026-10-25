@@ -1,7 +1,81 @@
+import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 import { useAuth } from "../lib/auth";
+
+type FooterLink = { to: string; labelKey: string; hashHome?: string };
+
+const PRODUCT: FooterLink[] = [
+  { to: "/tracker", labelKey: "nav.tracker" },
+  { to: "/research", labelKey: "nav.research" },
+  { to: "/analyst", labelKey: "nav.analyst" },
+  { to: "/rankings", labelKey: "nav.rankings" },
+  { to: "/products#plans", labelKey: "footer.package" },
+  { to: "/pilot", labelKey: "footer.pilot", hashHome: "#pilot-request" },
+];
+
+const WORKSPACE: FooterLink[] = [
+  { to: "/desk", labelKey: "nav.desk" },
+  { to: "/sights", labelKey: "nav.sights" },
+  { to: "/holdings", labelKey: "nav.holdings" },
+  { to: "/developers", labelKey: "nav.api" },
+  { to: "/status", labelKey: "nav.status" },
+];
+
+const LEARN: FooterLink[] = [
+  { to: "/workflows", labelKey: "nav.workflows" },
+  { to: "/methodology", labelKey: "footer.methodology" },
+  { to: "/changelog", labelKey: "footer.changelog" },
+  { to: "/blog", labelKey: "footer.blog" },
+  { to: "/help", labelKey: "footer.help" },
+  { to: "/answers", labelKey: "footer.answers" },
+  { to: "/press", labelKey: "footer.press" },
+];
+
+const COMPANY: FooterLink[] = [
+  { to: "/about", labelKey: "footer.about" },
+  { to: "/trust", labelKey: "footer.trust" },
+  { to: "/terms", labelKey: "footer.terms" },
+  { to: "/privacy", labelKey: "footer.privacy" },
+];
+
+function FooterColumn({
+  titleKey,
+  links,
+  onHome,
+  extra,
+}: {
+  titleKey: string;
+  links: FooterLink[];
+  onHome: boolean;
+  extra?: ReactNode;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="site-footer-col">
+      <p className="site-footer-col-title">{t(titleKey)}</p>
+      <nav aria-label={t(titleKey)}>
+        {links.map((link) => {
+          if (link.hashHome && onHome) {
+            return (
+              <a key={link.labelKey} href={link.hashHome}>
+                {t(link.labelKey)}
+              </a>
+            );
+          }
+          return (
+            <Link key={link.labelKey} to={link.to}>
+              {t(link.labelKey)}
+            </Link>
+          );
+        })}
+        {extra}
+      </nav>
+    </div>
+  );
+}
+
 /** Persistent copyright + legal links — Ocotillo Innovation Private Limited. */
 export default function SiteFooter() {
   const { t } = useI18n();
@@ -13,29 +87,18 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer" data-testid="site-footer">
       <div className="site-footer-inner">
+        <div className="site-footer-grid">
+          <FooterColumn titleKey="footer.col.product" links={PRODUCT} onHome={onHome} />
+          <FooterColumn titleKey="footer.col.workspace" links={WORKSPACE} onHome={onHome} />
+          <FooterColumn titleKey="footer.col.learn" links={LEARN} onHome={onHome} />
+          <FooterColumn
+            titleKey="footer.col.company"
+            links={COMPANY}
+            onHome={onHome}
+            extra={signedIn ? <Link to="/billing">{t("footer.billing")}</Link> : null}
+          />
+        </div>
         <p className="site-footer-copy">{copyrightLine()}</p>
-        <nav className="site-footer-links" aria-label={t("ui.SiteFooter.legalNav")}>
-          <Link to="/terms">{t("footer.terms")}</Link>
-          <Link to="/privacy">{t("footer.privacy")}</Link>
-          <Link to="/trust">{t("footer.trust")}</Link>
-          <Link to="/methodology">{t("footer.methodology")}</Link>
-          <Link to="/changelog">{t("footer.changelog")}</Link>
-          <Link to="/help">{t("footer.help")}</Link>
-          <Link to="/answers">{t("footer.answers")}</Link>
-          <Link to="/press">{t("footer.press")}</Link>
-          <Link to="/rankings">{t("footer.rankings")}</Link>
-          <Link to="/blog">{t("footer.blog")}</Link>
-          {signedIn ? <Link to="/billing">{t("footer.billing")}</Link> : null}
-          <Link to="/developers">API</Link>
-          <Link to="/status">Status</Link>
-          <Link to="/products#plans">{t("footer.package")}</Link>
-          {onHome ? (
-            <a href="#pilot-request">{t("footer.pilot")}</a>
-          ) : (
-            <Link to="/pilot">{t("footer.pilot")}</Link>
-          )}
-          <Link to="/about">{t("footer.about")}</Link>
-        </nav>
         <p className="muted site-footer-note">
           {t("footer.note", { product: PRODUCT_NAME, entity: LEGAL_ENTITY })}
         </p>

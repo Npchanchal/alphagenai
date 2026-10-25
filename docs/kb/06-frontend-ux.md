@@ -10,7 +10,7 @@
 | Filing Search (`/research`) | `ResearchPage.tsx` | Modes via `?tab=`; cite-only chat |
 | Package / Help | `PackagePage`, `HelpPage` | Commercial + operator hub (tours, glossary, source policy) |
 | About / Trust | `AboutPage`, `TrustPage` | Company story · procurement posture |
-| Nav | `NavMenu.tsx` | Top: GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer (overview, search, ask, boards, themes, street, field, grid, deep dive, fundamentals, agents, export) · More (products, plans, billing, tiers, desks, blog, methodology, changelog, about, help, Public Snapshot, Trust) |
+| Nav | `NavMenu.tsx` | Jobs, left to right: GCI Screener · Research (Filing Search, CiteAlpha Analyst, Public Snapshot) · Workspace (Analyst Workbench, Disclosure Explorer, Financial Ninja, Holdings) · Pricing · Learn (Workflows, methodology, changelog, blog, help, FAQ, about, Trust, API, status, press). Billing stays in the account menu. An admin bar (`AdminMenuBar`) sits under this nav only for an organisation owner, organisation admin, or platform role. |
 | Blog | `BlogIndexPage`, `BlogPostPage` | SEO research articles (`/blog`) |
 
 ## Design rules (institutional)

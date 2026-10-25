@@ -8,7 +8,7 @@ Operator guide for the platform admin portal — cross-tenant operations, role-b
 
 ## Overview
 
-The admin portal is a **platform-level** console for CiteAlpha operators. It is intentionally separate from **org seat administration** (inviting analysts, revoking seats, minting org API keys), which remains on **Desk** under *Seat administration*.
+The admin portal is a **platform-level** console for CiteAlpha operators. It is intentionally separate from **org seat administration** (inviting analysts, revoking seats, minting org API keys), which lives at `/org/settings`. The menu bar, who sees it, and the organisation submenu are specified in `docs/PRD_ADMIN.md`.
 
 | Surface | URL | Audience |
 |---|---|---|

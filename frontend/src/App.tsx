@@ -14,6 +14,7 @@ import ConsentBanner from "./components/ConsentBanner";
 import SeoHead from "./components/SeoHead";
 import { useAuth } from "./lib/auth";
 import { useI18n } from "./i18n";
+import AdminMenuBar from "./components/AdminMenuBar";
 import NavMenu from "./components/NavMenu";
 import SightsLayout from "./pages/sights/SightsLayout";
 import SightsHubPage from "./pages/sights/SightsHubPage";
@@ -32,6 +33,7 @@ const PilotRequestPage = lazy(() => import("./pages/PilotRequestPage"));
 const PressPage = lazy(() => import("./pages/PressPage"));
 const AnswersPage = lazy(() => import("./pages/AnswersPage"));
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
 const DevelopersPage = lazy(() => import("./pages/DevelopersPage"));
 const StatusPage = lazy(() => import("./pages/StatusPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
@@ -143,6 +145,7 @@ export default function App() {
           <span className="compliance-micro">{t("compliance.micro")}</span>
         </nav>
       </header>
+      <AdminMenuBar />
       {user?.kind === "guest" && (
         <div className="guest-banner" data-testid="guest-banner">
           {t("guest.banner")}{" "}
@@ -187,6 +190,7 @@ export default function App() {
             <Route path="/changelog" element={<ChangelogPage />} />
             <Route path="/press" element={<PressPage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/workflows" element={<WorkflowsPage />} />
             <Route path="/developers" element={<DevelopersPage />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/rankings" element={<RankingsPage />} />

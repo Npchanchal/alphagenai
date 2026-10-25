@@ -18,6 +18,10 @@ type NavGroup = {
   /** Highlights parent when any child path matches */
   matchPrefixes: string[];
   children: NavLeaf[];
+  /** Two-column panel for a long tool list */
+  wide?: boolean;
+  /** Open toward the left so the panel stays on screen */
+  alignEnd?: boolean;
 };
 
 type NavEntry =
@@ -26,8 +30,9 @@ type NavEntry =
   | ({ kind: "group" } & NavGroup);
 
 /**
- * Primary: GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer · More.
- * All items visible — entitlements gate content on each route, not in nav.
+ * Primary jobs, in the order a desk uses them:
+ * GCI Screener · Research · Workspace · Pricing · Learn.
+ * Tool names stay canonical. Entitlements gate each route, not the menu.
  */
 export const NAV_ENTRIES: NavEntry[] = [
   {
@@ -38,83 +43,76 @@ export const NAV_ENTRIES: NavEntry[] = [
     tipId: "tracker",
   },
   {
-    kind: "link",
-    to: "/desk",
-    labelKey: "nav.desk",
-    tipId: "desk_sku",
-  },
-  {
-    kind: "link",
-    to: "/research",
-    labelKey: "nav.research",
-    tipId: "research_terminal",
-  },
-  {
-    kind: "link",
-    to: "/analyst",
-    labelKey: "nav.analyst",
+    kind: "group",
+    id: "research",
+    labelKey: "nav.research_group",
+    matchPrefixes: ["/research", "/analyst", "/rankings"],
+    children: [
+      { to: "/research", labelKey: "nav.research", tipId: "research_terminal" },
+      { to: "/analyst", labelKey: "nav.analyst" },
+      { to: "/rankings", labelKey: "nav.rankings" },
+    ],
   },
   {
     kind: "group",
-    id: "sights",
-    labelKey: "nav.sights",
-    matchPrefixes: ["/sights"],
+    id: "workspace",
+    labelKey: "nav.workspace",
+    matchPrefixes: ["/desk", "/sights", "/ninja", "/holdings"],
+    wide: true,
+    alignEnd: true,
     children: [
+      { to: "/desk", labelKey: "nav.desk", tipId: "desk_sku" },
+      { labelKey: "nav.sights", heading: true },
       { to: "/sights", end: true, labelKey: "nav.sights_hub", tipId: "sights" },
-      { labelKey: "nav.sights_more", heading: true },
       { to: "/sights/themes", labelKey: "nav.sights_themes" },
       { to: "/sights/street", labelKey: "nav.sights_street" },
       { to: "/sights/field", labelKey: "nav.sights_field" },
       { to: "/sights/grid", labelKey: "nav.sights_grid" },
       { to: "/sights/deep-dive", labelKey: "nav.sights_deep_dive" },
       { to: "/sights/fundamentals", labelKey: "nav.sights_fundamentals" },
-    ],
-  },
-  {
-    kind: "group",
-    id: "ninja",
-    labelKey: "nav.ninja",
-    matchPrefixes: ["/ninja"],
-    children: [
+      { labelKey: "nav.ninja", heading: true },
       { to: "/ninja", end: true, labelKey: "nav.ninja_valuation" },
       { to: "/ninja/indices", labelKey: "nav.ninja_indices" },
       { to: "/ninja/tests", labelKey: "nav.ninja_tests" },
-      { to: "/holdings", labelKey: "nav.ninja_holdings" },
+      { to: "/holdings", labelKey: "nav.holdings" },
     ],
   },
   {
+    kind: "link",
+    to: "/products#plans",
+    labelKey: "nav.pricing",
+  },
+  {
     kind: "group",
-    id: "more",
-    labelKey: "nav.more",
+    id: "learn",
+    labelKey: "nav.learn",
     matchPrefixes: [
-      "/products",
-      "/holdings",
-      "/billing",
-      "/about",
-      "/blog",
-      "/help",
-      "/rankings",
-      "/trust",
+      "/workflows",
       "/methodology",
       "/changelog",
+      "/blog",
+      "/help",
+      "/answers",
+      "/about",
+      "/trust",
+      "/developers",
+      "/status",
+      "/press",
     ],
+    alignEnd: true,
     children: [
-      { to: "/products", end: true, labelKey: "nav.products_plans", tipId: "one_stop" },
-      { to: "/holdings", labelKey: "nav.holdings" },
-      { to: "/billing", labelKey: "nav.billing" },
-      { labelKey: "nav.by_desk", heading: true },
-      { to: "/products#desk-buy-side", labelKey: "nav.desk_buy_side" },
-      { to: "/products#desk-sell-side", labelKey: "nav.desk_sell_side" },
-      { to: "/products#desk-quant", labelKey: "nav.desk_quant" },
-      { to: "/products#desk-ir-compliance", labelKey: "nav.desk_ir" },
-      { labelKey: "nav.resources", heading: true },
-      { to: "/blog", labelKey: "nav.blog" },
+      { to: "/workflows", labelKey: "nav.workflows" },
       { to: "/methodology", labelKey: "footer.methodology" },
       { to: "/changelog", labelKey: "footer.changelog" },
-      { to: "/about", end: true, labelKey: "nav.about" },
+      { to: "/blog", labelKey: "nav.blog" },
       { to: "/help", labelKey: "nav.help" },
-      { to: "/rankings", labelKey: "nav.rankings" },
+      { to: "/answers", labelKey: "footer.answers" },
+      { labelKey: "nav.company", heading: true },
+      { to: "/about", end: true, labelKey: "nav.about" },
       { to: "/trust", labelKey: "nav.trust" },
+      { to: "/developers", labelKey: "nav.api" },
+      { to: "/status", labelKey: "nav.status" },
+      { to: "/press", labelKey: "footer.press" },
     ],
   },
 ];
@@ -242,7 +240,7 @@ function NavDropdown({ group }: { group: NavGroup }) {
       </button>
       {expanded && (
         <div
-          className="nav-submenu"
+          className={`nav-submenu${group.wide ? " nav-submenu-wide" : ""}${group.alignEnd ? " align-end" : ""}`}
           role="menu"
           id={menuId}
           onMouseEnter={openMenu}

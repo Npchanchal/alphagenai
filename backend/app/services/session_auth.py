@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import secrets
 import uuid
 from datetime import datetime, timezone
@@ -230,6 +231,10 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
     }
     if user.get("platform_admin_role"):
         out["platform_admin_role"] = user["platform_admin_role"]
+    from app.services.protected_users import is_protected
+
+    if is_protected(user):
+        out["protected"] = True
     return out
 
 
@@ -675,7 +680,7 @@ def _refuse_if_protected(user: Dict[str, Any]) -> None:
     from app.services.protected_users import is_protected
 
     if is_protected(user):
-        raise HTTPException(status_code=400, detail="Protected team account — managed in protected_users.json")
+        raise HTTPException(status_code=400, detail="This account is kept for the CiteAlpha team.")
 
 
 def revoke_org_member(*, org_id: str, user_id: str, actor: Dict[str, Any]) -> Dict[str, Any]:
@@ -835,6 +840,89 @@ def record_cite_copy(token: Optional[str], *, company_id: Optional[str] = None) 
 
 def bump_guest_dossier(token: Optional[str]) -> Dict[str, Any]:
     return bump_dossier_open(token)
+
+
+READING_ROOM_CAP = 8
+READING_ROOM_COOKIE = "citealpha_reading"
+_BROWSER_ID = re.compile(r"^[A-Za-z0-9_-]{20,80}$")
+
+
+def _reading_allowance(used: int, *, blocked: bool = False) -> Dict[str, Any]:
+    used = max(0, min(int(used), READING_ROOM_CAP))
+    return {
+        "limited": True,
+        "blocked": blocked,
+        "cap": READING_ROOM_CAP,
+        "used": used,
+        "remaining": READING_ROOM_CAP - used,
+    }
+
+
+def _reading_user(token: Optional[str], browser_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    """The signed-in caller, or the browser record that holds this cookie's count."""
+    public = resolve_token(token) if token else None
+    if public:
+        user = _find_user(public["id"])
+        if user is not None:
+            return user
+    if browser_id and _BROWSER_ID.match(browser_id):
+        return _find_user(f"reading-{browser_id}")
+    return None
+
+
+def _ensure_reading_browser(browser_id: str) -> Dict[str, Any]:
+    user_id = f"reading-{browser_id}"
+    held = _find_user(user_id)
+    if held is not None:
+        return held
+    user = {
+        "id": user_id,
+        "email": None,
+        "name": "Guest",
+        "kind": "guest",
+        "account_type": "guest",
+        "org_id": None,
+        "role": "guest",
+        "preferences": dict(DEFAULT_PREFS),
+        "created_at": _now(),
+    }
+    store = _load_users()
+    store["users"].append(user)
+    _save_users()
+    return user
+
+
+def reading_room_status(token: Optional[str], browser_id: Optional[str]) -> Dict[str, Any]:
+    """Searches already used. Does not count a new search."""
+    user = _reading_user(token, browser_id)
+    used = int(((user or {}).get("preferences") or {}).get("reading_searches") or 0)
+    return _reading_allowance(used)
+
+
+def consume_reading_search(
+    token: Optional[str], browser_id: Optional[str] = None
+) -> tuple[Dict[str, Any], Optional[str]]:
+    """Count one reading-room search. Returns the allowance and the browser id to set.
+
+    A signed-in caller is counted on that account. A visitor is counted on an
+    HttpOnly cookie, so omitting the query flag or clearing site storage does
+    not open a new allowance until the cookie is gone.
+    """
+    public = resolve_token(token) if token else None
+    user = _find_user(public["id"]) if public else None
+    cookie_id: Optional[str] = None
+    if user is None:
+        cookie_id = browser_id if browser_id and _BROWSER_ID.match(browser_id) else secrets.token_urlsafe(24)
+        user = _ensure_reading_browser(cookie_id)
+    prefs = {**DEFAULT_PREFS, **(user.get("preferences") or {})}
+    used = int(prefs.get("reading_searches") or 0)
+    if used >= READING_ROOM_CAP:
+        return _reading_allowance(used, blocked=True), cookie_id
+    used += 1
+    prefs["reading_searches"] = used
+    user["preferences"] = prefs
+    _save_users()
+    return _reading_allowance(used), cookie_id
 
 
 def _require_mfa_role(user: Dict[str, Any]) -> None:

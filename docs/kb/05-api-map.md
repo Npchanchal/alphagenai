@@ -118,7 +118,7 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 
 `/api/research/search`, `chat`, `snapshot/{id}`, `estimates/{id}`, `brief/{id}`, `news`, `watchlist`, `transcripts`
 
-`GET /api/research/search?q=&company_id=&expand=` — omit `company_id` to search all covered companies; `expand=true` adds India IR synonyms and returns `original_query` / `expanded_query`. `POST /api/research/chat` takes the same `expand` flag.
+`GET /api/research/search?q=&company_id=&expand=` — a research seat may omit `company_id` to search all covered companies. `expand=true` adds India IR synonyms and returns `original_query` / `expanded_query`. A caller without that seat searches one company with a published GCI (`GET /api/companies?scored=true`) and is counted to 8 on the account or the `citealpha_reading` cookie. `GET /api/research/reading-room` reports the count and does not increment it. `GET /api/filings/recent` returns the newest accepted filing per source URL, with no filing text. `POST /api/research/chat` takes the same `expand` flag.
 
 | Method | Path | Notes |
 |---|---|---|

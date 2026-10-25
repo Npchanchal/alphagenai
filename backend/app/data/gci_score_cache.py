@@ -45,6 +45,17 @@ def _strip_unscoreable(data: Dict[str, Any]) -> Dict[str, Any]:
     return data
 
 
+def published_gci(company_id: str) -> Optional[float]:
+    """The published GCI for this company, or None when the cache has no number."""
+    row = (load_cache().get("scores") or {}).get(company_id)
+    if not isinstance(row, dict):
+        return None
+    score = row.get("gci_score")
+    if isinstance(score, bool) or not isinstance(score, (int, float)):
+        return None
+    return float(score)
+
+
 def load_cache(*, force: bool = False) -> Dict[str, Any]:
     global _CACHE
     if _CACHE is not None and not force:

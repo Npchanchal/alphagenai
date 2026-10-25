@@ -14,6 +14,7 @@ import WatchlistToggle from "../components/WatchlistToggle";
 import PlanAccessGate from "../components/PlanAccessGate";
 import {
   fetchCompanies,
+  fetchReadingRoom,
   fetchResearchBrief,
   fetchResearchChat,
   fetchResearchEstimates,
@@ -30,9 +31,10 @@ import {
   type ResearchSnapshot,
   type WatchlistItem,
 } from "../lib/api";
-import { formatCompanyScore, scoreClass } from "../lib/score";
+import { formatCompanyScore, publicDocTitle, scoreClass } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
+import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
 import { useSourceViewer } from "../lib/SourceViewerContext";
 import { withTextHighlight } from "../lib/sourceHighlight";
@@ -81,8 +83,15 @@ function loadSaved(fromPrefs?: string[]): string[] {
 }
 
 export default function ResearchPage() {
-  const { preferences, token, updatePreferences } = useAuth();
+  const { preferences, token, updatePreferences, user } = useAuth();
+  const { has, loading: entitlementsLoading, entitlements, refresh } = useEntitlements();
   const { t } = useI18n();
+  const readingRoom =
+    !entitlementsLoading && !has("research") && user?.platform_admin_role !== "super";
+  const searchCap = entitlements.limits?.searches ?? 8;
+  const [roomCap, setRoomCap] = useState(searchCap);
+  const [roomUsed, setRoomUsed] = useState(0);
+  const [scoredCompanies, setScoredCompanies] = useState<CompanySummary[]>([]);
   const { openSource } = useSourceViewer();
   const tabs = TABS.map((x) => ({
     id: x.id,
@@ -132,6 +141,7 @@ export default function ResearchPage() {
   const index = preferences?.default_index ?? "SENSEX";
 
   useEffect(() => {
+    if (readingRoom) return;
     fetchCompanies({ market, index, limit: 200 })
       .then((c) => {
         setCompanies(c);
@@ -139,7 +149,29 @@ export default function ResearchPage() {
       })
       .catch((e: Error) => setError(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, index]);
+  }, [market, index, readingRoom]);
+
+  useEffect(() => {
+    if (!readingRoom) return;
+    let cancelled = false;
+    fetchCompanies({ scored: true })
+      .then((rows) => {
+        if (!cancelled) setScoredCompanies(rows);
+      })
+      .catch((e: Error) => {
+        if (!cancelled) setError(e.message);
+      });
+    fetchReadingRoom()
+      .then((row) => {
+        if (cancelled || row.limited === false) return;
+        setRoomCap(row.cap || 8);
+        setRoomUsed(row.used || 0);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [readingRoom]);
 
   useEffect(() => {
     if (preferences?.saved_queries?.length) setSaved(preferences.saved_queries);
@@ -200,17 +232,44 @@ export default function ResearchPage() {
     if (token) void updatePreferences({ saved_queries: next });
   };
 
+  const visibleCompanies = readingRoom ? scoredCompanies : companies;
+  useEffect(() => {
+    if (!readingRoom || visibleCompanies.length === 0) return;
+    if (visibleCompanies.some((c) => c.id === companyId)) return;
+    setCompanyId(visibleCompanies[0].id);
+  }, [readingRoom, companyId, visibleCompanies]);
+  const readingRemaining = Math.max(0, roomCap - roomUsed);
+
   const runSearch = async (query = q) => {
+    if (readingRoom && !companyId) {
+      setError(t("research.readingRoom.pick"));
+      return;
+    }
+    if (readingRoom && readingRemaining <= 0) {
+      setError(t("research.readingRoom.cap", { cap: roomCap }));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      const res = await fetchResearchSearch(query, companyId || undefined, { expand });
+      const res = await fetchResearchSearch(query, companyId || undefined, {
+        expand,
+        readingRoom,
+      });
       setResults(res.results);
       setExpandedQuery(
         res.expanded_query && res.expanded_query !== res.original_query ? res.expanded_query : null
       );
+      if (readingRoom && res.reading_room) {
+        const cap = res.reading_room.cap || roomCap;
+        const remaining = res.reading_room.remaining;
+        setRoomCap(cap);
+        setRoomUsed(remaining == null ? roomUsed + 1 : cap - remaining);
+        if (token) void refresh();
+      }
     } catch (e) {
       setError((e as Error).message);
+      if (readingRoom) void refresh();
     } finally {
       setBusy(false);
     }
@@ -232,34 +291,28 @@ export default function ResearchPage() {
 
   if (tabParam === "sectors") return <Navigate to="/tracker?tab=sectors" replace />;
 
+  const lockedTab = readingRoom && tab !== "search";
+
   return (
-    <PlanAccessGate
-      feature="research"
-      title={t("research.title")}
-      kicker={t("research.kicker")}
-      description={`${t("research.lede")}${t("ui.ResearchPage.gate.description")}`}
-      returnTo="/research"
-      testId="research-access-gate"
-    >
     <section className="research-page" data-testid="research-page">
-      <p className="page-kicker">{t("research.kicker")}</p>
+      <p className="page-kicker">{t(readingRoom ? "research.readingRoom.kicker" : "research.kicker")}</p>
       <h1>
         {t("research.title")} <InfoTip termId="research_terminal" />
       </h1>
       <p className="muted lede">
-        {t("research.lede")}
+        {t(readingRoom ? "research.readingRoom.lede" : "research.lede")}
         {t("ui.ResearchPage.lede.after")}{" "}
         <InfoTip termId="citability" />
       </p>
 
       <div className="panel research-toolbar research-sticky">
         <CompanyPicker
-          companies={companies}
+          companies={visibleCompanies}
           value={companyId}
           onChange={chooseCompany}
           label={t("research.focus")}
           testId="research-company"
-          allLabel={t("ui.ResearchPage.scope.all")}
+          allLabel={readingRoom ? undefined : t("ui.ResearchPage.scope.all")}
         />
         <TabBar
           tabs={tabs}
@@ -271,9 +324,30 @@ export default function ResearchPage() {
 
       {error && <p className="error">{error}</p>}
 
-      {tab === "search" && (
+      {lockedTab && (
+        <PlanAccessGate
+          feature="research"
+          title={t("research.title")}
+          description={`${t("research.lede")}${t("ui.ResearchPage.gate.description")}`}
+          returnTo={`/research?tab=${tab}`}
+          testId="research-access-gate"
+        >
+          <span />
+        </PlanAccessGate>
+      )}
+
+      {!lockedTab && tab === "search" && (
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.search.title")}</h2>
+          {readingRoom && (
+            <p className="muted" data-testid="reading-room-allowance">
+              {t("research.readingRoom.allowance", {
+                cap: roomCap,
+                remaining: readingRemaining,
+              })}{" "}
+              <Link to="/pilot">{t("research.readingRoom.evaluate")}</Link>
+            </p>
+          )}
           <p className="muted">{t("ui.ResearchPage.search.subtitle")}</p>
           <div className="chip-row" role="group" aria-label={t("ui.ResearchPage.search.docTypeAria")}>
             {DOC_TYPES.map((t) => (
@@ -297,7 +371,12 @@ export default function ResearchPage() {
                 if (e.key === "Enter") void runSearch();
               }}
             />
-            <button type="button" className="btn" onClick={() => void runSearch()} disabled={busy}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void runSearch()}
+              disabled={busy || (readingRoom && readingRemaining <= 0)}
+            >
               {t("ui.ResearchPage.search.button")}
             </button>
             <button
@@ -360,7 +439,7 @@ export default function ResearchPage() {
                   <span className="muted">{r.date}</span>
                   {r.source && <span className="muted">{r.source}</span>}
                 </div>
-                <div>{r.title}</div>
+                <div>{publicDocTitle(r.title, r.doc_type)}</div>
                 <p className="muted">{r.snippet}</p>
                 <button
                   type="button"
@@ -368,7 +447,7 @@ export default function ResearchPage() {
                   onClick={() =>
                     openSource({
                       doc_id: r.id,
-                      title: r.title,
+                      title: publicDocTitle(r.title, r.doc_type),
                       source_url: r.url,
                       highlight_url: withTextHighlight(r.url, r.snippet),
                       quote: r.snippet,
@@ -388,7 +467,7 @@ export default function ResearchPage() {
         </div>
       )}
 
-      {tab === "chat" && (
+      {!lockedTab && tab === "chat" && (
         <PlanAccessGate
           feature="research_chat"
           variant="panel"
@@ -441,7 +520,7 @@ export default function ResearchPage() {
         </PlanAccessGate>
       )}
 
-      {tab === "desk" && snapshot && (
+      {!lockedTab && tab === "desk" && snapshot && (
         <div className="panel">
           <div className="dossier-hero" style={{ borderBottom: "1px solid var(--line)" }}>
             <div>
@@ -716,7 +795,7 @@ export default function ResearchPage() {
         </div>
       )}
 
-      {tab === "news" && (
+      {!lockedTab && tab === "news" && (
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.news.title")}</h2>
           <ul className="doc-list">
@@ -753,7 +832,7 @@ export default function ResearchPage() {
         </div>
       )}
 
-      {tab === "watch" && (
+      {!lockedTab && tab === "watch" && (
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>{t("ui.ResearchPage.tab.watch.label")}</h2>
           <p className="muted" style={{ fontSize: 13 }}>
@@ -835,6 +914,5 @@ export default function ResearchPage() {
         </div>
       )}
     </section>
-    </PlanAccessGate>
   );
 }

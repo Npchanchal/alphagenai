@@ -76,6 +76,7 @@ import {
   type WordmapPayload,
   type LabelingQueueItem,
 } from "../lib/api";
+import { deskTabVisible } from "../lib/deskTabs";
 import { formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
@@ -131,9 +132,13 @@ export default function DeskPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const tab: TabId = TABS.some((x) => x.id === tabParam)
-    ? (tabParam as TabId)
-    : "console";
+  const canWrite = has("desk_write");
+  const canWordmap = has("wordmap");
+  const canVernacular = has("vernacular");
+  const tab: TabId =
+    tabParam && TABS.some((x) => x.id === tabParam) && deskTabVisible(tabParam, has)
+      ? (tabParam as TabId)
+      : "console";
   const setTab = useCallback(
     (id: TabId) => {
       setSearchParams(
@@ -295,8 +300,8 @@ export default function DeskPage() {
     Promise.all([
       fetchCompanyGci(companyId),
       fetchHistory(companyId),
-      fetchWordmap(companyId),
-      fetchVernacular(companyId, lang),
+      canWordmap ? fetchWordmap(companyId).catch(() => null) : Promise.resolve(null),
+      canVernacular ? fetchVernacular(companyId, lang).catch(() => null) : Promise.resolve(null),
     ])
       .then(([d, h, w, v]) => {
         setDetail(d);
@@ -307,7 +312,7 @@ export default function DeskPage() {
       })
       .then(setBadge)
       .catch((e: Error) => setError(e.message));
-  }, [companyId, lang, companies]);
+  }, [companyId, lang, companies, canWordmap, canVernacular]);
 
   const loadQueue = (cid: string) => {
     fetchExtractPending(cid)
@@ -447,20 +452,9 @@ export default function DeskPage() {
     </div>
   );
 
-  const moreTabs = TABS.filter((t) => {
-    if (!MORE_TAB_IDS.has(t.id)) return false;
-    if (t.id === "labeling") return has("labeling") || has("desk");
-    if (t.id === "feedback") return has("feedback");
-    if (t.id === "import") return has("desk_write");
-    if (t.id === "wordmap") return has("wordmap") || has("desk");
-    return true;
-  });
+  const moreTabs = TABS.filter((t) => MORE_TAB_IDS.has(t.id) && deskTabVisible(t.id, has));
 
-  const primaryTabs = PRIMARY_TABS.filter((t) => {
-    if (t.id === "review" || t.id === "corpus") return has("desk_write") || has("desk");
-    if (t.id === "reports" || t.id === "pit") return has("ic_export") || has("desk");
-    return true;
-  });
+  const primaryTabs = PRIMARY_TABS.filter((t) => deskTabVisible(t.id, has));
 
   const tabItem = (x: (typeof TABS)[number]) => ({
     id: x.id,
@@ -536,23 +530,24 @@ export default function DeskPage() {
             {t("ui.DeskPage.review.title")} <InfoTip termId="extract" />
           </h2>
           <p className="muted">{t("ui.DeskPage.review.lede")}</p>
+          {!canWrite && (
+            <p className="muted" data-testid="review-read-only">
+              {t("ui.DeskPage.review.readOnly")}
+            </p>
+          )}
 
           <div className="crawl-bar" data-testid="crawl-bar">
             <div>
               <strong>{t("ui.DeskPage.review.liveRefresh")}</strong>
               <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
-                {t("ui.DeskPage.review.scheduler.before")}{" "}
-                <strong>{t("ui.DeskPage.review.scheduler.hours")}</strong> {t("ui.DeskPage.review.scheduler.service")}{" "}
-                <code className="inline-code">scheduler</code> {t("ui.DeskPage.review.scheduler.or")}{" "}
-                <code className="inline-code">scripts/gci-refresh-loop.sh</code>
-                {t("ui.DeskPage.review.scheduler.after")}
+                {t("ui.DeskPage.review.scheduler.plain")}
                 {pendingDocs > 0
                   ? t("ui.DeskPage.review.docsAwaiting", { n: pendingDocs })
                   : t("ui.DeskPage.review.noPendingDocs")}
                 {lastCrawl ? t("ui.DeskPage.common.lastCrawl", { when: lastCrawl }) : ""}
               </p>
             </div>
-            <button
+            {canWrite && <button
               type="button"
               className="btn"
               disabled={crawlBusy || queueBusy}
@@ -581,10 +576,10 @@ export default function DeskPage() {
               }}
             >
               {crawlBusy ? t("ui.DeskPage.review.refreshing") : t("ui.DeskPage.review.runLiveRefresh")}
-            </button>
+            </button>}
           </div>
 
-          <div className="queue-ingest">
+          {canWrite && <div className="queue-ingest">
             <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
               {t("ui.DeskPage.review.primaryPath.before")} <strong>{t("ui.DeskPage.review.primaryPath.exception")}</strong> {t("ui.DeskPage.review.primaryPath.after")}
             </p>
@@ -682,7 +677,7 @@ export default function DeskPage() {
                 {pasteText.trim() ? t("ui.DeskPage.review.runExtract") : t("ui.DeskPage.review.runExtractDemo")}
               </button>
             </div>
-          </div>
+          </div>}
 
           <h3 style={{ marginBottom: 4 }}>{t("ui.DeskPage.review.pendingTitle")}</h3>
           {pendingBatches.length === 0 && (
@@ -702,6 +697,7 @@ export default function DeskPage() {
                   {t("ui.DeskPage.review.batch")} <code className="inline-code">{batch.id.slice(0, 8)}</code> ·{" "}
                   {t("ui.DeskPage.review.statementCount", { n: batch.statements.length })}
                 </span>
+                {canWrite && (
                 <button
                   type="button"
                   className="btn small"
@@ -711,6 +707,7 @@ export default function DeskPage() {
                 >
                   {t("ui.DeskPage.review.commit")}
                 </button>
+                )}
               </div>
               {batch.statements.map((s, i) => {
                 const d = decisionFor(batch.id, i);
@@ -722,7 +719,7 @@ export default function DeskPage() {
                   >
                     <div className="queue-stmt-main">
                       <div className="queue-stmt-meta">
-                        <strong>{s.metric.replaceAll("_", " ")}</strong>
+                        <strong>{metricDisplayName(s.metric)}</strong>
                         <span className="muted">{s.period}</span>
                         <span className="queue-band">
                           {s.guided_low != null && s.guided_high != null
@@ -769,7 +766,7 @@ export default function DeskPage() {
                         </div>
                       )}
                     </div>
-                    <div className="review-actions">
+                    {canWrite && <div className="review-actions">
                       <button
                         type="button"
                         className={`btn ghost small ${d.action === "accept" && !d.editing ? "active-lang" : ""}`}
@@ -797,7 +794,7 @@ export default function DeskPage() {
                       >
                         {t("ui.DeskPage.common.reject")}
                       </button>
-                    </div>
+                    </div>}
                   </div>
                 );
               })}
@@ -1084,6 +1081,8 @@ export default function DeskPage() {
                       <td>{String(d.doc_type || "—")}</td>
                       <td>{String(d.title || d.url || id).slice(0, 60)}</td>
                       <td>
+                        {canWrite && (
+                          <>
                         <button
                           type="button"
                           className="btn ghost"
@@ -1119,6 +1118,8 @@ export default function DeskPage() {
                         >
                           {t("ui.DeskPage.common.reject")}
                         </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );

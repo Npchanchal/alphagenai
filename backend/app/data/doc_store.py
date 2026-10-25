@@ -252,6 +252,28 @@ def find_by_url(url: Optional[str]) -> Optional[Dict[str, Any]]:
     return None
 
 
+_FILING_RANK = {"results": 0, "filing": 1, "ir_guidance": 2, "transcript": 3}
+
+
+def recent_filings(limit: int = 8) -> List[Dict[str, Any]]:
+    """Newest accepted filings, one row per source URL. Metric extracts are left out."""
+    cap = max(1, min(int(limit or 8), 20))
+    grouped: Dict[str, Dict[str, Any]] = {}
+    for doc in _load()["documents"]:
+        kind = str(doc.get("doc_type") or "")
+        if doc.get("review_status") != "accepted" or kind not in _FILING_RANK:
+            continue
+        key = url_key(doc.get("url")) or str(doc.get("doc_id") or "")
+        if not key:
+            continue
+        held = grouped.get(key)
+        if held is None or _FILING_RANK[kind] < _FILING_RANK[str(held.get("doc_type") or "")]:
+            grouped[key] = doc
+    rows = list(grouped.values())
+    rows.sort(key=lambda d: str(d.get("date") or d.get("ingested_at") or ""), reverse=True)
+    return [_meta(d) for d in rows[:cap]]
+
+
 def list_documents(
     company_id: Optional[str] = None,
     doc_type: Optional[str] = None,

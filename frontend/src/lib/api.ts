@@ -461,12 +461,14 @@ export function fetchCompanies(opts?: {
   index?: string;
   limit?: number;
   offset?: number;
+  scored?: boolean;
 }): Promise<CompanySummary[]> {
   const params = new URLSearchParams();
   if (opts?.market) params.set("market", opts.market);
   if (opts?.index) params.set("index", opts.index);
   if (opts?.limit != null) params.set("limit", String(opts.limit));
   if (opts?.offset != null) params.set("offset", String(opts.offset));
+  if (opts?.scored) params.set("scored", "true");
   const qs = params.toString();
   return getJson(`/api/companies${qs ? `?${qs}` : ""}`);
 }
@@ -2102,19 +2104,47 @@ export function fetchConsensusStats(): Promise<{
   });
 }
 
+export type RecentFiling = {
+  doc_id: string;
+  company_id?: string | null;
+  name?: string | null;
+  ticker?: string | null;
+  doc_type?: string | null;
+  title?: string | null;
+  url?: string | null;
+  date?: string | null;
+  source_type?: string | null;
+};
+
+export function fetchRecentFilings(limit = 8): Promise<{ count: number; filings: RecentFiling[] }> {
+  return getJson(`/api/filings/recent?limit=${limit}`);
+}
+
+export function fetchReadingRoom(): Promise<{
+  limited: boolean;
+  cap: number;
+  used?: number;
+  remaining?: number | null;
+  blocked?: boolean;
+}> {
+  return getJson("/api/research/reading-room");
+}
+
 export function fetchResearchSearch(
   q: string,
   companyId?: string,
-  opts: { expand?: boolean } = {}
+  opts: { expand?: boolean; readingRoom?: boolean } = {}
 ): Promise<{
   results: ResearchDoc[];
   count: number;
   original_query?: string;
   expanded_query?: string;
+  reading_room?: { cap?: number; used?: number; remaining?: number | null };
 }> {
   const params = new URLSearchParams({ q });
   if (companyId) params.set("company_id", companyId);
   if (opts.expand) params.set("expand", "true");
+  if (opts.readingRoom) params.set("reading_room", "true");
   return getJson(`/api/research/search?${params}`);
 }
 
@@ -3141,6 +3171,7 @@ export type AuthUser = {
   platform_admin_role?: string;
   email_verified?: boolean;
   active?: boolean;
+  protected?: boolean;
   terms_version?: string;
   terms_accepted_at?: string;
   privacy_version?: string;
@@ -3405,6 +3436,83 @@ export function postOrgApiKey(
   return authJson(
     `/api/orgs/${encodeURIComponent(orgId)}/api-keys`,
     { method: "POST", body: "{}" },
+    token,
+  );
+}
+
+export function putOrgOidc(
+  orgId: string,
+  token: string,
+  body: { oidc_issuer?: string; oidc_client_id?: string; email_domain?: string },
+): Promise<OrgPayload> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/oidc`,
+    { method: "PUT", body: JSON.stringify(body) },
+    token,
+  );
+}
+
+export type OrgAuditEvent = {
+  ts?: string;
+  action?: string;
+  org?: string;
+  actor?: string;
+  role?: string;
+};
+
+export function fetchOrgAudit(token: string): Promise<{ count: number; events: OrgAuditEvent[] }> {
+  return authJson("/api/audit", undefined, token);
+}
+
+export type OrgInvoice = {
+  id?: string;
+  amount_inr?: number;
+  status?: string;
+  esign_status?: string;
+  plan?: string;
+  created_at?: string;
+  org_id?: string;
+};
+
+export function fetchOrgInvoices(
+  token: string,
+): Promise<{ invoices: OrgInvoice[]; subscription: Record<string, unknown> | null }> {
+  return authJson("/api/billing/invoices", undefined, token);
+}
+
+export function postSignOrgInvoice(
+  invoiceId: string,
+  token: string,
+  signerEmail: string,
+): Promise<{ id?: string; status?: string; esign_status?: string }> {
+  return authJson(
+    `/api/billing/msa/${encodeURIComponent(invoiceId)}/sign`,
+    { method: "POST", body: JSON.stringify({ signer_email: signerEmail }) },
+    token,
+  );
+}
+
+export function fetchOrgPilotChecklist(orgId: string, token: string): Promise<{
+  org_id: string;
+  progress: { done: number; total: number; pct: number };
+  items: Array<{ id: string; phase: string; label: string; done: boolean }>;
+  notes?: string;
+}> {
+  return authJson(`/api/orgs/${encodeURIComponent(orgId)}/pilot-checklist`, undefined, token);
+}
+
+export function patchOrgPilotChecklist(
+  orgId: string,
+  token: string,
+  body: { item_id?: string; done?: boolean; notes?: string },
+): Promise<{
+  progress: { done: number; total: number; pct: number };
+  items: Array<{ id: string; phase: string; label: string; done: boolean }>;
+  notes?: string;
+}> {
+  return authJson(
+    `/api/orgs/${encodeURIComponent(orgId)}/pilot-checklist`,
+    { method: "PATCH", body: JSON.stringify(body) },
     token,
   );
 }
