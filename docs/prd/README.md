@@ -24,6 +24,8 @@ Write the requirements the way you would brief a designer who has sat with a Hea
 | Methodology, changelog, company, trust | `/methodology`, `/changelog`, `/about`, `/trust` | [PRD_INDEX_RECORD.md](PRD_INDEX_RECORD.md) |
 | Administration | `/admin`, `/org/settings` | [PRD_ADMIN.md](../PRD_ADMIN.md) |
 
+[PRD_TERMINAL.md](PRD_TERMINAL.md) is the confirmed pass over the screener, the dossier, the source viewer, and the header (25 October 2026). It extends the rows above. It does not replace them, and it is not a description of what already ships.
+
 ## Rules that apply to every PRD
 
 - A published GCI is a number in the score cache. A row enters that number only when both the guidance quote and the later reported quote are on the cited filings.
