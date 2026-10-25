@@ -126,9 +126,15 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         snap = orgs.org_snapshot(str(oid))
     except HTTPException:
         return guest_entitlements()
+    from app.services.admin_portal import effective_platform_role
+
     plan_feats = set(snap.get("features") or [])
     role = str(user.get("role") or "viewer")
-    feats = _with_platform_super(sorted(plan_feats & _role_features(role)), user)
+    platform_role = effective_platform_role(user.get("email"), user.get("platform_admin_role"))
+    feats = _with_platform_super(
+        sorted(plan_feats & _role_features(role)),
+        {**user, "platform_admin_role": platform_role},
+    )
     return {
         "plan": snap.get("plan") or "pilot",
         "role": role,
@@ -144,7 +150,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "account_type": snap.get("account_type") or user.get("account_type"),
         "org": str(oid),
         "key": None,
-        "platform_admin_role": user.get("platform_admin_role"),
+        "platform_admin_role": platform_role,
     }
 
 
@@ -154,9 +160,17 @@ def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
         snap = orgs.org_snapshot(str(oid))
     except HTTPException:
         snap = {"plan": "pilot", "features": sorted(orgs.PLAN_FEATURES["pilot"])}
+    from app.services.admin_portal import effective_platform_role
+
     plan_feats = set(snap.get("features") or [])
     role = str(key_row.get("role") or "analyst")
-    feats = _with_platform_super(sorted(plan_feats & _role_features(role)), key_row)
+    platform_role = effective_platform_role(
+        None, key_row.get("platform_admin_role"), api_key=True
+    )
+    feats = _with_platform_super(
+        sorted(plan_feats & _role_features(role)),
+        {**key_row, "platform_admin_role": platform_role},
+    )
     return {
         "plan": snap.get("plan") or "pilot",
         "role": role,
@@ -171,7 +185,7 @@ def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
         "source": "api_key",
         "key": key_row.get("key"),
         "org": oid,
-        "platform_admin_role": key_row.get("platform_admin_role"),
+        "platform_admin_role": platform_role,
     }
 
 

@@ -22,7 +22,9 @@ import {
   type LabelingQueueItem,
   type PendingExtractBatch,
 } from "../lib/api";
-import { formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
+import { compareEvidenceLatestFirst, formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
+import { useAuth } from "../lib/auth";
+import { isPlatformSuper } from "../lib/platformRole";
 import { useI18n } from "../i18n";
 
 type Props = {
@@ -47,6 +49,8 @@ function severityClass(sev: string): string {
 
 export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: Props) {
   const { t } = useI18n();
+  const { user } = useAuth();
+  const showGciGraphs = isPlatformSuper(user);
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<CompanySummary[]>([]);
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
@@ -139,7 +143,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
     [history]
   );
 
-  const outcomes = (detail?.outcomes || []).slice(0, 14);
+  const outcomes = [...(detail?.outcomes || [])].sort(compareEvidenceLatestFirst).slice(0, 14);
   const byMetric = detail?.by_metric || {};
   const metricBars = Object.entries(byMetric)
     .slice(0, 8)
@@ -299,6 +303,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
               />
             </div>
           </header>
+          {showGciGraphs && (
           <div className="ilc-chart">
             {chartPts.length >= 2 ? (
               <LineChart
@@ -312,6 +317,7 @@ export default function DeskConsole({ companyId, onSelectCompany, onJumpTab }: P
               <p className="ilc-muted">{t("ui.DeskConsole.chart.empty")}</p>
             )}
           </div>
+          )}
         </section>
 
         {/* Outcomes strip */}

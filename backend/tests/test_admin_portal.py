@@ -135,12 +135,8 @@ def test_super_admin_api_key_has_full_portal():
 
 
 def test_compliance_role_cannot_list_users():
-    super_user = _register("super@ocotillo.test")
-    _grant_platform_role(ADMIN, super_user["user"]["id"], "super")
-    super_token = super_user["token"]
-
     compliance = _register("compliance@ocotillo.test")
-    _grant_platform_role({"Authorization": f"Bearer {super_token}"}, compliance["user"]["id"], "compliance")
+    _grant_platform_role(ADMIN, compliance["user"]["id"], "compliance")
     ctoken = compliance["token"]
 
     me = client.get("/api/admin/portal/me", headers={"Authorization": f"Bearer {ctoken}"})
@@ -154,9 +150,6 @@ def test_compliance_role_cannot_list_users():
 
 
 def test_ops_role_can_list_orgs_not_legal_write():
-    super_user = _register("super2@ocotillo.test")
-    _grant_platform_role(ADMIN, super_user["user"]["id"], "super")
-
     ops = _register("ops@ocotillo.test")
     _grant_platform_role(ADMIN, ops["user"]["id"], "ops")
     otoken = ops["token"]
@@ -173,8 +166,43 @@ def test_ops_role_can_list_orgs_not_legal_write():
     assert attest.status_code == 403
 
 
+def test_super_role_refused_for_every_other_email():
+    other = _register("random.super@desk.test")
+    denied = client.patch(
+        f"/api/admin/portal/users/{other['user']['id']}/platform-role",
+        headers=ADMIN,
+        json={"platform_admin_role": "super"},
+    )
+    assert denied.status_code == 400
+    store = session_auth._load_users()
+    for user in store["users"]:
+        if user.get("id") == other["user"]["id"]:
+            user["platform_admin_role"] = "super"
+    session_auth._save_users()
+    me = client.get(
+        "/api/admin/portal/me",
+        headers={"Authorization": f"Bearer {other['token']}"},
+    )
+    assert me.status_code == 403
+
+    dk = _register("dk@citealpha.com", org_name="Operator")
+    granted = client.patch(
+        f"/api/admin/portal/users/{dk['user']['id']}/platform-role",
+        headers=ADMIN,
+        json={"platform_admin_role": "super"},
+    )
+    assert granted.status_code == 200, granted.text
+    assert granted.json()["platform_admin_role"] == "super"
+    cleared = client.patch(
+        f"/api/admin/portal/users/{dk['user']['id']}/platform-role",
+        headers=ADMIN,
+        json={"platform_admin_role": None},
+    )
+    assert cleared.status_code == 400
+
+
 def test_super_assigns_support_role():
-    super_user = _register("super3@ocotillo.test")
+    super_user = _register("dk@citealpha.com", org_name="Operator")
     _grant_platform_role(ADMIN, super_user["user"]["id"], "super")
     super_token = super_user["token"]
 
@@ -274,7 +302,7 @@ def test_super_sees_seats_and_deletes_user_org_and_pilot_request():
 
 
 def test_ops_cannot_delete_users_and_super_cannot_delete_self():
-    super_user = _register("superdel@ocotillo.test")
+    super_user = _register("admin.team@citealpha.com", org_name="Operator")
     _grant_platform_role(ADMIN, super_user["user"]["id"], "super")
     victim = _register("victim@gmail.com", org_name="Victim Desk")
     ops = _register("opsdel@ocotillo.test")

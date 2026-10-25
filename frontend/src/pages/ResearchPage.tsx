@@ -34,6 +34,7 @@ import {
 import { formatCompanyScore, publicDocTitle, scoreClass } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
+import { isPlatformSuper } from "../lib/platformRole";
 import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
 import { useSourceViewer } from "../lib/SourceViewerContext";
@@ -87,7 +88,7 @@ export default function ResearchPage() {
   const { has, loading: entitlementsLoading, entitlements, refresh } = useEntitlements();
   const { t } = useI18n();
   const readingRoom =
-    !entitlementsLoading && !has("research") && user?.platform_admin_role !== "super";
+    !entitlementsLoading && !has("research") && !isPlatformSuper(user);
   const searchCap = entitlements.limits?.searches ?? 8;
   const [roomCap, setRoomCap] = useState(searchCap);
   const [roomUsed, setRoomUsed] = useState(0);

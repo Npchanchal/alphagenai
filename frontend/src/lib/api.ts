@@ -47,6 +47,8 @@ export type GuidanceRevision = {
 export type OutcomeView = {
   period: string;
   metric: string;
+  /** Stored-row position. Review writes use this, not the on-screen order. */
+  outcome_index?: number | null;
   guided_value: number;
   guided_low?: number | null;
   guided_high?: number | null;

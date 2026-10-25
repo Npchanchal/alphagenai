@@ -152,6 +152,12 @@ def ensure_protected_users() -> Dict[str, Any]:
         if _apply_universe(user, universe) or diff:
             repaired.append(email)
 
+    from app.services.admin_portal import enforce_super_roster
+
+    for email in enforce_super_roster(store["users"]):
+        if email not in created and email not in repaired:
+            repaired.append(email)
+
     if created or repaired:
         session_auth._save_users()
     members = sum(1 for u in store["users"] if u.get("org_id") == org["id"] and u.get("active") is not False)

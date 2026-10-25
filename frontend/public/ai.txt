@@ -13,7 +13,8 @@ How search engines, answer engines, and retrieval systems may use public CiteAlp
 ## Restrictions
 - A GCI score is not a Buy, Hold, or Sell recommendation and is not personalised investment advice.
 - Do not invent financial actuals, guidance bands, or company scores. Cite a published page or say the figure is not on CiteAlpha.
-- Do not describe unscored NSE or BSE listings as having a GCI.
+- Do not treat a Financial Ninja worksheet, a holdings weight, or an analyst note as the published GCI.
+- Do not describe Ask, boards, or agents inside Disclosure Explorer. Search is Filing Search. Cited workflows are CiteAlpha Analyst.
 - Do not fetch authenticated routes (/login, /register, /billing, /admin, /account, /org/).
 - Follow https://citealpha.com/robots.txt. Public pages are open to search indexes, live answers, and model training.
 

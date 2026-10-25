@@ -13,7 +13,7 @@ import {
 import { useSourceViewer } from "../../lib/SourceViewerContext";
 import { withTextHighlight } from "../../lib/sourceHighlight";
 import { useI18n } from "../../i18n";
-import { metricDisplayName } from "../../lib/score";
+import { compareEvidenceLatestFirst, metricDisplayName } from "../../lib/score";
 
 export function SightsThemesPage() {
   const { t } = useI18n();
@@ -118,7 +118,9 @@ export function SightsStreetPage() {
       <p className="muted">{note}</p>
       {(error || focusError) && <p className="error">{error || focusError}</p>}
       <ul className="doc-list">
-        {snippets.map((s, i) => (
+        {[...snippets]
+          .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
+          .map((s, i) => (
           <li key={i}>
             <strong>{s.title}</strong> <span className="muted">{s.date}</span>
             <p>{s.snippet}</p>
@@ -204,7 +206,7 @@ export function SightsFieldPage() {
           </tr>
         </thead>
         <tbody>
-          {outcomes.map((o, i) => (
+          {[...outcomes].sort(compareEvidenceLatestFirst).map((o, i) => (
             <tr key={i}>
               <td>{metricDisplayName(String(o.metric ?? ""))}</td>
               <td>{String(o.period ?? "")}</td>

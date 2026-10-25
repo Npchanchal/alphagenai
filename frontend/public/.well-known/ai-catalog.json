@@ -17,7 +17,7 @@
         "Where does CiteAlpha publish its methodology?"
       ],
       "version": "1.0.0",
-      "updatedAt": "2026-10-23T00:00:00Z"
+      "updatedAt": "2026-10-25T00:00:00Z"
     },
     {
       "identifier": "urn:air:citealpha.com:llms-full",
@@ -30,7 +30,7 @@
         "What may an answer engine quote from CiteAlpha?"
       ],
       "version": "1.0.0",
-      "updatedAt": "2026-10-23T00:00:00Z"
+      "updatedAt": "2026-10-25T00:00:00Z"
     }
   ]
 }

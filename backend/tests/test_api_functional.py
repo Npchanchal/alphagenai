@@ -46,6 +46,27 @@ def test_us002_company_gci_detail():
     assert data["algorithm_id"] == "gci_scoring_v4"
 
 
+def test_evidence_listing_latest_period_first():
+    from app.data.seed import get_data
+    from app.services.changes import period_rank
+
+    r = client.get("/api/companies/infy/gci")
+    rows = r.json()["outcomes"]
+    assert rows
+    ranks = [period_rank(o["period"]) for o in rows]
+    assert all(rank is not None for rank in ranks)
+    assert ranks == sorted(ranks, reverse=True)
+    stored = get_data()["outcomes"]["infy"]
+    for row in rows:
+        src = stored[row["outcome_index"]]
+        assert src["period"] == row["period"]
+        assert src["metric"] == row["metric"]
+    docs = client.get("/api/companies/infy/docs").json()
+    periods = [p["period"] for p in docs["completeness"]["periods"]]
+    period_ranks = [period_rank(p) for p in periods]
+    assert period_ranks == sorted(period_ranks, reverse=True)
+
+
 def test_us003_evidence_trail_fields():
     r = client.get("/api/companies/infy/gci")
     outcome = r.json()["outcomes"][0]

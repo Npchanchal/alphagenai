@@ -229,8 +229,11 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "created_at": user.get("created_at"),
         "mfa_enabled": bool(user.get("totp_enabled")),
     }
-    if user.get("platform_admin_role"):
-        out["platform_admin_role"] = user["platform_admin_role"]
+    from app.services.admin_portal import effective_platform_role
+
+    platform_role = effective_platform_role(user.get("email"), user.get("platform_admin_role"))
+    if platform_role:
+        out["platform_admin_role"] = platform_role
     from app.services.protected_users import is_protected
 
     if is_protected(user):

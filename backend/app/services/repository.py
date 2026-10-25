@@ -18,7 +18,13 @@ from app.models.schemas import (
     OutcomeView,
     PitPoint,
 )
-from app.services.changes import change_bundle, enrich_metric_rows, enrich_value_series
+from app.services.changes import (
+    change_bundle,
+    enrich_metric_rows,
+    enrich_value_series,
+    sort_document_listing,
+    sort_evidence_listing,
+)
 from app.services.citations import enrich_outcome_citation
 from app.services.coverage import coverage_reason, coverage_status_for
 from app.services.score_policy import NOT_SCORED_STATUS, is_scoreable, publishable_score
@@ -41,6 +47,7 @@ def _to_view(
     *,
     company_id: str = "",
     data_quality: str = "demo_structured",
+    outcome_index: Optional[int] = None,
     actual_change_pct=None,
     actual_change_horizon=None,
     guided_change_pct=None,
@@ -56,6 +63,7 @@ def _to_view(
     return OutcomeView(
         period=o.period,
         metric=o.metric,
+        outcome_index=outcome_index,
         guided_value=o.guided_value,
         guided_low=o.guided_low,
         guided_high=o.guided_high,
@@ -545,19 +553,21 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
     score = smeta["gci_score"]
     chmap = _outcome_change_map(outcomes)
     views = []
-    for o in outcomes:
+    for index, o in enumerate(outcomes):
         meta = chmap.get((o.period, o.metric), {})
         views.append(
             _to_view(
                 o,
                 company_id=company_id,
                 data_quality=quality,
+                outcome_index=index,
                 actual_change_pct=meta.get("actual_change_pct"),
                 actual_change_horizon=meta.get("actual_change_horizon"),
                 guided_change_pct=meta.get("management_guidance_change_pct"),
                 guided_change_horizon=meta.get("management_guidance_change_horizon"),
             )
         )
+    views = sort_evidence_listing(views)
     threads: Dict[str, List[OutcomeView]] = defaultdict(list)
     for v in views:
         if v.thread_id:
@@ -1268,7 +1278,7 @@ def company_period_docs(company_id: str, period: Optional[str] = None) -> List[D
             or p in (d.get("period") or "").lower()
             or p in (d.get("source_ref") or "").lower()
         ]
-    return docs
+    return sort_document_listing(docs)
 
 
 EXPECTED_DOC_TYPES = ("transcript", "results", "ir_guidance")
@@ -1347,10 +1357,11 @@ def period_completeness(company_id: str, periods: Optional[List[str]] = None) ->
                         "source_type": d.get("source_type"),
                         "period": d.get("period"),
                     }
-                    for d in period_docs[:8]
+                    for d in sort_document_listing(period_docs)[:8]
                 ],
             }
         )
+    rows = sort_evidence_listing(rows)
     accepted = sum(1 for r in rows if r["status"] in ("accepted", "partial"))
     types_complete_n = sum(1 for r in rows if r.get("types_complete"))
     citeable_bound = 0

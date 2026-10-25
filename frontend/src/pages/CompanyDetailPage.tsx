@@ -62,6 +62,7 @@ import { CONTACT_EMAIL } from "../lib/legal";
 import { useI18n } from "../i18n";
 import { useEntitlements } from "../lib/entitlements";
 import { useAuth } from "../lib/auth";
+import { isPlatformSuper } from "../lib/platformRole";
 import { trackEvent } from "../lib/analytics";
 
 const TOC_PUBLIC = [
@@ -93,7 +94,7 @@ export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t, lang: uiLang } = useI18n();
   const { has, entitlements } = useEntitlements();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [commitments, setCommitments] = useState<CommitmentView | null>(null);
@@ -188,7 +189,8 @@ export default function CompanyDetailPage() {
 
   // W1.2 (rule index-integrity): price tape, correlation / lead–lag, wordmap and
   // narrative-consistency use synthetic inputs. Workbench seats only; never guests.
-  const canAnalytics = has("analytics_experimental");
+  const showGciGraphs = isPlatformSuper(user);
+  const canAnalytics = has("analytics_experimental") && showGciGraphs;
   const canWordmap = has("wordmap");
   const canNinja = has("ninja");
   const canNotes = canNinja || has("analyst_agent");
@@ -1039,7 +1041,7 @@ export default function CompanyDetailPage() {
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
           {t("ui.CompanyDetailPage.trend.lede")}
         </p>
-        {hasCiteableDeltas && (
+        {showGciGraphs && hasCiteableDeltas && (
           <div className="chart-block" data-testid="delta-horizon-chart">
             <h3 style={{ marginBottom: 4 }}>{t("ui.CompanyDetailPage.trend.horizons")}</h3>
             <BarChart
@@ -1058,7 +1060,7 @@ export default function CompanyDetailPage() {
             />
           </div>
         )}
-        {detail.trend.length >= 2 && (
+        {showGciGraphs && detail.trend.length >= 2 && (
           <div className="chart-block">
             <LineChart
               points={detail.trend.map((pt) => ({
@@ -1493,6 +1495,7 @@ export default function CompanyDetailPage() {
           <h2>
             {t("ui.CompanyDetailPage.metrics.title")} <InfoTip termId="change_trend" />
           </h2>
+          {showGciGraphs && (
           <div className="chart-block">
             <BarChart
               rows={Object.entries(detail.by_metric_changes!).map(([metric, b]) => ({
@@ -1510,6 +1513,7 @@ export default function CompanyDetailPage() {
               {t("ui.CompanyDetailPage.metrics.note")}
             </p>
           </div>
+          )}
           <div className="metrics">
             {Object.entries(detail.by_metric_changes!).map(([metric, b]) => (
               <div className="metric" key={metric}>
@@ -1533,7 +1537,7 @@ export default function CompanyDetailPage() {
         <h2>
           {t("ui.CompanyDetailPage.pit.title")} <InfoTip termId="pit" />
         </h2>
-        {history.length >= 2 && (
+        {showGciGraphs && history.length >= 2 && (
           <div className="chart-block">
             <LineChart
               points={history.map((h) => ({

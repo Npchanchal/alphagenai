@@ -33,6 +33,8 @@ Worked example: Infosys revenue-growth guidance versus reported actuals, https:/
 - Definition: https://citealpha.com/blog/what-is-guidance-credibility-index
 - Short answers: https://citealpha.com/answers
 - Screener: https://citealpha.com/tracker
+- Filing Search: https://citealpha.com/research
+- Workflows: https://citealpha.com/workflows
 - Methodology: https://citealpha.com/methodology
 - This file: https://citealpha.com/llms-full.txt
 - Link map: https://citealpha.com/llms.txt

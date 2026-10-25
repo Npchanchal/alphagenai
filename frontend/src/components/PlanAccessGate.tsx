@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useEntitlements } from "../lib/entitlements";
+import { isPlatformSuper } from "../lib/platformRole";
 import { isIndexingCrawler } from "../lib/indexingCrawler";
 import { useI18n } from "../i18n";
 
@@ -48,7 +49,7 @@ export default function PlanAccessGate({
     );
   }
 
-  if (has(feature) || user?.platform_admin_role === "super") {
+  if (has(feature) || isPlatformSuper(user)) {
     return <>{children}</>;
   }
 

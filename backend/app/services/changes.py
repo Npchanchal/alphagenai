@@ -108,6 +108,51 @@ def sort_periods(periods: Sequence[str]) -> List[str]:
     return sorted(periods, key=lambda p: parse_period(p)[0])
 
 
+def period_rank(period: str) -> Optional[int]:
+    """Months-since-year-0 rank from ``parse_period``, or None if the label is unknown."""
+    key, freq = parse_period(period)
+    if freq == "unknown":
+        return None
+    return key
+
+
+def _row_field(row: Any, name: str) -> str:
+    if isinstance(row, dict):
+        return str(row.get(name) or "")
+    return str(getattr(row, name, None) or "")
+
+
+def sort_evidence_listing(rows: Sequence[Any]) -> List[Any]:
+    """Latest period first, then latest ``as_of``, then metric name.
+
+    A label that is not a fiscal period or a date sorts last. Revision trails
+    that read opening → final should keep ``sort_periods`` (oldest first).
+    """
+    items = list(rows)
+    items.sort(key=lambda row: _row_field(row, "metric"))
+    items.sort(key=_evidence_chrono_key, reverse=True)
+    return items
+
+
+def _evidence_chrono_key(row: Any) -> Tuple[bool, int, str]:
+    rank = period_rank(_row_field(row, "period"))
+    as_of = _row_field(row, "as_of") or _row_field(row, "date") or _row_field(row, "ingested_at")
+    return (rank is not None, rank or 0, as_of)
+
+
+def sort_document_listing(docs: Sequence[Any]) -> List[Any]:
+    """Newest filing date first. Undated rows fall back to period, latest first."""
+    items = list(docs)
+
+    def key(row: Any) -> Tuple[str, bool, int]:
+        date = _row_field(row, "date") or _row_field(row, "ingested_at")
+        rank = period_rank(_row_field(row, "period"))
+        return (date, rank is not None, rank or 0)
+
+    items.sort(key=key, reverse=True)
+    return items
+
+
 def enrich_value_series(
     points: Sequence[Dict[str, Any]],
     *,

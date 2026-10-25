@@ -9,7 +9,7 @@ import { CONTACT_EMAIL } from "../lib/legal";
 
 const SHOT = "/screenshots/tiers";
 /** Bump when recapturing: /screenshots is cached 30 days under unchanged file names. */
-const SHOT_VERSION = "2026-09-27";
+const SHOT_VERSION = "2026-10-25";
 const shotSrc = (src: string) => `${src}?v=${SHOT_VERSION}`;
 
 type Feature = {

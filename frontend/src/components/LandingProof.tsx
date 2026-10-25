@@ -8,7 +8,7 @@ import {
   type OutcomeView,
   type RecentFiling,
 } from "../lib/api";
-import { metricDisplayName, publicDocTitle } from "../lib/score";
+import { compareEvidenceLatestFirst, metricDisplayName, publicDocTitle } from "../lib/score";
 import { EXAMPLE_COMPANY_ID } from "./LandingWorkedExample";
 
 function band(o: OutcomeView): string {
@@ -35,7 +35,7 @@ function pickOutcome(detail: CompanyGCIDetail): OutcomeView | null {
       o.label !== "pending" &&
       o.label !== "pending_guidance_cite",
   );
-  rows.sort((a, b) => (b.period || "").localeCompare(a.period || ""));
+  rows.sort(compareEvidenceLatestFirst);
   return rows[0] ?? null;
 }
 

@@ -206,6 +206,169 @@ export function formatGuideGap(o: {
   return `${sign}${n}${unit}`;
 }
 
+const FY_PERIOD = /^FY\s*(\d{2}|\d{4})$/i;
+const QFY_PERIOD = /^Q([1-4])\s*FY\s*(\d{2}|\d{4})$/i;
+const FYQ_PERIOD = /^FY\s*(\d{2}|\d{4})\s*Q([1-4])$/i;
+const YQ_PERIOD = /^(\d{4})-Q([1-4])$/;
+const YM_PERIOD = /^(\d{4})-(\d{2})$/;
+const ASOF_PERIOD = /^(\d{4})-(\d{2})-(\d{2})/;
+
+function normYear(year: string): number {
+  const n = Number(year);
+  return n < 100 ? 2000 + n : n;
+}
+
+/** Same rank as backend ``period_rank`` / ``parse_period``. Unknown labels return null. */
+export function periodRank(period: string | null | undefined): number | null {
+  const p = (period || "").trim();
+  let m = FY_PERIOD.exec(p);
+  if (m) return normYear(m[1]) * 12 + 3;
+  m = QFY_PERIOD.exec(p);
+  if (m) return normYear(m[2]) * 12 + (Number(m[1]) - 1) * 3;
+  m = FYQ_PERIOD.exec(p);
+  if (m) return normYear(m[1]) * 12 + (Number(m[2]) - 1) * 3;
+  m = YQ_PERIOD.exec(p);
+  if (m) return Number(m[1]) * 12 + (Number(m[2]) - 1) * 3;
+  m = YM_PERIOD.exec(p);
+  if (m) return Number(m[1]) * 12 + (Number(m[2]) - 1);
+  m = ASOF_PERIOD.exec(p);
+  if (m) return Number(m[1]) * 12 + (Number(m[2]) - 1);
+  return null;
+}
+
+function chronoText(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+/** Latest period, then latest result date, then metric name. Unknown periods last. */
+export function compareEvidenceLatestFirst(
+  a: { period?: unknown; as_of?: unknown; metric?: unknown },
+  b: { period?: unknown; as_of?: unknown; metric?: unknown },
+): number {
+  const byPeriod = periodOrder(a, b, true);
+  if (byPeriod !== 0) return byPeriod;
+  return chronoText(a.metric).localeCompare(chronoText(b.metric));
+}
+
+export type EvidenceSortKey = "metric" | "period";
+export type EvidenceSortDir = "asc" | "desc";
+export type EvidenceSort = { key: EvidenceSortKey; dir: EvidenceSortDir };
+
+/** Dossier evidence: metric name, then latest period. */
+export const DEFAULT_EVIDENCE_SORT: EvidenceSort = { key: "metric", dir: "asc" };
+
+/**
+ * Evidence table order. Metric sort keeps latest period as the tie-break.
+ * Period sort keeps metric name as the tie-break. Unknown periods stay last.
+ */
+export function compareEvidence(
+  a: { period?: unknown; as_of?: unknown; metric?: unknown },
+  b: { period?: unknown; as_of?: unknown; metric?: unknown },
+  sort: EvidenceSort = DEFAULT_EVIDENCE_SORT,
+): number {
+  const byMetric = metricDisplayName(chronoText(a.metric)).localeCompare(
+    metricDisplayName(chronoText(b.metric)),
+  );
+  if (sort.key === "metric") {
+    const primary = sort.dir === "desc" ? -byMetric : byMetric;
+    if (primary !== 0) return primary;
+    return periodOrder(a, b, true);
+  }
+  const byPeriod = periodOrder(a, b, sort.dir !== "asc");
+  if (byPeriod !== 0) return byPeriod;
+  return byMetric;
+}
+
+export function listEvidenceRows<T extends { period?: unknown; metric?: unknown; as_of?: unknown }>(
+  rows: readonly T[],
+  opts?: { period?: string; metric?: string; sort?: EvidenceSort },
+): T[] {
+  const period = opts?.period ?? "";
+  const metric = opts?.metric ?? "";
+  const sort = opts?.sort ?? DEFAULT_EVIDENCE_SORT;
+  return rows
+    .filter((row) => (period ? chronoText(row.period) === period : true))
+    .filter((row) => (metric ? chronoText(row.metric) === metric : true))
+    .sort((a, b) => compareEvidence(a, b, sort));
+}
+
+/** 1 = low end of the thread range, 5 = high end. A flat range is the middle shade. */
+export function heatLevel(value: number, min: number, max: number): 1 | 2 | 3 | 4 | 5 {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || max === min) {
+    return 3;
+  }
+  const t = Math.min(1, Math.max(0, (value - min) / (max - min)));
+  return (Math.floor(t * 4) + 1) as 1 | 2 | 3 | 4 | 5;
+}
+
+export type InYearDirection = "none" | "raised" | "cut" | "unchanged" | "mixed";
+export type InYearStep = "raised" | "cut" | "unchanged";
+
+export function readInYearRevision(o: {
+  guided_low?: number | null;
+  guided_high?: number | null;
+  guided_value: number;
+  metric?: string;
+  revisions?: Array<{ guided_low: number; guided_high: number }> | null;
+}): { direction: InYearDirection; steps: InYearStep[]; finalBand: string; path: string } {
+  const opening = formatGuidedBand(o);
+  const revisions = o.revisions ?? [];
+  if (revisions.length === 0) {
+    return { direction: "none", steps: [], finalBand: opening, path: opening };
+  }
+  let prev = bandMid(o.guided_low, o.guided_high, o.guided_value);
+  const steps: InYearStep[] = [];
+  const bands = [opening];
+  for (const rev of revisions) {
+    const mid = (rev.guided_low + rev.guided_high) / 2;
+    steps.push(mid > prev + 1e-9 ? "raised" : mid < prev - 1e-9 ? "cut" : "unchanged");
+    prev = mid;
+    bands.push(
+      formatGuidedBand({
+        guided_low: rev.guided_low,
+        guided_high: rev.guided_high,
+        guided_value: mid,
+        metric: o.metric,
+      }),
+    );
+  }
+  const raised = steps.some((step) => step === "raised");
+  const cut = steps.some((step) => step === "cut");
+  const direction: InYearDirection = raised && cut ? "mixed" : raised ? "raised" : cut ? "cut" : "unchanged";
+  return {
+    direction,
+    steps,
+    finalBand: bands[bands.length - 1] ?? opening,
+    path: bands.join(" → "),
+  };
+}
+
+function bandMid(low?: number | null, high?: number | null, value?: number): number {
+  if (low != null && high != null) return (low + high) / 2;
+  return value ?? 0;
+}
+
+/** Period rank, then result date. Unknown labels sort last in either direction. */
+function periodOrder(
+  a: { period?: unknown; as_of?: unknown },
+  b: { period?: unknown; as_of?: unknown },
+  latestFirst: boolean,
+): number {
+  const ka = periodRank(chronoText(a.period));
+  const kb = periodRank(chronoText(b.period));
+  if (ka == null && kb == null) {
+    const byLabel = chronoText(b.period).localeCompare(chronoText(a.period));
+    if (byLabel !== 0) return byLabel;
+  } else if (ka == null || kb == null) {
+    return ka == null ? 1 : -1;
+  } else if (ka !== kb) {
+    return latestFirst ? kb - ka : ka - kb;
+  }
+  const byAsOf = chronoText(a.as_of).localeCompare(chronoText(b.as_of));
+  if (byAsOf !== 0) return latestFirst ? -byAsOf : byAsOf;
+  return 0;
+}
+
 const CLOSED_LABELS = new Set(["met", "exceeded", "missed"]);
 
 export type RecordParts = {

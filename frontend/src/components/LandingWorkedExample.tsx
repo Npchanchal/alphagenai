@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { fetchCompanyGci, type CompanyGCIDetail, type OutcomeView } from "../lib/api";
-import { formatCompanyScore, metricDisplayName, scoreClass } from "../lib/score";
+import { compareEvidenceLatestFirst, formatCompanyScore, metricDisplayName, scoreClass } from "../lib/score";
 import ScoreCalcPanel from "./ScoreCalcPanel";
 
 export const EXAMPLE_COMPANY_ID = "infy";
@@ -128,15 +128,7 @@ export default function LandingWorkedExample() {
     return acc;
   }, {});
   const primaryMetric = Object.entries(metricCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
-  const rows = [...closed].sort((a, b) =>
-    a.metric === b.metric
-      ? a.period.localeCompare(b.period)
-      : a.metric === primaryMetric
-        ? -1
-        : b.metric === primaryMetric
-          ? 1
-          : a.metric.localeCompare(b.metric),
-  );
+  const rows = [...closed].sort(compareEvidenceLatestFirst);
   const asOf = detail ? latestDate(detail.outcomes) : null;
   const record = ["exceeded", "met", "missed", "dropped"]
     .map((label) => ({ label, n: closed.filter((o) => o.label === label).length }))

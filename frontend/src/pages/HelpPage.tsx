@@ -46,13 +46,10 @@ function TermSection({
   );
 }
 
+const SHOT = "/screenshots/tiers";
+const SHOT_VERSION = "2026-10-25";
+
 const QUICK = [
-  {
-    to: "/about",
-    titleKey: "help.quick.about.title",
-    textKey: "help.quick.about.text",
-    tip: "gci",
-  },
   {
     to: "/tracker",
     titleKey: "help.quick.tracker.title",
@@ -60,28 +57,16 @@ const QUICK = [
     tip: "tracker",
   },
   {
-    to: "/desk",
-    titleKey: "help.quick.desk.title",
-    textKey: "help.quick.desk.text",
-    tip: "desk_sku",
+    to: "/companies/infy",
+    titleKey: "help.quick.dossier.title",
+    textKey: "help.quick.dossier.text",
+    tip: "evidence",
   },
   {
     to: "/research",
     titleKey: "help.quick.research.title",
     textKey: "help.quick.research.text",
-    tip: "research_terminal",
-  },
-  {
-    to: "/sights",
-    titleKey: "help.quick.sights.title",
-    textKey: "help.quick.sights.text",
-    tip: "sights",
-  },
-  {
-    to: "/products",
-    titleKey: "help.quick.products.title",
-    textKey: "help.quick.products.text",
-    tip: "score_sku",
+    tip: "reading_room",
   },
   {
     to: "/rankings",
@@ -90,11 +75,60 @@ const QUICK = [
     tip: "rankings",
   },
   {
+    to: "/workflows",
+    titleKey: "help.quick.workflows.title",
+    textKey: "help.quick.workflows.text",
+    tip: "workflows",
+  },
+  {
+    to: "/analyst",
+    titleKey: "help.quick.analyst.title",
+    textKey: "help.quick.analyst.text",
+    tip: "analyst",
+  },
+  {
+    to: "/desk",
+    titleKey: "help.quick.desk.title",
+    textKey: "help.quick.desk.text",
+    tip: "desk_sku",
+  },
+  {
+    to: "/sights",
+    titleKey: "help.quick.sights.title",
+    textKey: "help.quick.sights.text",
+    tip: "sights",
+  },
+  {
+    to: "/holdings",
+    titleKey: "help.quick.holdings.title",
+    textKey: "help.quick.holdings.text",
+    tip: "holdings",
+  },
+  {
+    to: "/ninja",
+    titleKey: "help.quick.ninja.title",
+    textKey: "help.quick.ninja.text",
+    tip: "financial_ninja",
+  },
+  {
+    to: "/products",
+    titleKey: "help.quick.products.title",
+    textKey: "help.quick.products.text",
+    tip: "score_sku",
+  },
+  {
     to: "/trust",
     titleKey: "help.quick.trust.title",
     textKey: "help.quick.trust.text",
     tip: "trust_center",
   },
+] as const;
+
+const WALKTHROUGH = [
+  { src: `${SHOT}/00-tracker-overview.png`, altKey: "help.shot.tracker" },
+  { src: `${SHOT}/01-entity-search.png`, altKey: "help.shot.search" },
+  { src: `${SHOT}/06-citability-evidence.png`, altKey: "help.shot.evidence" },
+  { src: `${SHOT}/12-delivery-record.png`, altKey: "help.shot.record" },
 ] as const;
 
 export default function HelpPage() {
@@ -138,6 +172,13 @@ export default function HelpPage() {
         <p className="muted" style={{ marginTop: 0 }}>
           {t("help.walkthrough.lede")}
         </p>
+        <div className="tier-shots multi" data-testid="help-shots">
+          {WALKTHROUGH.map((shot) => (
+            <figure className="tier-shot" key={shot.src}>
+              <img src={`${shot.src}?v=${SHOT_VERSION}`} alt={t(shot.altKey)} />
+            </figure>
+          ))}
+        </div>
         <p>
           <Link to="/products#features">{t("help.walkthrough.link")}</Link>
         </p>
@@ -221,8 +262,9 @@ export default function HelpPage() {
           {t("help.source.catalog")}{" "}
           <Link to="/desk" style={{ color: "var(--accent)", fontWeight: 600 }}>
             {t("help.source.deskParams")}
-          </Link>{" "}
-          · API <code className="inline-code">GET /api/metrics</code>
+          </Link>
+          {" · "}
+          <Link to="/methodology">{t("help.source.methodology")}</Link>
         </p>
       </div>
 

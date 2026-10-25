@@ -327,8 +327,8 @@ def ensure_builtin_orgs() -> None:
 
 
 def assert_org_access(auth: Dict[str, Any], org_id: str) -> None:
-    """A desk key stays on its own organisation. A platform operator may cross desks."""
-    if auth.get("platform_admin_role"):
+    """A desk stays on its own organisation. Platform super may open another desk."""
+    if str(auth.get("platform_admin_role") or "") == "super":
         return
     caller = str(auth.get("org_id") or auth.get("org") or "")
     if caller != org_id:

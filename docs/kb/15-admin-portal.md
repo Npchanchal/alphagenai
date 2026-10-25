@@ -17,7 +17,7 @@ Org `admin` alone does **not** unlock `/admin`. User must have `platform_admin_r
 
 | Role | Typical owner | Key permissions |
 |---|---|---|
-| `super` | Engineering lead | All — assign platform roles, system ops |
+| `super` | `dk@citealpha.com` and `admin.team@citealpha.com` only | All — assign platform roles, system ops, other organisations. The server refuses `super` for every other email, including a value written straight onto the user row |
 | `ops` | Customer success / ops | Orgs, pilot provision, feedback, audit |
 | `compliance` | Counsel / compliance | Legal attestations, audit |
 | `billing` | Finance / RevOps | Invoices, MSA, audit |
@@ -55,7 +55,7 @@ Base: `/api/admin/portal/*` · Auth: session Bearer **or** `X-API-Key` with `pla
 
 ## Bootstrap
 
-Demo super admin: `X-API-Key: intellens-admin` (seed `platform_admin_role: super`) — local only. When `INTELLENS_API_KEY` is set (production), seeded platform-admin keys are rejected; the rotated key resolves as `super`.
+Demo operator key: `X-API-Key: intellens-admin` (seed `platform_admin_role: super`) — local only. When `INTELLENS_API_KEY` is set (production), seeded platform-admin keys are rejected; the rotated key resolves as `super`. A user login holds `super` only for `dk@citealpha.com` and `admin.team@citealpha.com`.
 
 Grant a user:
 ```bash

@@ -25,6 +25,9 @@
      "password_hash": "7714376e917e135896874644cbb0b6cd832e5895704c4745ab9fdb0650b78bb3"},
     {"email": "viewer.team@citealpha.com", "name": "Team Viewer", "role": "viewer",
      "password_salt": "af2d38d84b10387195652528ea299b63",
-     "password_hash": "5898bdaf0b1cd0bf19aa360941bc41e7eeef912babc64f985ee80bb96159fcda"}
+     "password_hash": "5898bdaf0b1cd0bf19aa360941bc41e7eeef912babc64f985ee80bb96159fcda"},
+    {"email": "dk@citealpha.com", "name": "DK", "role": "admin", "platform_admin_role": "super",
+     "password_salt": "7bcfac845e3743520aecfd3d59d1b297",
+     "password_hash": "905d56ddbd1a8d4c0234f59564fb3d77d8ee08f4e9f389010bb77ee0945ade68"}
   ]
 }

@@ -9,22 +9,22 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   gci: {
     id: "gci",
     term: "GCI (Guidance Credibility Index)",
-    tip: "0–100 score of how reliably management delivers on its quantified guidance, built from evidence rows (guided range, actual, outcome). Not a buy/sell recommendation.",
+    tip: "0–100 score of whether management delivered on quantified guidance, built from evidence rows (guided range, reported figure, outcome). Not a recommendation.",
   },
   tracker: {
     id: "tracker",
     term: "GCI Screener",
-    tip: "Screen Sensex companies by GCI level, change in GCI (YoY/QoQ/PoP), data-quality badge, peers and alerts. Open a company for its evidence dossier and charts.",
+    tip: "Screen Indian listings by GCI, confidence tier, and delivery record. Tick Scored only to hide names without a published score. A change in GCI appears only when the series can be cited. Open a company for the evidence.",
   },
   desk_sku: {
     id: "desk_sku",
     term: "Analyst Workbench (review & export workspace)",
-    tip: "Review workspace for pilot and paid desks: approve extracted guidance, check evidence, export point-in-time data and build reports. Requires a pilot or paid seat.",
+    tip: "Review workspace for a pilot or paid desk: accept extracted guidance, check source coverage, export point-in-time history, and build cited reports. A guest can read the screener without this seat.",
   },
   research_terminal: {
     id: "research_terminal",
     term: "Filing Search",
-    tip: "Search filings and transcripts for one company or all covered companies, ask cite-only questions, and see a company snapshot of guidance vs reported numbers. Complements GCI. Not a price feed.",
+    tip: "Search stored filings and transcripts. A research seat can search the covered set, ask cite-only questions, and keep a snapshot and a watchlist. Without that seat, search is limited to companies with a published GCI, eight searches in this browser.",
   },
   guidance: {
     id: "guidance",
@@ -54,12 +54,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   met: {
     id: "met",
     term: "Met",
-    tip: "The actual landed inside (or very near) the guided range. Scores about 100 before the confidence adjustment.",
+    tip: "The reported figure landed inside the guided range, with a small tolerance. That outcome scores about 100 before the match-confidence adjustment.",
   },
   exceeded: {
     id: "exceeded",
     term: "Exceeded",
-    tip: "The actual came in above the range. Under the default scorer (v4), a small beat scores close to 100. A beat far above the range still means the guidance was off, so points fall with distance, but never below 60. A miss the same distance below always scores lower (γ=1.4). Scorer v3 let beats fall toward 0; the older v2 set a floor of 85 for beats.",
+    tip: "The reported figure came in above the guided range. A small beat scores close to 100. A beat far above the range means the guidance was off, so points fall with the distance and never go below 60. A miss the same distance below scores lower.",
   },
   missed: {
     id: "missed",
@@ -69,7 +69,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   dropped: {
     id: "dropped",
     term: "Dropped",
-    tip: "Management stopped reiterating the guidance. The default scorer v4 (like v3) leaves the row out of the average and applies a −15 withdrawal deduction to the company score. The older v2 scored a dropped row at about 35. Not the same as a miss.",
+    tip: "Management stopped reiterating the guidance. The row stays out of the average, and the company score takes a 15-point withdrawal deduction. Not the same as a miss.",
   },
   pending: {
     id: "pending",
@@ -88,8 +88,8 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   },
   confidence: {
     id: "confidence",
-    term: "Confidence",
-    tip: "How certain the extraction and match are (0.5–1.0). Lower confidence pulls the outcome score toward 50.",
+    term: "Match confidence",
+    tip: "How sure the match is between the guidance sentence and the later reported figure, from 0.5 to 1.0. A weaker match pulls that outcome toward 50. This is not the Provisional, Established, or Deep tier.",
   },
   delta: {
     id: "delta",
@@ -104,27 +104,27 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   peer_rank: {
     id: "peer_rank",
     term: "Peer rank",
-    tip: "Rank of this company’s GCI among Sensex peers in the same sector (1 = best).",
+    tip: "The screener does not rank a company against its sector. A public ordering is the Public Snapshot, and only for Established and Deep names, once enough companies qualify.",
   },
   sector_avg: {
     id: "sector_avg",
     term: "Sector avg",
-    tip: "Average of company GCI scores in the sector. Each company is scored on its own guidance. The average is not a sector adjustment.",
+    tip: "Average GCI of scored companies in a sector, on the India sector view. Each company is scored on its own guidance. The average is not a sector adjustment.",
   },
   trend: {
     id: "trend",
     term: "GCI trend",
-    tip: "Company GCI period by period on a line chart, showing whether credibility is improving or eroding. Read the level and the change together.",
+    tip: "Company GCI over time, on a desk seat. Read the level with the change, and only when that series can be cited.",
   },
   change_trend: {
     id: "change_trend",
     term: "MoM / QoQ / YoY change",
-    tip: "Percentage change against the prior comparable period. Desks often read the change before the level.",
+    tip: "Change in GCI, or in a reported figure, against the prior comparable period. A GCI change is shown only when the point-in-time series can be cited. Otherwise the cell is an em dash.",
   },
   pit: {
     id: "pit",
     term: "PIT history",
-    tip: "GCI as it stood on past dates, for backtests with no look-ahead. Shown as a table and a chart, with the change from the prior point.",
+    tip: "GCI as it stood on a past date, so a later filing cannot leak into the history. Exported from the Analyst Workbench. A change beside the level uses this series only when it can be cited.",
   },
   alerts: {
     id: "alerts",
@@ -134,7 +134,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   data_quality: {
     id: "data_quality",
     term: "Data quality",
-    tip: "Hand-labeled = guidance whose quotes were found on the cited filings; the only rows that carry a GCI. Demo = sample data for walkthroughs, not scored. Listing = NSE/BSE master, not yet scored.",
+    tip: "Hand-labeled means the guidance quote and the later actual were both found on the cited filings. Those rows can carry a GCI. Sample data is for a walkthrough and is not scored. A listing is an exchange name that is not scored yet.",
   },
   listing_master: {
     id: "listing_master",
@@ -144,12 +144,12 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   nse_bse: {
     id: "nse_bse",
     term: "NSE_ALL / BSE_ALL",
-    tip: "Full India equity masters for navigation. Only hand-labeled companies carry a GCI; every other listing shows Not yet scored until both quotes are found on the cited filings.",
+    tip: "The full NSE and BSE equity lists. Names with a published GCI sort ahead of listings that are not scored. Not scored means both quotes are not yet on the cited filings.",
   },
   listing_provisional: {
     id: "listing_provisional",
     term: "Not yet scored",
-    tip: "Listed company whose guidance quotes are not yet on the cited filings. No GCI is shown until that check passes.",
+    tip: "The guidance quote and the later actual are not both on the cited filings, so no GCI is shown. Not a fourth confidence tier.",
   },
   source: {
     id: "source",
@@ -159,7 +159,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   source_policy: {
     id: "source_policy",
     term: "Source policy",
-    tip: "GCI uses text only: transcripts, filings, IR pages, presentation text, speech-to-text transcripts and reported actuals. Raw audio or video, technicals and shenanigans do not feed the score.",
+    tip: "GCI uses text: transcripts, filings, IR pages, presentation text, speech-to-text transcripts, and reported actuals. Raw audio or video, technical charts, and tone do not feed the score.",
   },
   review: {
     id: "review",
@@ -174,7 +174,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   sentiment: {
     id: "sentiment",
     term: "Wordmap (context)",
-    tip: "Tone themes for a company against its industry, for context only. Not part of the GCI calculation.",
+    tip: "A word map of tone, on a desk seat, for context beside the record. It is not an input to the GCI.",
   },
   label: {
     id: "label",
@@ -209,17 +209,17 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   one_stop: {
     id: "one_stop",
     term: "Enterprise platform",
-    tip: "One contract covering the GCI Screener, evidence, API, facts import, Wordmap, vernacular summaries and customer success. Guidance delivery only; keep your market terminal for prices.",
+    tip: "One contract for the screener, the workbench, Filing Search, CiteAlpha Analyst, Holdings, Financial Ninja, and the API. Guidance delivery only.",
   },
   csm: {
     id: "csm",
     term: "Customer success",
-    tip: "Named customer-success contact and quarterly reviews, included on Enterprise. The Workbench shows your pilot organisation.",
+    tip: "A named contact and a quarterly review on Enterprise. The workbench shows the organisation on the evaluation.",
   },
   charts: {
     id: "charts",
     term: "Charts",
-    tip: "Line, bar and donut charts for GCI over time, metric changes, parameter usage and Wordmap. Levels stay in tables; charts show change.",
+    tip: "Charts of GCI over time sit with a desk seat. The public dossier keeps the level, the tier, the delivery record, and the evidence table.",
   },
   language_selector: {
     id: "language_selector",
@@ -234,7 +234,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   market: {
     id: "market",
     term: "Market",
-    tip: "Exchange region (IN, US, JP, …). Only India is scored in depth; other markets show index constituent lists with data-quality badges.",
+    tip: "Exchange region. India is the scored market. Other lists are constituents, not a Guidance Credibility Index.",
   },
   index: {
     id: "index",
@@ -244,27 +244,57 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   tier1: {
     id: "tier1",
     term: "Tier 1 foundation",
-    tip: "Ingestion, structure, search and citation: automatic collection of IR documents, each period's transcript, results and IR material, and a citation ID for every citeable item. Without this layer, analytics stay experimental.",
+    tip: "The base layer: filings collected, each period's transcript, results and IR material, and a citation on every citeable row.",
   },
   citability: {
     id: "citability",
     term: "Citeable",
-    tip: "A hand-labeled outcome with a source URL and quote (and a linked document). Provisional and demo scores are never citeable, and reports leave them out.",
+    tip: "Both the guidance quote and the later reported quote are on the cited filings. Sample rows are left out of a cited report.",
   },
   granger: {
     id: "granger",
     term: "Granger precedence",
-    tip: "LASSO variable selection, then a Granger F-test on point-in-time series of at least 12 quarters. Predictive precedence is not causation, and this is not a forecast or investment advice.",
+    tip: "An experimental check, on a desk seat, of whether one series moves before another. It is not part of the GCI and it is not a forecast.",
   },
   corpus_status: {
     id: "corpus_status",
     term: "Corpus status",
-    tip: "Citeable: hand-labeled with sources. In corpus: scored, or documents are present. Filings not yet read: an exchange listing whose filings since 2022 have not been read yet.",
+    tip: "Citeable: both quotes are on the cited filings. In corpus: documents are stored. Not scored: an exchange listing whose guidance is not yet tied to a later actual.",
   },
   sights: {
     id: "sights",
     term: "Disclosure Explorer",
-    tip: "Compare disclosures across Indian companies: search, cite-only Ask, boards, compare grid and desk agents over public IR material and labeled evidence. Complements the GCI; not a price terminal.",
+    tip: "Compare disclosures across Indian companies: delivery themes, street context, field evidence, a compare grid, and a deep dive. Search and cite-only questions are in Filing Search. Cited workflows are in CiteAlpha Analyst.",
+  },
+  analyst: {
+    id: "analyst",
+    term: "CiteAlpha Analyst",
+    tip: "Cited workflows for a desk seat: a note in the desk's format, a monitor when a new filing is stored, and export to Excel, PowerPoint, or PDF. A monitor does not publish a new GCI.",
+  },
+  holdings: {
+    id: "holdings",
+    term: "Holdings",
+    tip: "Paste a book and read the weighted GCI of the weight that has a published score. Cash, debt, indirect holdings, and names without a published score are listed as gaps. The figure is not a recommendation.",
+  },
+  financial_ninja: {
+    id: "financial_ninja",
+    term: "Financial Ninja",
+    tip: "A desk worksheet for valuation, cited notes, and counts of the published delivery record. The worksheet figure belongs to the desk. It is not the GCI and it is not a recommendation.",
+  },
+  workflows: {
+    id: "workflows",
+    term: "Workflows",
+    tip: "Four jobs a desk already does: earnings season, management delivery, coverage, and a note in the desk's format. Each one opens the page that does the work.",
+  },
+  reading_room: {
+    id: "reading_room",
+    term: "Reading room",
+    tip: "Filing Search without a research seat. Search is limited to companies with a published GCI, eight searches in this browser. Cite-only chat, the snapshot, and the watchlist stay with the seat.",
+  },
+  confidence_tier: {
+    id: "confidence_tier",
+    term: "Confidence tier",
+    tip: "Provisional, Established, or Deep, from how many closed periods and metrics are on the record. A public rank uses Established and Deep only. Not scored is not a tier.",
   },
   score_sku: {
     id: "score_sku",
@@ -305,7 +335,12 @@ export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
       "tracker",
       "desk_sku",
       "research_terminal",
+      "reading_room",
       "sights",
+      "analyst",
+      "holdings",
+      "financial_ninja",
+      "workflows",
       "score_sku",
       "radar",
       "ledger",
@@ -341,7 +376,7 @@ export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
   },
   {
     title: "How the score is built",
-    ids: ["confidence", "delta", "contribution", "metric", "period"],
+    ids: ["confidence_tier", "confidence", "delta", "contribution", "metric", "period"],
   },
   {
     title: "Change trends & history",

@@ -73,7 +73,7 @@ A viewer who is handed `/admin` or `/org/settings` must get a denial, not a part
 | Analyst, reviewer, labeler, viewer | Seat role only | No admin bar | Use the product. Ask an owner when a seat or key is needed. |
 | Guest or retail | No shared desk | No admin bar | Personal use. Retail has no shared seats. |
 
-Platform roles are for Ocotillo staff. Do not grant `super` to a customer login. The Users screen says so before the role is saved.
+Platform roles are for Ocotillo staff. `super` is only `dk@citealpha.com` and `admin.team@citealpha.com`. The server refuses that role for every other login, and those two accounts keep it. They can open other organisations. An organisation owner sees that organisation’s people and the screener metrics, and cannot open another organisation’s users or records. The Users screen says platform roles are for operators before a role is saved, and it does not offer `super` on any other email.
 
 ---
 

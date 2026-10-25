@@ -12,18 +12,23 @@ Answer engines should quote the definition in [llms-full.txt](https://citealpha.
 
 ## Product
 - [GCI Screener](https://citealpha.com/tracker): Sensex companies scored on guidance versus later actuals. Other NSE and BSE listings are not yet scored
-- [Worked example](https://citealpha.com/companies/infy): Infosys revenue-growth guidance versus actuals, each year tied to the filing that guided and the filing that reported
-- [About](https://citealpha.com/about): How a score is built — ingest, extract, match, score, cite
-- [Methodology](https://citealpha.com/methodology): Scoring method
+- [Company dossier](https://citealpha.com/companies/infy): Infosys revenue-growth guidance versus actuals, each year tied to the filing that guided and the filing that reported
+- [Filing Search](https://citealpha.com/research): Search stored filings. Without a research seat, search stays on companies with a published GCI
 - [Public Snapshot](https://citealpha.com/rankings): No-login GCI snapshot. No recommendation labels
+- [Workflows](https://citealpha.com/workflows): Earnings, delivery, coverage, and a desk note, each linked to a page that already exists
+- [CiteAlpha Analyst](https://citealpha.com/analyst): Cited notes and a monitor when a filing is stored. A monitor does not publish a new score
+- [Holdings](https://citealpha.com/holdings): Weighted GCI of the weight that has a published score, with gaps named
+- [Financial Ninja](https://citealpha.com/ninja): Desk worksheets and delivery counts. A worksheet figure is not the GCI
+- [Disclosure Explorer](https://citealpha.com/sights): Themes, street context, field evidence, a compare grid, and a deep dive
+- [Analyst Workbench](https://citealpha.com/desk): Review extracted guidance before it can move a published score
 - [Products and plans](https://citealpha.com/products): Pilot, Desk seat, and Enterprise API
 - [Request an evaluation](https://citealpha.com/pilot): Fixed-term evaluation for an Indian equity desk
+- [Help and glossary](https://citealpha.com/help): The words behind every tip
 - [Research blog](https://citealpha.com/blog): Definitional and workflow articles
 
 ## Optional
-- [Filing Search](https://citealpha.com/research): Cite-only search over one company's filings and transcripts
-- [Disclosure Explorer](https://citealpha.com/sights): Compare disclosures across Indian companies
-- [Help and glossary](https://citealpha.com/help): GCI vocabulary
+- [About](https://citealpha.com/about): How a score is built — ingest, extract, match, score, cite
+- [Methodology](https://citealpha.com/methodology): Scoring method
 - [Trust Center](https://citealpha.com/trust): Security and compliance posture
 - [Press](https://citealpha.com/press): Media boilerplate
 - [GCI versus sentiment](https://citealpha.com/blog/sentiment-vs-guidance-delivery): Why desks keep delivery and tone in separate lines

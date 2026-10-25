@@ -29,14 +29,14 @@ def _email(role: str) -> str:
 
 def test_creates_every_role_and_password_works():
     res = ensure_protected_users()
-    assert len(res["created"]) == len(load_manifest()["users"]) == 6
+    assert len(res["created"]) == len(load_manifest()["users"]) == 7
     for spec in load_manifest()["users"]:
         r = _login(spec["email"])
         assert r.status_code == 200, spec["email"]
         assert r.json()["user"]["role"] == spec["role"]
         assert r.json()["user"]["org_id"] == ORG
     org = get_data()["orgs"][ORG]
-    assert org["seats_used"] == 6 and org["plan"] == "desk"
+    assert org["seats_used"] == 7 and org["plan"] == "desk"
 
 
 def test_roles_get_the_features_this_work_needs():
@@ -64,7 +64,7 @@ def test_idempotent():
     ensure_protected_users()
     again = ensure_protected_users()
     assert again["created"] == [] and again["repaired"] == []
-    assert sum(1 for u in session_auth._load_users()["users"] if u.get("org_id") == ORG) == 6
+    assert sum(1 for u in session_auth._load_users()["users"] if u.get("org_id") == ORG) == 7
 
 
 def test_repairs_deactivated_or_changed_account_but_keeps_changed_password():
@@ -125,3 +125,55 @@ def test_does_not_hijack_email_registered_elsewhere():
     res = ensure_protected_users()
     assert res["skipped"] == [_email("labeler")]
     assert _login(_email("labeler"), "someone-elses-pw").json()["user"]["org_id"] != ORG
+
+
+def test_super_stays_on_operator_emails_only():
+    ensure_protected_users()
+    by_email = {u["email"]: u for u in session_auth._load_users()["users"]}
+    assert by_email["dk@citealpha.com"]["platform_admin_role"] == "super"
+    assert by_email["admin.team@citealpha.com"]["platform_admin_role"] == "super"
+    assert by_email["owner.team@citealpha.com"].get("platform_admin_role") != "super"
+
+    viewer = by_email["viewer.team@citealpha.com"]
+    viewer["platform_admin_role"] = "super"
+    session_auth._save_users()
+    assert "viewer.team@citealpha.com" in ensure_protected_users()["repaired"]
+    assert session_auth._find_by_email("viewer.team@citealpha.com").get("platform_admin_role") != "super"
+    assert session_auth._find_by_email("dk@citealpha.com")["platform_admin_role"] == "super"
+
+    owner = _login("owner.team@citealpha.com").json()
+    token = owner["token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    own = client.get(f"/api/orgs/{ORG}/members", headers=headers)
+    assert own.status_code == 200
+    assert all(m["org_id"] == ORG for m in own.json()["members"])
+    other = client.post(
+        "/api/auth/register",
+        json={
+            "email": "other.owner@desk.test",
+            "password": "secret99pass!",
+            "name": "Other",
+            "accept_terms": True,
+            "account_type": "b2b",
+            "org_name": "Other Desk",
+        },
+    ).json()
+    denied_members = client.get(f"/api/orgs/{other['user']['org_id']}/members", headers=headers)
+    assert denied_members.status_code == 403
+    denied_portal = client.get("/api/admin/portal/users", headers=headers)
+    assert denied_portal.status_code == 403
+    screener = client.get("/api/companies?limit=5", headers=headers)
+    assert screener.status_code == 200 and screener.json()
+    row = screener.json()[0]
+    for key in ("gci_score", "data_quality", "confidence_tier", "closed_periods", "metrics_scored", "as_of"):
+        assert key in row
+
+    operator = _login("admin.team@citealpha.com").json()
+    op_headers = {"Authorization": f"Bearer {operator['token']}"}
+    assert operator["user"]["platform_admin_role"] == "super"
+    seen = client.get(f"/api/orgs/{other['user']['org_id']}/members", headers=op_headers)
+    assert seen.status_code == 200
+    assert seen.json()["members"][0]["email"] == "other.owner@desk.test"
+    portal = client.get("/api/admin/portal/users", headers=op_headers)
+    assert portal.status_code == 200
+    assert "other.owner@desk.test" in {u.get("email") for u in portal.json()["users"]}

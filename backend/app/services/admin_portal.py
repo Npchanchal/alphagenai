@@ -16,6 +16,12 @@ from app.services.auth import lookup_api_key
 
 PLATFORM_ADMIN_ROLES = frozenset({"super", "ops", "compliance", "billing", "support"})
 
+# Platform super is these operator logins. No other email can hold it.
+SUPER_EMAILS = frozenset({
+    "dk@citealpha.com",
+    "admin.team@citealpha.com",
+})
+
 ROLE_PERMISSIONS: Dict[str, Set[str]] = {
     "super": {
         "portal.access",
@@ -77,12 +83,47 @@ def permissions_for_role(role: Optional[str]) -> Set[str]:
     return set(ROLE_PERMISSIONS.get(r, set()))
 
 
+def effective_platform_role(
+    email: Optional[str],
+    role: Optional[str],
+    *,
+    api_key: bool = False,
+) -> Optional[str]:
+    """Super is an operator login. A stored super on any other email does not count."""
+    if not role:
+        return None
+    cleaned = str(role).strip().lower()
+    if cleaned == "super" and not api_key:
+        if str(email or "").strip().lower() not in SUPER_EMAILS:
+            return None
+    return cleaned
+
+
+def enforce_super_roster(users: List[Dict[str, Any]]) -> List[str]:
+    """Give super to the operator emails and take it off every other login."""
+    touched: List[str] = []
+    for user in users:
+        email = str(user.get("email") or "").strip().lower()
+        stored = user.get("platform_admin_role")
+        changed = False
+        if email in SUPER_EMAILS:
+            if stored != "super":
+                user["platform_admin_role"] = "super"
+                changed = True
+        elif stored == "super":
+            user.pop("platform_admin_role", None)
+            changed = True
+        if changed:
+            touched.append(email or str(user.get("id") or ""))
+    return touched
+
+
 def has_permission(actor: Dict[str, Any], perm: str) -> bool:
     return perm in set(actor.get("permissions") or [])
 
 
 def _actor_from_user(user: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    role = user.get("platform_admin_role")
+    role = effective_platform_role(user.get("email"), user.get("platform_admin_role"))
     if not role or role not in PLATFORM_ADMIN_ROLES:
         return None
     perms = sorted(permissions_for_role(str(role)))
@@ -99,7 +140,7 @@ def _actor_from_user(user: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 
 def _actor_from_api_key(key_row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    role = key_row.get("platform_admin_role")
+    role = effective_platform_role(None, key_row.get("platform_admin_role"), api_key=True)
     if not role or role not in PLATFORM_ADMIN_ROLES:
         return None
     perms = sorted(permissions_for_role(str(role)))
@@ -217,7 +258,9 @@ def _seat_holders(org_id: str) -> List[Dict[str, Any]]:
                 "role": user.get("role"),
                 "active": user.get("active", True) is not False,
                 "protected": bool(user.get("protected")),
-                "platform_admin_role": user.get("platform_admin_role"),
+                "platform_admin_role": effective_platform_role(
+                    user.get("email"), user.get("platform_admin_role")
+                ),
             }
         )
     return sorted(rows, key=lambda r: (str(r.get("email") or ""), str(r.get("id") or "")))
@@ -262,7 +305,9 @@ def list_users() -> List[Dict[str, Any]]:
                 "account_type": u.get("account_type"),
                 "org_id": u.get("org_id"),
                 "role": u.get("role"),
-                "platform_admin_role": u.get("platform_admin_role"),
+                "platform_admin_role": effective_platform_role(
+                    u.get("email"), u.get("platform_admin_role")
+                ),
                 "email_verified": bool(u.get("email_verified")),
                 "active": u.get("active", True) is not False,
                 "protected": bool(u.get("protected")),
@@ -288,6 +333,14 @@ def assign_platform_admin_role(
     user = session_auth._find_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    email = str(user.get("email") or "").strip().lower()
+    if email in SUPER_EMAILS and role != "super":
+        raise HTTPException(status_code=400, detail="This operator account keeps platform super")
+    if role == "super" and email not in SUPER_EMAILS:
+        raise HTTPException(
+            status_code=400,
+            detail="Platform super is limited to the CiteAlpha operator accounts",
+        )
     if role:
         user["platform_admin_role"] = role
     else:

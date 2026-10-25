@@ -30,6 +30,18 @@
     "sitemap": { "changefreq": "weekly", "priority": "0.8" }
   },
   {
+    "path": "/holdings",
+    "title": "Holdings look-through — published GCI on a book — CiteAlpha",
+    "description": "Weight a holdings file by published Guidance Credibility Index scores. Lines without a published score are named, not filled in. Not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.6" }
+  },
+  {
+    "path": "/ninja",
+    "title": "Financial Ninja — desk worksheets beside the GCI — CiteAlpha",
+    "description": "Valuation worksheets, cited layer notes, and counts of the published delivery record. The worksheet figure is the desk's, not the Guidance Credibility Index. Not investment advice.",
+    "sitemap": { "changefreq": "monthly", "priority": "0.55" }
+  },
+  {
     "path": "/sights",
     "title": "Disclosure Explorer: Compare Indian Company Disclosures — CiteAlpha",
     "description": "Delivery themes, street context, field evidence, Compare Grid and deep dives across Indian companies' public disclosures. Not investment advice.",
@@ -80,7 +92,7 @@
   {
     "path": "/products",
     "title": "Products and plans: Screener, Analyst, Filing Search, API — CiteAlpha",
-    "description": "GCI Screener, CiteAlpha Analyst, Filing Search, Disclosure Explorer and API for Indian listed companies, with Pilot, Desk seat and Enterprise API plans. Not investment advice.",
+    "description": "GCI Screener, CiteAlpha Analyst, Filing Search, Disclosure Explorer, Holdings, Financial Ninja, and the API for Indian listed companies. Pilot, Desk seat, and Enterprise API. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.8" }
   },
   {
@@ -146,7 +158,7 @@
   {
     "path": "/help",
     "title": "Help & Glossary for GCI Workflows — CiteAlpha",
-    "description": "Start here, guided tours, glossary, and source policy for the GCI Screener, Analyst Workbench, Filing Search, and Disclosure Explorer. Factual research; not investment advice.",
+    "description": "Start here, guided tours, glossary, and source policy for the GCI Screener, Filing Search, CiteAlpha Analyst, Holdings, Financial Ninja, and Disclosure Explorer. Factual research; not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.6" }
   },
   {

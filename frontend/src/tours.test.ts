@@ -9,6 +9,10 @@ describe("site tours", () => {
       "desk",
       "research",
       "sights",
+      "analyst",
+      "holdings",
+      "ninja",
+      "workflows",
       "about_help",
     ]);
     expect(TOUR_STORAGE_KEY).toBe("citealpha.tours.seen.v2");
@@ -31,5 +35,7 @@ describe("site tours", () => {
     expect(getTour("desk")?.steps.some((s) => s.search?.includes("pit"))).toBe(true);
     expect(getTour("sights")?.startRoute).toBe("/sights");
     expect(getTour("about_help")?.steps.some((s) => s.route === "/trust")).toBe(true);
+    expect(getTour("analyst")?.startRoute).toBe("/analyst");
+    expect(getTour("workflows")?.group).toBe("learn");
   });
 });

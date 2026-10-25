@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Skeleton from "../components/Skeleton";
+import { PLATFORM_SUPER_EMAILS } from "../lib/platformRole";
 import {
   fetchAdminPortalAudit,
   fetchAdminPortalBilling,
@@ -661,7 +662,10 @@ export default function AdminPortalPage() {
                               }}
                             >
                               <option value="">—</option>
-                              {PLATFORM_ROLES.map((r) => (
+                              {(PLATFORM_SUPER_EMAILS.has((u.email || "").trim().toLowerCase())
+                                ? PLATFORM_ROLES
+                                : PLATFORM_ROLES.filter((r) => r !== "super")
+                              ).map((r) => (
                                 <option key={r} value={r}>
                                   {r}
                                 </option>

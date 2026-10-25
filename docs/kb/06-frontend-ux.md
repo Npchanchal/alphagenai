@@ -5,10 +5,10 @@
 | Page | File | Job |
 |---|---|---|
 | GCI Screener (`/tracker`) | `HomePage.tsx` | Universe table first; search/sort; alerts rail |
-| Dossier | `CompanyDetailPage.tsx` | **Evidence-first**; sticky TOC; toast on review |
+| Dossier | `CompanyDetailPage.tsx` | **Evidence-first**; sticky TOC; toast on review. The evidence table defaults to metric, then latest period, with period and metric filters. Promise threads are a guidance / revision / actual heatmap, oldest year on the left. Period documents and the period matrix stay latest period first |
 | Analyst Workbench (`/desk`) | `DeskPage.tsx` + `DeskConsole.tsx` | Sticky company + `?tab=` · **Console** = multi-pane GCI terminal |
 | Filing Search (`/research`) | `ResearchPage.tsx` | Modes via `?tab=`; cite-only chat |
-| Package / Help | `PackagePage`, `HelpPage` | Commercial + operator hub (tours, glossary, source policy) |
+| Package / Help | `PackagePage`, `HelpPage` | Tours, glossary, source policy, and captures of the screener, search, evidence, and period documents |
 | About / Trust | `AboutPage`, `TrustPage` | Company story · procurement posture |
 | Nav | `NavMenu.tsx` | Jobs, left to right: GCI Screener · Research (Filing Search, CiteAlpha Analyst, Public Snapshot) · Workspace (Analyst Workbench, Disclosure Explorer, Financial Ninja, Holdings) · Pricing · Learn (Workflows, methodology, changelog, blog, help, FAQ, about, Trust, API, status, press). Billing stays in the account menu. An admin bar (`AdminMenuBar`) sits under this nav only for an organisation owner, organisation admin, or platform role. |
 | Blog | `BlogIndexPage`, `BlogPostPage` | SEO research articles (`/blog`) |

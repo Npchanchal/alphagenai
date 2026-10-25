@@ -6,7 +6,39 @@ from app.services.changes import (
     enrich_value_series,
     infer_horizon,
     pct_change,
+    period_rank,
+    sort_document_listing,
+    sort_evidence_listing,
 )
+
+
+def test_evidence_listing_is_latest_first():
+    assert period_rank("FY26") > period_rank("Q1FY26") > period_rank("FY22")
+    assert period_rank("not-a-period") is None
+    rows = sort_evidence_listing(
+        [
+            {"period": "FY22", "metric": "revenue", "as_of": "2022-04-13"},
+            {"period": "FY26", "metric": "margin", "as_of": "2026-04-01"},
+            {"period": "FY26", "metric": "revenue", "as_of": "2026-04-16"},
+            {"period": "FY26", "metric": "revenue", "as_of": "2026-01-15"},
+            {"period": "n/a", "metric": "revenue", "as_of": "2026-04-16"},
+        ]
+    )
+    assert [(r["period"], r["metric"], r["as_of"]) for r in rows] == [
+        ("FY26", "revenue", "2026-04-16"),
+        ("FY26", "margin", "2026-04-01"),
+        ("FY26", "revenue", "2026-01-15"),
+        ("FY22", "revenue", "2022-04-13"),
+        ("n/a", "revenue", "2026-04-16"),
+    ]
+    docs = sort_document_listing(
+        [
+            {"period": "FY24", "date": "2024-04-01"},
+            {"period": "FY26", "date": ""},
+            {"period": "FY22", "date": "2026-05-01"},
+        ]
+    )
+    assert [d["date"] or d["period"] for d in docs] == ["2026-05-01", "2024-04-01", "FY26"]
 
 
 def test_pct_change():

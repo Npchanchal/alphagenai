@@ -233,6 +233,10 @@ class GuidanceRevision(BaseModel):
 class OutcomeView(BaseModel):
     period: str
     metric: str
+    outcome_index: Optional[int] = Field(
+        default=None,
+        description="Position in the stored outcome list. Review writes use this, not the display order.",
+    )
     guided_value: float
     guided_low: Optional[float] = None
     guided_high: Optional[float] = None

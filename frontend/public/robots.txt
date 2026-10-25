@@ -1,6 +1,8 @@
 # CiteAlpha — https://citealpha.com
 # Public pages may be indexed and quoted.
 # Sign-in, billing, account, and admin pages are noindex in their HTML.
+# /holdings, /ninja, /analyst, and /desk are in the sitemap. Their HTML is the page,
+# including the seat explanation a visitor sees. Do not Disallow them.
 # Do not Disallow those URLs: a robots block stops Google from seeing noindex
 # and Search Console reports them as "Blocked by robots.txt".
 # search = search indexes. ai-input = live answers grounded on these pages. ai-train = model training.

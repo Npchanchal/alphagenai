@@ -24,56 +24,63 @@ mkdirSync(OUT, { recursive: true });
 mkdirSync(PUBLIC_OUT, { recursive: true });
 
 async function shot(page, name, locator, pad = 8) {
-  await capture(page, name, locator, pad);
-  copyFileSync(join(OUT, `${name}.png`), join(PUBLIC_OUT, `${name}.png`));
+  const saved = await capture(page, name, locator, pad);
+  if (saved) copyFileSync(join(OUT, `${name}.png`), join(PUBLIC_OUT, `${name}.png`));
 }
 
 async function capture(page, name, locator, pad) {
   const path = join(OUT, `${name}.png`);
   if (locator) {
     const el = typeof locator === "string" ? page.locator(locator).first() : locator;
-    await el.waitFor({ state: "attached", timeout: 20000 }).catch(() => {});
-    if (await el.count()) {
-      await el.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(350);
-      const box = await el.evaluate((node) => {
-        const r = node.getBoundingClientRect();
-        return { x: r.left + window.scrollX, y: r.top + window.scrollY, width: r.width, height: r.height };
-      });
-      if (box && box.width > 0 && box.height > 0) {
-        // Sticky/fixed chrome would otherwise overlay the panel in a full-page clip.
-        await el.evaluate((target) => {
-          for (const n of document.querySelectorAll("body *")) {
-            if (target.contains(n) || n.contains(target)) continue;
-            const pos = getComputedStyle(n).position;
-            if (pos === "sticky" || pos === "fixed") n.setAttribute("data-shot-hidden", n.style.visibility || "-");
-          }
-          for (const n of document.querySelectorAll("[data-shot-hidden]")) n.style.visibility = "hidden";
-        });
-        await page.screenshot({
-          path,
-          fullPage: true,
-          clip: {
-            x: Math.max(0, box.x - pad),
-            y: Math.max(0, box.y - pad),
-            width: Math.min(1400, box.width + pad * 2),
-            height: Math.min(900, Math.max(box.height + pad * 2, 200)),
-          },
-        });
-        await page.evaluate(() => {
-          for (const n of document.querySelectorAll("[data-shot-hidden]")) {
-            const prev = n.getAttribute("data-shot-hidden");
-            n.style.visibility = prev === "-" ? "" : prev;
-            n.removeAttribute("data-shot-hidden");
-          }
-        });
-        console.log("saved", name);
-        return;
-      }
+    const found = await el
+      .waitFor({ state: "visible", timeout: 8000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!found) {
+      console.log("skip", name, "—", locator, "not on the page");
+      return false;
     }
+    await el.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(350);
+    const box = await el.evaluate((node) => {
+      const r = node.getBoundingClientRect();
+      return { x: r.left + window.scrollX, y: r.top + window.scrollY, width: r.width, height: r.height };
+    });
+    if (box && box.width > 0 && box.height > 0) {
+      await el.evaluate((target) => {
+        for (const n of document.querySelectorAll("body *")) {
+          if (target.contains(n) || n.contains(target)) continue;
+          const pos = getComputedStyle(n).position;
+          if (pos === "sticky" || pos === "fixed") n.setAttribute("data-shot-hidden", n.style.visibility || "-");
+        }
+        for (const n of document.querySelectorAll("[data-shot-hidden]")) n.style.visibility = "hidden";
+      });
+      await page.screenshot({
+        path,
+        fullPage: true,
+        clip: {
+          x: Math.max(0, box.x - pad),
+          y: Math.max(0, box.y - pad),
+          width: Math.min(1400, box.width + pad * 2),
+          height: Math.min(900, Math.max(box.height + pad * 2, 200)),
+        },
+      });
+      await page.evaluate(() => {
+        for (const n of document.querySelectorAll("[data-shot-hidden]")) {
+          const prev = n.getAttribute("data-shot-hidden");
+          n.style.visibility = prev === "-" ? "" : prev;
+          n.removeAttribute("data-shot-hidden");
+        }
+      });
+      console.log("saved", name);
+      return true;
+    }
+    console.log("skip", name, "— empty box");
+    return false;
   }
   await page.screenshot({ path });
-  console.log("saved", name, locator ? `(full viewport — ${locator} not found)` : "(full viewport)");
+  console.log("saved", name, "(full viewport)");
+  return true;
 }
 
 async function dismissTours(page) {
@@ -121,13 +128,8 @@ async function main() {
   await dismissTours(page);
 
   await shot(page, "06-citability-evidence", '[data-testid="evidence-table"]');
+  await shot(page, "12-delivery-record", '[data-testid="delivery-record"]');
   await shot(page, "04-period-documents", '[data-testid="period-docs"]');
-  await shot(page, "02-multi-horizon-deltas", '[data-testid="gci-score"]', 40);
-  await shot(page, "02b-horizon-bars", '[data-testid="delta-horizon-chart"]');
-  await shot(page, "03-delta-charts-trend", "#trend");
-  await shot(page, "07-gci-vs-price", '[data-testid="gci-price-overlay"]');
-  await shot(page, "08-lead-lag-granger", '[data-testid="granger-panel"]', 60);
-  await shot(page, "09-impact-map", '[data-testid="analytics-panel"]');
   await shot(page, "10-private-notes", '[data-testid="private-notes"]');
   await shot(page, "11-report-templates-dossier", '[data-testid="report-panel"]');
 

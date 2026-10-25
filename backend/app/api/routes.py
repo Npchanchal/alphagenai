@@ -714,7 +714,7 @@ def review(body: ReviewRequest, auth=Depends(require_feature("desk_write"))) -> 
 @router.get("/api/reviews")
 def reviews(_auth=Depends(require_feature("desk"))) -> Dict[str, Any]:
     rows = list(get_data().get("reviews", []))
-    if not _auth.get("platform_admin_role"):
+    if str(_auth.get("platform_admin_role") or "") != "super":
         org = _auth.get("org") or _auth.get("org_id")
         rows = [r for r in rows if r.get("org_id") == org]
     return {"reviews": rows}
@@ -2178,9 +2178,10 @@ def audit_list(
     if auth.get("role") not in ("owner", "admin", "reviewer", "analyst"):
         raise HTTPException(status_code=403, detail="Insufficient role")
     caller = str(auth.get("org_id") or auth.get("org") or "")
-    if org and org != caller and not auth.get("platform_admin_role"):
+    cross_org = str(auth.get("platform_admin_role") or "") == "super"
+    if org and org != caller and not cross_org:
         raise HTTPException(status_code=403, detail="Org mismatch")
-    if not auth.get("platform_admin_role"):
+    if not cross_org:
         org = caller
     rows = audit_log.public_events(org=org or caller, limit=min(max(limit, 1), 200))
     return {"count": len(rows), "events": rows}
@@ -2577,8 +2578,11 @@ def org_members(
 ) -> Dict[str, Any]:
     from app.services import session_auth
 
+    from app.services.admin_portal import effective_platform_role
+
     user = session_auth.require_session(session_auth.extract_bearer(authorization))
-    if user.get("org_id") != org_id:
+    platform_role = effective_platform_role(user.get("email"), user.get("platform_admin_role"))
+    if user.get("org_id") != org_id and platform_role != "super":
         raise HTTPException(status_code=403, detail="Org mismatch")
     return {"org_id": org_id, "members": session_auth.list_org_members(org_id)}
 

@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import ChangeChip from "./ChangeChip";
 import InfoTip from "./InfoTip";
 import { useI18n } from "../i18n";
@@ -15,6 +15,10 @@ import {
   formatGuideGap,
   formatGuidedBand,
   metricDisplayName,
+  DEFAULT_EVIDENCE_SORT,
+  listEvidenceRows,
+  periodRank,
+  type EvidenceSort,
 } from "../lib/score";
 
 async function copyText(text: string): Promise<boolean> {
@@ -70,7 +74,41 @@ export default function EvidenceTable({
 }: Props) {
   const { t } = useI18n();
   const { openSource } = useSourceViewer();
-  const rows = maxRows != null ? outcomes.slice(0, maxRows) : outcomes;
+  const [sort, setSort] = useState<EvidenceSort>(DEFAULT_EVIDENCE_SORT);
+  const [periodFilter, setPeriodFilter] = useState("");
+  const [metricFilter, setMetricFilter] = useState("");
+  const periods = useMemo(() => {
+    const unique = [...new Set(outcomes.map((o) => o.period).filter(Boolean))];
+    unique.sort((a, b) => {
+      const ka = periodRank(a);
+      const kb = periodRank(b);
+      if (ka == null && kb == null) return b.localeCompare(a);
+      if (ka == null) return 1;
+      if (kb == null) return -1;
+      return kb - ka;
+    });
+    return unique;
+  }, [outcomes]);
+  const metrics = useMemo(() => {
+    const unique = [...new Set(outcomes.map((o) => o.metric).filter(Boolean))];
+    unique.sort((a, b) => metricDisplayName(a).localeCompare(metricDisplayName(b)));
+    return unique;
+  }, [outcomes]);
+  const rows = useMemo(() => {
+    const indexed = outcomes.map((o, i) => ({
+      o,
+      sourceIndex: typeof o.outcome_index === "number" ? o.outcome_index : i,
+      period: o.period,
+      metric: o.metric,
+      as_of: o.as_of,
+    }));
+    const listed = listEvidenceRows(indexed, {
+      period: periodFilter,
+      metric: metricFilter,
+      sort,
+    });
+    return maxRows != null ? listed.slice(0, maxRows) : listed;
+  }, [outcomes, maxRows, periodFilter, metricFilter, sort]);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<EditDraft>({
@@ -83,7 +121,21 @@ export default function EvidenceTable({
     quote_span: "",
   });
 
-  if (rows.length === 0) {
+  const toggleSort = (key: EvidenceSort["key"]) => {
+    setSort((current) => {
+      if (current.key === key) {
+        return { key, dir: current.dir === "asc" ? "desc" : "asc" };
+      }
+      return { key, dir: key === "period" ? "desc" : "asc" };
+    });
+  };
+
+  const sortNote =
+    sort.key === "metric"
+      ? t(sort.dir === "asc" ? "ui.EvidenceTable.sort.metricThenPeriod" : "ui.EvidenceTable.sort.metricDesc")
+      : t(sort.dir === "desc" ? "ui.EvidenceTable.sort.periodLatest" : "ui.EvidenceTable.sort.periodOldest");
+
+  if (outcomes.length === 0) {
     return (
       <div className="empty" data-testid="empty-state">
         {t("ui.EvidenceTable.empty")}
@@ -104,7 +156,7 @@ export default function EvidenceTable({
     });
   };
 
-  const saveEdit = (idx: number) => {
+  const saveEdit = (sourceIndex: number) => {
     if (!onEdit) return;
     const edits: Record<string, unknown> = {};
     if (draft.period.trim()) edits.period = draft.period.trim();
@@ -118,7 +170,7 @@ export default function EvidenceTable({
     edits.source_ref = draft.source_ref.trim() || null;
     edits.quote_span = draft.quote_span.trim() || null;
     setEditingIdx(null);
-    onEdit(idx, edits);
+    onEdit(sourceIndex, edits);
   };
 
   const showActions = Boolean(onReview || onEdit || onFlag);
@@ -142,16 +194,93 @@ export default function EvidenceTable({
     });
   };
 
+  const sortMark = (key: EvidenceSort["key"]) =>
+    sort.key === key ? (sort.dir === "asc" ? " ↑" : " ↓") : "";
+
   return (
+    <div data-testid="evidence-listing">
+      <div className="evidence-controls" data-testid="evidence-controls">
+        <label>
+          {t("ui.EvidenceTable.filter.period")}
+          <select
+            value={periods.includes(periodFilter) ? periodFilter : ""}
+            onChange={(e) => setPeriodFilter(e.target.value)}
+            data-testid="evidence-filter-period"
+          >
+            <option value="">{t("ui.EvidenceTable.filter.allPeriods")}</option>
+            {periods.map((period) => (
+              <option key={period} value={period}>
+                {period}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t("ui.EvidenceTable.filter.metric")}
+          <select
+            value={metrics.includes(metricFilter) ? metricFilter : ""}
+            onChange={(e) => setMetricFilter(e.target.value)}
+            data-testid="evidence-filter-metric"
+          >
+            <option value="">{t("ui.EvidenceTable.filter.allMetrics")}</option>
+            {metrics.map((metric) => (
+              <option key={metric} value={metric}>
+                {metricDisplayName(metric)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {periodFilter || metricFilter ? (
+          <button
+            type="button"
+            className="btn ghost small"
+            data-testid="evidence-filter-clear"
+            onClick={() => {
+              setPeriodFilter("");
+              setMetricFilter("");
+            }}
+          >
+            {t("ui.EvidenceTable.filter.clear")}
+          </button>
+        ) : null}
+        <p className="muted evidence-sort-note" data-testid="evidence-sort-note">
+          {sortNote}
+        </p>
+      </div>
+      {rows.length === 0 ? (
+        <div className="empty" data-testid="evidence-filter-empty">
+          {t("ui.EvidenceTable.filter.empty")}
+        </div>
+      ) : (
     <div className="table-scroll">
       <table className="table" data-testid={testId}>
         <thead>
           <tr>
-            <th>
-              {t("ui.EvidenceTable.th.period")} <InfoTip termId="period" />
+            <th aria-sort={sort.key === "period" ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
+              <button
+                type="button"
+                className="th-sort"
+                data-testid="evidence-sort-period"
+                aria-label={t("ui.EvidenceTable.sort.byPeriod")}
+                onClick={() => toggleSort("period")}
+              >
+                {t("ui.EvidenceTable.th.period")}
+                {sortMark("period")}
+              </button>{" "}
+              <InfoTip termId="period" />
             </th>
-            <th>
-              {t("ui.EvidenceTable.th.metric")} <InfoTip termId="metric" />
+            <th aria-sort={sort.key === "metric" ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
+              <button
+                type="button"
+                className="th-sort"
+                data-testid="evidence-sort-metric"
+                aria-label={t("ui.EvidenceTable.sort.byMetric")}
+                onClick={() => toggleSort("metric")}
+              >
+                {t("ui.EvidenceTable.th.metric")}
+                {sortMark("metric")}
+              </button>{" "}
+              <InfoTip termId="metric" />
             </th>
             <th>
               {t("ui.EvidenceTable.th.band")} <InfoTip termId="band" />
@@ -182,8 +311,8 @@ export default function EvidenceTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((o, idx) => (
-            <Fragment key={`${o.period}-${o.metric}-${idx}`}>
+          {rows.map(({ o, sourceIndex }, idx) => (
+            <Fragment key={`${o.period}-${o.metric}-${sourceIndex}`}>
               <tr>
                 <td>{o.period}</td>
                 <td>
@@ -311,7 +440,7 @@ export default function EvidenceTable({
                         <button
                           type="button"
                           className="btn ghost small"
-                          onClick={() => onReview(idx, "accept")}
+                          onClick={() => onReview(sourceIndex, "accept")}
                         >
                           {t("ui.EvidenceTable.accept")}
                         </button>
@@ -416,7 +545,7 @@ export default function EvidenceTable({
                         type="button"
                         className="btn small"
                         data-testid={`save-edit-${idx}`}
-                        onClick={() => saveEdit(idx)}
+                        onClick={() => saveEdit(sourceIndex)}
                       >
                         {t("ui.EvidenceTable.saveEdit")}
                       </button>
@@ -428,6 +557,8 @@ export default function EvidenceTable({
           ))}
         </tbody>
       </table>
+    </div>
+      )}
     </div>
   );
 }

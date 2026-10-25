@@ -444,7 +444,10 @@ export default function HomePage() {
                 </label>
                 {unscoredCount > 0 ? (
                   <span className="muted" style={{ fontSize: 12 }}>
-                    {t("screener.filter.unscoredNote", { n: unscoredCount })}
+                    {t(
+                      scoredOnly ? "screener.filter.unscoredNote" : "screener.filter.unscoredShown",
+                      { n: unscoredCount }
+                    )}
                   </span>
                 ) : null}
               </div>
