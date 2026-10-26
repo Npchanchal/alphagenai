@@ -2027,6 +2027,19 @@ export function fetchDocuments(params?: {
   return getJson(`/api/documents${qs}`);
 }
 
+export function fetchDocumentByUrl(url: string): Promise<{
+  count: number;
+  documents: Array<{
+    doc_id?: string;
+    company_id?: string | null;
+    title?: string;
+    text?: string;
+    url?: string | null;
+  }>;
+}> {
+  return getJson(`/api/documents?url=${encodeURIComponent(url)}`);
+}
+
 export function fetchDocument(docId: string): Promise<{
   doc_id: string;
   company_id?: string | null;
@@ -3086,10 +3099,89 @@ export function postNinjaWorksheet(
   return authJson(`/api/ninja/worksheets/${encodeURIComponent(template)}`, { method: "POST", body: JSON.stringify(body) }, token);
 }
 
+export type NinjaChronology = {
+  statement: string;
+  events: {
+    date: string;
+    kind: "guidance" | "revision" | "actual";
+    period: string;
+    metric: string;
+    metric_name: string;
+    text: string;
+    quote: string | null;
+    source_url: string | null;
+  }[];
+};
+
+export type NinjaCalculation = {
+  company_id: string;
+  name: string;
+  sector: string | null;
+  sector_rule: string | null;
+  scale_floor: number | null;
+  decay: number | null;
+  published_gci: number | null;
+  delivery: number;
+  floor: number;
+  ceiling: number;
+  years_above_ceiling: number;
+  rubrics_on_file: boolean;
+  years: {
+    period: string;
+    metric: string;
+    metric_name: string;
+    as_of: string | null;
+    band_low: number;
+    band_high: number;
+    actual: number;
+    delivery: number;
+    published_year: number;
+    floor: number;
+    ceiling: number;
+    rubric_needed: number;
+    reachable: boolean;
+    in_composite: boolean;
+  }[];
+  path: {
+    as_of: string;
+    published: number | null;
+    delivery: number;
+    floor: number;
+    ceiling: number;
+  }[];
+  heatmap: {
+    columns: { key: string; period: string; metric_name: string; in_composite: boolean }[];
+    rows: { id: string; label: string; values: number[] }[];
+  };
+  chronology: NinjaChronology;
+  statement: string;
+};
+
+export type NinjaListingRow = {
+  company_id: string;
+  ticker: string;
+  name: string;
+  sector: string;
+  data_quality?: string;
+  has_worksheet: boolean;
+  published_gci: number | null;
+};
+
+export function fetchNinjaCalculations(
+  token?: string | null,
+): Promise<{ statement: string; listing: NinjaListingRow[]; companies: NinjaCalculation[] }> {
+  return authJson("/api/ninja/indices", { method: "GET" }, token);
+}
+
 export function fetchNinjaIndex(
   companyId: string,
   token?: string | null,
-): Promise<{ statement: string; layers: { layer: string; level: number | null; supported: number; contradicted: number; published: boolean }[] }> {
+): Promise<{
+  statement: string;
+  layers: { layer: string; level: number | null; supported: number; contradicted: number; published: boolean }[];
+  calculation: NinjaCalculation | null;
+  chronology: NinjaChronology;
+}> {
   return authJson(`/api/ninja/indices/${encodeURIComponent(companyId)}`, { method: "GET" }, token);
 }
 

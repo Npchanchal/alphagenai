@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import threading
 from datetime import datetime, timezone
@@ -18,6 +19,23 @@ from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
 
 LAYERS = ("accounting", "causality", "conduct", "execution")
+# Specification v4.3.1 commitment weights. Delivery is measured. The other four
+# stay blank until this desk has cited observations. They are not the published GCI.
+LAYER_WEIGHTS = {
+    "delivery": 0.35,
+    "accounting": 0.20,
+    "causality": 0.20,
+    "conduct": 0.15,
+    "execution": 0.10,
+}
+# (label, phrases that match the stored sector, scale floor in percentage points, decay)
+_SECTOR_SCALES = (
+    ("IT services", ("it service", "information technology"), 1.0, 1.5),
+    ("Pharma and healthcare", ("pharma", "healthcare", "health care"), 2.0, 1.0),
+    ("Banking and financials", ("bank", "financial", "nbfc", "insurance"), 0.25, 2.0),
+    ("Real estate and infrastructure", ("real estate", "infra", "construction"), 5.0, 0.8),
+    ("Consumer and FMCG", ("fmcg", "consumer", "staple"), 1.5, 1.2),
+)
 STANCES = frozenset({"supported", "contradicted"})
 MIN_OBSERVATIONS = 3
 TEMPLATES = ("dcf", "relative", "residual_income", "reverse_dcf", "asset_value")
@@ -360,6 +378,411 @@ def _share(flags: List[bool]) -> Optional[float]:
     if not flags:
         return None
     return round(100.0 * sum(1 for flag in flags if flag) / len(flags), 1)
+
+
+def _sector_scale(sector: str) -> Optional[Dict[str, Any]]:
+    text = (sector or "").lower()
+    for label, phrases, floor, decay in _SECTOR_SCALES:
+        if any(phrase in text for phrase in phrases):
+            return {"sector_rule": label, "scale_floor": floor, "decay": decay}
+    return None
+
+
+def _delivery_score(low: float, high: float, actual: float, scale: float, decay: float) -> float:
+    """Specification Layer 2. Inside the band is 100. Either side decays."""
+    half = (high - low) / 2.0
+    width = max(half, scale)
+    outside = max(low - actual, 0.0, actual - high)
+    if outside <= 0:
+        return 100.0
+    if width <= 0:
+        return 0.0
+    return 100.0 * math.exp(-decay * outside / width)
+
+
+def _blend(delivery: float) -> Dict[str, float]:
+    """Flat rubrics. A constant rubric shifts the level and does not change the path shape."""
+    floor = LAYER_WEIGHTS["delivery"] * delivery
+    return {"floor": floor, "ceiling": floor + (1.0 - LAYER_WEIGHTS["delivery"]) * 100.0}
+
+
+def _metric_mean(rows: List[Dict[str, Any]], period_rank: Dict[str, int]) -> Optional[float]:
+    from app.services.gci_scoring import _recency_weight
+
+    by_period: Dict[str, List[Dict[str, Any]]] = {}
+    for row in rows:
+        by_period.setdefault(row["period"], []).append(row)
+    num = 0.0
+    den = 0.0
+    for period, group in by_period.items():
+        rank = period_rank.get(period)
+        if rank is None:
+            continue
+        score = sum(item["delivery"] for item in group) / len(group)
+        confidence = sum(item["confidence"] for item in group) / len(group)
+        weight = _recency_weight(rank) * confidence
+        num += weight * score
+        den += weight
+    if den <= 0:
+        return None
+    return num / den
+
+
+def _company_delivery(rows: List[Dict[str, Any]], outcomes: List[Any]) -> Optional[float]:
+    """Recency and evidence weights, the same rules as the published composite, on delivery scores."""
+    from app.services.gci_scoring import _periods_newest_first
+
+    if not rows:
+        return None
+    periods = _periods_newest_first(outcomes)
+    period_rank = {period: index + 1 for index, period in enumerate(periods)}
+    by_metric: Dict[str, List[Dict[str, Any]]] = {}
+    for row in rows:
+        by_metric.setdefault(row["metric"], []).append(row)
+    means: Dict[str, float] = {}
+    counts: Dict[str, int] = {}
+    for metric, group in by_metric.items():
+        mean = _metric_mean(group, period_rank)
+        if mean is None:
+            continue
+        means[metric] = mean
+        counts[metric] = len({item["period"] for item in group if item["period"] in period_rank})
+    if not means:
+        return None
+    deep = {metric for metric, count in counts.items() if count >= 2}
+    composite = {metric: value for metric, value in means.items() if metric in deep} if deep else means
+    num = 0.0
+    den = 0.0
+    for metric, value in composite.items():
+        weight = float(min(counts.get(metric, 1), 5))
+        num += weight * value
+        den += weight
+    if den <= 0:
+        return None
+    return num / den
+
+
+def _scored_delivery_rows(company_id: str) -> List[Dict[str, Any]]:
+    from app.data.metric_catalog import display_name_for, metric_is_rate
+    from app.data.seed import get_outcomes
+    from app.services.gci_scoring import outcome_score_v4
+
+    sector = ""
+    from app.data.seed import list_companies
+
+    for company in list_companies():
+        if company.get("id") == company_id:
+            sector = str(company.get("sector") or "")
+            break
+    scale = _sector_scale(sector)
+    rows = []
+    for outcome in get_outcomes(company_id):
+        published = outcome_score_v4(outcome)
+        if published is None or outcome.guided_low is None or outcome.guided_high is None:
+            continue
+        if outcome.actual_value is None:
+            continue
+        rate = metric_is_rate(outcome.metric)
+        floor = float(scale["scale_floor"]) if scale and rate else 0.0
+        decay = float(scale["decay"]) if scale else 1.0
+        delivery = _delivery_score(
+            float(outcome.guided_low),
+            float(outcome.guided_high),
+            float(outcome.actual_value),
+            floor,
+            decay,
+        )
+        band = _blend(delivery)
+        rubric = (published - band["floor"]) / (1.0 - LAYER_WEIGHTS["delivery"])
+        rows.append(
+            {
+                "period": outcome.period,
+                "metric": outcome.metric,
+                "metric_name": display_name_for(outcome.metric),
+                "as_of": outcome.as_of,
+                "band_low": float(outcome.guided_low),
+                "band_high": float(outcome.guided_high),
+                "actual": float(outcome.actual_value),
+                "confidence": min(max(float(outcome.confidence), 0.5), 1.0),
+                "delivery": delivery,
+                "published_year": published,
+                "floor": band["floor"],
+                "ceiling": band["ceiling"],
+                "rubric_needed": rubric,
+                "reachable": 0.0 <= rubric <= 100.0,
+                "scale_applied": bool(scale and rate),
+                "_outcome": outcome,
+            }
+        )
+    return rows
+
+
+def _round_year(row: Dict[str, Any], in_composite: bool) -> Dict[str, Any]:
+    return {
+        "period": row["period"],
+        "metric": row["metric"],
+        "metric_name": row["metric_name"],
+        "as_of": row["as_of"],
+        "band_low": row["band_low"],
+        "band_high": row["band_high"],
+        "actual": row["actual"],
+        "delivery": round(row["delivery"], 1),
+        "published_year": round(row["published_year"], 1),
+        "floor": round(row["floor"], 1),
+        "ceiling": round(row["ceiling"], 1),
+        "rubric_needed": round(row["rubric_needed"], 1),
+        "reachable": row["reachable"],
+        "in_composite": in_composite,
+        "scale_applied": row["scale_applied"],
+    }
+
+
+def _num(value: float) -> str:
+    return f"{float(value):.4f}".rstrip("0").rstrip(".")
+
+
+def _company_meta(company_id: str) -> Dict[str, Any]:
+    from app.data.seed import list_companies
+
+    for company in list_companies():
+        if company.get("id") == company_id:
+            return company
+    return {}
+
+
+def _heatmap(years: List[Dict[str, Any]]) -> Dict[str, Any]:
+    columns = [
+        {
+            "key": f"{row['period']}|{row['metric']}",
+            "period": row["period"],
+            "metric_name": row["metric_name"],
+            "in_composite": row["in_composite"],
+        }
+        for row in years
+    ]
+    fields = (
+        ("delivery", "Delivery"),
+        ("published_year", "Published year"),
+        ("floor", "Four layers at 0"),
+        ("ceiling", "Four layers at 100"),
+    )
+    return {
+        "columns": columns,
+        "rows": [{"id": key, "label": label, "values": [row[key] for row in years]} for key, label in fields],
+    }
+
+
+def chronology_for(company_id: str) -> Dict[str, Any]:
+    """Opening guidance, each in-year revision, and the reported actual, in date order."""
+    from app.data.metric_catalog import display_name_for
+    from app.data.seed import get_outcomes
+
+    company = _company_meta(company_id)
+    if str(company.get("data_quality") or "") != "hand_labeled":
+        return {
+            "events": [],
+            "statement": "This name is on the demo seed. A filing chronology starts from a hand-labeled row.",
+        }
+    scored = {(row["period"], row["metric"]): row for row in _scored_delivery_rows(company_id)}
+    events: List[Dict[str, Any]] = []
+    kind_order = {"guidance": 0, "revision": 1, "actual": 2}
+    for outcome in get_outcomes(company_id):
+        metric_name = display_name_for(outcome.metric)
+        scored_row = scored.get((outcome.period, outcome.metric))
+        if outcome.guidance_as_of or outcome.guidance_quote:
+            band = ""
+            if outcome.guided_low is not None and outcome.guided_high is not None:
+                band = f"Opening band {_num(outcome.guided_low)}–{_num(outcome.guided_high)}."
+            events.append(
+                {
+                    "date": outcome.guidance_as_of or "",
+                    "kind": "guidance",
+                    "period": outcome.period,
+                    "metric": outcome.metric,
+                    "metric_name": metric_name,
+                    "text": band,
+                    "quote": outcome.guidance_quote or None,
+                    "source_url": outcome.guidance_source_url or None,
+                }
+            )
+        for revision in outcome.revisions or ():
+            low = revision.get("guided_low")
+            high = revision.get("guided_high")
+            text = ""
+            if low is not None and high is not None:
+                text = f"Band revised to {_num(float(low))}–{_num(float(high))}."
+            events.append(
+                {
+                    "date": str(revision.get("as_of") or ""),
+                    "kind": "revision",
+                    "period": outcome.period,
+                    "metric": outcome.metric,
+                    "metric_name": metric_name,
+                    "text": text,
+                    "quote": revision.get("quote") or None,
+                    "source_url": revision.get("source_url") or None,
+                }
+            )
+        if outcome.as_of and outcome.actual_value is not None:
+            if scored_row is None:
+                text = (
+                    f"Actual {_num(float(outcome.actual_value))}. "
+                    "The row has no cited opening band, so it stays out of the delivery worksheet."
+                )
+            else:
+                text = (
+                    f"Actual {_num(float(outcome.actual_value))}. "
+                    f"Delivery {round(scored_row['delivery'], 1)}. "
+                    f"Published year-score {round(scored_row['published_year'], 1)}."
+                )
+            events.append(
+                {
+                    "date": outcome.as_of,
+                    "kind": "actual",
+                    "period": outcome.period,
+                    "metric": outcome.metric,
+                    "metric_name": metric_name,
+                    "text": text,
+                    "quote": outcome.quote_span or None,
+                    "source_url": outcome.source_url or None,
+                }
+            )
+    events.sort(key=lambda row: (row["date"] or "9999", row["period"], kind_order.get(row["kind"], 9), row["metric"]))
+    if events:
+        statement = "Opening guidance, each in-year revision, and the reported actual, in date order."
+    else:
+        statement = "No hand-labeled guidance date or actual is on file for this company."
+    return {"statement": statement, "events": events}
+
+
+def calculation_for(company_id: str) -> Optional[Dict[str, Any]]:
+    """Specification delivery and the legal range of the four rubric layers.
+
+    Rubric ratings are not inferred. The published GCI is reported beside the
+    worksheet and is not rewritten.
+    """
+    from app.data.seed import get_outcomes, list_companies
+    from app.services.guidance_flags import audited_company_gci
+
+    rows = _scored_delivery_rows(company_id)
+    if not rows:
+        return None
+    outcomes = [row["_outcome"] for row in rows]
+    delivery = _company_delivery(rows, outcomes)
+    if delivery is None:
+        return None
+    band = _blend(delivery)
+    published = audited_company_gci(get_outcomes(company_id), company_id=company_id)
+    name = company_id
+    sector = ""
+    for company in list_companies():
+        if company.get("id") == company_id:
+            name = str(company.get("name") or company_id)
+            sector = str(company.get("sector") or "")
+            break
+    scale = _sector_scale(sector)
+    periods_by_metric: Dict[str, set] = {}
+    for row in rows:
+        periods_by_metric.setdefault(row["metric"], set()).add(row["period"])
+    deep_metrics = {metric for metric, periods in periods_by_metric.items() if len(periods) >= 2}
+    use_deep = bool(deep_metrics)
+    years = [
+        _round_year(row, (row["metric"] in deep_metrics) if use_deep else True)
+        for row in sorted(rows, key=lambda item: (item["as_of"] or "", item["period"], item["metric"]))
+    ]
+    above = sum(1 for row in rows if row["published_year"] > row["ceiling"])
+    dates = sorted({row["as_of"] for row in rows if row["as_of"]})
+    path = []
+    all_outcomes = get_outcomes(company_id)
+    for date in dates:
+        subset_outcomes = [item for item in all_outcomes if item.as_of and item.as_of <= date]
+        subset_rows = [row for row in rows if row["as_of"] and row["as_of"] <= date]
+        level = _company_delivery(subset_rows, [row["_outcome"] for row in subset_rows])
+        if level is None:
+            continue
+        subset_band = _blend(level)
+        published_then = audited_company_gci(subset_outcomes, company_id=company_id)
+        path.append(
+            {
+                "as_of": date,
+                "published": None if published_then is None else round(float(published_then), 1),
+                "delivery": round(level, 1),
+                "floor": round(subset_band["floor"], 1),
+                "ceiling": round(subset_band["ceiling"], 1),
+            }
+        )
+    published_text = "unpublished" if published is None else f"{published}"
+    sentence = (
+        f"Delivery on the opening band is {round(delivery, 1)}. "
+        f"With the four layers at 0 the blend is {round(band['floor'], 1)}. "
+        f"With them at 100 it is {round(band['ceiling'], 1)}. "
+        f"The published Guidance Credibility Index is {published_text}. This page does not change it."
+    )
+    if above:
+        sentence += (
+            f" {above} published year-score{'s sit' if above != 1 else ' sits'} above the highest blend these weights can return."
+        )
+    sentence += " The four layers have no ratings on this file."
+    return {
+        "company_id": company_id,
+        "name": name,
+        "sector": sector or None,
+        "sector_rule": None if scale is None else scale["sector_rule"],
+        "scale_floor": None if scale is None else scale["scale_floor"],
+        "decay": None if scale is None else scale["decay"],
+        "weights": dict(LAYER_WEIGHTS),
+        "published_gci": published,
+        "delivery": round(delivery, 1),
+        "floor": round(band["floor"], 1),
+        "ceiling": round(band["ceiling"], 1),
+        "years_above_ceiling": above,
+        "rubrics_on_file": False,
+        "years": years,
+        "path": path,
+        "heatmap": _heatmap(years),
+        "chronology": chronology_for(company_id),
+        "statement": sentence,
+    }
+
+
+def calculation_book() -> Dict[str, Any]:
+    """Universe listing, plus one worksheet per company with a closed, cited guidance row."""
+    from app.data.seed import get_data
+    from app.services.repository import list_company_summaries
+
+    companies = []
+    for company_id in sorted(get_data().get("outcomes") or {}):
+        report = calculation_for(company_id)
+        if report is not None:
+            companies.append(report)
+    companies.sort(key=lambda row: row["name"].lower())
+    by_id = {row["company_id"]: row for row in companies}
+    listing = []
+    for summary in list_company_summaries():
+        report = by_id.get(summary.id)
+        listing.append(
+            {
+                "company_id": summary.id,
+                "ticker": summary.ticker,
+                "name": summary.name,
+                "sector": summary.sector,
+                "data_quality": summary.data_quality,
+                "has_worksheet": report is not None,
+                "published_gci": None if report is None else report["published_gci"],
+            }
+        )
+    listing.sort(key=lambda row: (not row["has_worksheet"], row["name"].lower()))
+    return {
+        "statement": (
+            "The listing is every name on the Guidance Credibility Index universe. "
+            "Open a name for the delivery worksheet, the score heatmap, and the filing chronology. "
+            "Delivery follows the specification's outside-band formula. "
+            "The four rubric layers have no ratings, so a worksheet shows the range they are allowed to add. "
+            "None of this is the Guidance Credibility Index."
+        ),
+        "listing": listing,
+        "companies": companies,
+    }
 
 
 def hypothesis_tests() -> Dict[str, Any]:

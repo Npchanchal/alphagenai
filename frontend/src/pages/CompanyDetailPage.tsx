@@ -758,7 +758,13 @@ export default function CompanyDetailPage() {
             <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
               {t("ui.CompanyDetailPage.threads.lede")}
             </p>
-            <ThreadTimeline threads={detail.threads!} />
+            <ThreadTimeline
+              threads={detail.threads!}
+              companyId={detail.id}
+              gciByPeriod={Object.fromEntries(
+                (detail.trend || []).map((pt) => [pt.period, pt.gci_score]),
+              )}
+            />
           </div>
         ) : null}
       </div>

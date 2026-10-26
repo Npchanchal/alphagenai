@@ -78,12 +78,22 @@ def ninja_observation(body: Dict[str, Any], ent=Depends(_require_ninja)) -> Dict
     return add_observation(str(ent.get("org_id") or ""), body)
 
 
+@router.get("/api/ninja/indices")
+def ninja_index_book(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import calculation_book
+
+    return calculation_book()
+
+
 @router.get("/api/ninja/indices/{company_id}")
 def ninja_index(company_id: str, ent=Depends(_require_ninja)) -> Dict[str, Any]:
-    from app.services.ninja import layer_index
+    from app.services.ninja import calculation_for, chronology_for, layer_index
 
     _known_company(company_id)
-    return layer_index(str(ent.get("org_id") or ""), company_id)
+    payload = layer_index(str(ent.get("org_id") or ""), company_id)
+    payload["calculation"] = calculation_for(company_id)
+    payload["chronology"] = chronology_for(company_id)
+    return payload
 
 
 @router.get("/api/ninja/profile/{company_id}")

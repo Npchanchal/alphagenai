@@ -254,8 +254,8 @@ export type EvidenceSortKey = "metric" | "period";
 export type EvidenceSortDir = "asc" | "desc";
 export type EvidenceSort = { key: EvidenceSortKey; dir: EvidenceSortDir };
 
-/** Dossier evidence: metric name, then latest period. */
-export const DEFAULT_EVIDENCE_SORT: EvidenceSort = { key: "metric", dir: "asc" };
+/** Every evidence listing opens on the latest period. */
+export const DEFAULT_EVIDENCE_SORT: EvidenceSort = { key: "period", dir: "desc" };
 
 /**
  * Evidence table order. Metric sort keeps latest period as the tie-break.
@@ -340,6 +340,53 @@ export function readInYearRevision(o: {
     steps,
     finalBand: bands[bands.length - 1] ?? opening,
     path: bands.join(" → "),
+  };
+}
+
+export type RevisionCandle = {
+  low: number;
+  high: number;
+  open: number;
+  close: number;
+  ticks: number[];
+  direction: "raised" | "cut" | "unchanged";
+};
+
+/** Opening band through each in-year revision, for a vertical range at the period. */
+export function revisionCandle(o: {
+  guided_low?: number | null;
+  guided_high?: number | null;
+  guided_value: number;
+  revisions?: Array<{ guided_low: number; guided_high: number }> | null;
+}): RevisionCandle | null {
+  const revisions = o.revisions ?? [];
+  if (revisions.length === 0) return null;
+  const open = bandMid(o.guided_low, o.guided_high, o.guided_value);
+  const lows: number[] = [];
+  const highs: number[] = [];
+  if (o.guided_low != null && o.guided_high != null) {
+    lows.push(o.guided_low);
+    highs.push(o.guided_high);
+  } else {
+    lows.push(open);
+    highs.push(open);
+  }
+  const ticks = [open];
+  for (const rev of revisions) {
+    lows.push(rev.guided_low);
+    highs.push(rev.guided_high);
+    ticks.push((rev.guided_low + rev.guided_high) / 2);
+  }
+  const close = ticks[ticks.length - 1] ?? open;
+  const direction: RevisionCandle["direction"] =
+    close > open + 1e-9 ? "raised" : close < open - 1e-9 ? "cut" : "unchanged";
+  return {
+    low: Math.min(...lows),
+    high: Math.max(...highs),
+    open,
+    close,
+    ticks,
+    direction,
   };
 }
 

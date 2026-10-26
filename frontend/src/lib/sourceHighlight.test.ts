@@ -32,4 +32,25 @@ describe("findQuoteRange", () => {
     const r = findQuoteRange(text, "margins to remain");
     expect(r).toEqual({ start: 10, end: 27 });
   });
+
+  it("matches across line breaks, curly quotes, and dashes", () => {
+    const text = "We expect “Margins” to\nremain — in a tight band.";
+    const r = findQuoteRange(text, "Margins to remain - in a tight");
+    expect(r).not.toBeNull();
+    expect(text.slice(r!.start, r!.end).replace(/\s+/g, " ")).toContain("Margins");
+    expect(text.slice(r!.start, r!.end)).toContain("tight");
+  });
+
+  it("ignores a span that does not contain the quote", () => {
+    const text = "intro. The margin was 21.1 percent for the year.";
+    const r = findQuoteRange(text, "margin was 21.1 percent", 0, 6);
+    expect(text.slice(r!.start, r!.end)).toBe("margin was 21.1 percent");
+  });
+
+  it("joins an ellipsis in the stored quote", () => {
+    const text = "Revenue grew 19.7 percent in constant currency for the full year.";
+    const r = findQuoteRange(text, "Revenue grew … for the full year");
+    expect(text.slice(r!.start, r!.end)).toContain("19.7");
+    expect(text.slice(r!.start, r!.end)).toContain("full year");
+  });
 });

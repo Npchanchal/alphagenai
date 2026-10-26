@@ -101,6 +101,30 @@ def test_span_offsets():
     assert s == 6 and e == 17
 
 
+def test_span_offsets_folds_whitespace_and_quotes():
+    text = "We expect “Margins” to\nremain — in a tight band."
+    s, e = span_offsets(text, "Margins to remain - in a tight")
+    assert s is not None and e is not None
+    snippet = text[s:e]
+    assert "Margins" in snippet and "tight" in snippet
+
+
+def test_span_offsets_joins_ellipsis():
+    text = "Revenue grew 19.7 percent in constant currency for the full year."
+    s, e = span_offsets(text, "Revenue grew … for the full year")
+    assert s == 0
+    assert "19.7" in text[s:e]
+    assert text[s:e].endswith("full year")
+
+
+def test_documents_url_lookup_miss():
+    from app.api.routes import documents_list
+
+    body = documents_list(url="https://example.invalid/no-such-filing.pdf")
+    assert body["count"] == 0
+    assert body["documents"] == []
+
+
 def test_enrich_strips_provisional_quote():
     class O:
         period = "FY25"

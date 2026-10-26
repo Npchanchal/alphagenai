@@ -31,7 +31,8 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | GET | `/api/holdings/latest` | Last holdings file for the caller's org |
 | POST | `/api/ninja/worksheets/{template}` | Valuation worksheet from numbers the desk enters. Feature `ninja`. Not a published GCI. |
 | POST | `/api/ninja/observations` | Cited note on accounting, causality, conduct, or execution |
-| GET | `/api/ninja/indices/{company_id}` | Layer index for the caller's desk. Unpublished until three cited notes |
+| GET | `/api/ninja/indices` | Universe stock listing plus the specification delivery worksheet, score heatmap, and filing chronology for every company with a closed, cited guidance row. Feature `ninja`. Not a published GCI. |
+| GET | `/api/ninja/indices/{company_id}` | Desk layer index, unpublished until three cited notes, plus that company's delivery worksheet and filing chronology |
 | GET | `/api/ninja/profile/{company_id}` | Cited layer text for the dossier. No index level. Empty for a guest |
 | GET | `/api/ninja/tests` | Counts on the published delivery record |
 | GET | `/api/ninja/taxonomy` | Sectors already stored on companies |
@@ -124,7 +125,7 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 |---|---|---|
 | GET | `/api/citations?company_id=` | Citeable outcome records + bibliographic / markdown / IC footnote |
 | GET | `/api/citations/{citation_id}` | Lookup `cite_*` (outcomes) or document fingerprint; includes `document_text`, span offsets, `highlight_url` |
-| GET | `/api/documents` | Indexed corpus list |
+| GET | `/api/documents` | Indexed corpus list. `?url=` returns the stored filing for that URL (`find_by_url`), or `count: 0` |
 | GET | `/api/documents/{doc_id}` | One filing/transcript body for in-app highlight |
 | POST | `/api/research/chat` | Cite-only; numbered `[1]` markers bound to citation objects |
 | GET | `/api/research/watchlist` | Optional `ids=` or Bearer `preferences.watchlist`; else default slice |

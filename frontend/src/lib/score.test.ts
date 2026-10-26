@@ -11,6 +11,7 @@ import {
   metricDisplayName,
   periodRank,
   readInYearRevision,
+  revisionCandle,
 } from "./score";
 import { dossierSeo, resolveSeo } from "./seo";
 
@@ -31,7 +32,7 @@ describe("evidence listing order", () => {
     ]);
   });
 
-  it("defaults to metric name, then latest period, and can filter either field", () => {
+  it("defaults to the latest period, then metric name, and can filter either field", () => {
     const rows = [
       { period: "FY22", metric: "revenue_growth_cc_pct", as_of: "2022-04-13" },
       { period: "FY26", metric: "operating_margin_pct", as_of: "2026-04-01" },
@@ -40,8 +41,8 @@ describe("evidence listing order", () => {
       { period: "note", metric: "revenue_growth_cc_pct", as_of: "2026-04-16" },
     ];
     expect(listEvidenceRows(rows).map((r) => `${r.period}:${r.metric}`)).toEqual([
-      "FY26:operating_margin_pct",
       "FY26:revenue_growth_cc_pct",
+      "FY26:operating_margin_pct",
       "FY24:revenue_growth_cc_pct",
       "FY22:revenue_growth_cc_pct",
       "note:revenue_growth_cc_pct",
@@ -105,6 +106,28 @@ describe("promise thread heatmap", () => {
     expect(heatLevel(10, 0, 10)).toBe(5);
     expect(heatLevel(0, 0, 10)).toBe(1);
     expect(heatLevel(4, 4, 4)).toBe(3);
+  });
+
+  it("draws a revision range from the opening band through each later band", () => {
+    const candle = revisionCandle({
+      metric: "revenue_growth_cc_pct",
+      guided_value: 13,
+      guided_low: 12,
+      guided_high: 14,
+      revisions: [
+        { guided_low: 14, guided_high: 16 },
+        { guided_low: 19.5, guided_high: 20 },
+      ],
+    });
+    expect(candle).toMatchObject({
+      low: 12,
+      high: 20,
+      open: 13,
+      close: 19.75,
+      direction: "raised",
+    });
+    expect(candle?.ticks).toEqual([13, 15, 19.75]);
+    expect(revisionCandle({ guided_value: 10 })).toBeNull();
   });
 });
 

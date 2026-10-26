@@ -5,7 +5,7 @@
 | Page | File | Job |
 |---|---|---|
 | GCI Screener (`/tracker`) | `HomePage.tsx` | Universe table first; search/sort; alerts rail |
-| Dossier | `CompanyDetailPage.tsx` | **Evidence-first**; sticky TOC; toast on review. The evidence table defaults to metric, then latest period, with period and metric filters. Promise threads are a guidance / revision / actual heatmap, oldest year on the left. Period documents and the period matrix stay latest period first |
+| Dossier | `CompanyDetailPage.tsx` | **Evidence-first**; sticky TOC; toast on review. The evidence table and promise-thread columns open on the latest period, with period and metric filters on the table. Promise threads are a heatmap: cumulative GCI, actual, revisions (expand for each step), opening guidance; latest year on the left. The thread chart reads older to newer, with the revision range as a bar and GCI on a 0–100 scale. A source click opens the filing beside the highlighted extract. Period documents and the period matrix stay latest period first |
 | Analyst Workbench (`/desk`) | `DeskPage.tsx` + `DeskConsole.tsx` | Sticky company + `?tab=` · **Console** = multi-pane GCI terminal |
 | Filing Search (`/research`) | `ResearchPage.tsx` | Modes via `?tab=`; cite-only chat |
 | Package / Help | `PackagePage`, `HelpPage` | Tours, glossary, source policy, and captures of the screener, search, evidence, and period documents |

@@ -22,6 +22,8 @@ export type SourceTarget = {
   company_id?: string | null;
   excerpt_only?: boolean;
   indexed_excerpt?: boolean;
+  /** Open the original filing beside the extract. */
+  preferSplit?: boolean;
 };
 
 type Ctx = {

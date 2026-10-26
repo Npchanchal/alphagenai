@@ -96,6 +96,67 @@ def test_layer_index_stays_unpublished_until_three_quotes(tmp_path, monkeypatch)
     assert guest.json()["notes"] == []
 
 
+def test_specification_worksheet_matches_the_scored_book_and_leaves_gci_alone():
+    from app.services.repository import get_company_gci
+
+    before = get_company_gci("infy").gci_score
+    book = client.get("/api/ninja/indices", headers=ONESTOP)
+    assert book.status_code == 200, book.text
+    payload = book.json()
+    assert "Guidance Credibility Index" in payload["statement"]
+    by_id = {row["company_id"]: row for row in payload["companies"]}
+    assert set(by_id) == {"infy", "cipla"}
+
+    infy = by_id["infy"]
+    assert infy["published_gci"] == 76.5
+    assert infy["delivery"] == 37.9
+    assert infy["floor"] == 13.3
+    assert infy["ceiling"] == 78.3
+    assert infy["years_above_ceiling"] == 3
+    assert infy["rubrics_on_file"] is False
+    assert [point["published"] for point in infy["path"]] == [61.8, 80.1, 60.8, 68.5, 76.5]
+    assert [point["delivery"] for point in infy["path"]] == [0.0, 29.5, 21.0, 19.6, 37.9]
+    fy23 = next(row for row in infy["years"] if row["period"] == "FY23")
+    assert fy23["reachable"] is False
+    assert fy23["published_year"] == 95.8
+    margin = next(row for row in infy["years"] if row["metric"] == "operating_margin_pct")
+    assert margin["in_composite"] is False
+
+    cipla = by_id["cipla"]
+    assert cipla["published_gci"] == 65.5
+    assert cipla["delivery"] == 36.8
+    assert cipla["floor"] == 12.9
+    assert cipla["ceiling"] == 77.9
+
+    listed = {row["company_id"]: row for row in payload["listing"]}
+    assert listed["infy"]["has_worksheet"] is True
+    assert listed["infy"]["ticker"] == "INFY"
+    assert listed["axisbank"]["has_worksheet"] is False
+    assert listed["adanient"]["data_quality"] == "demo_structured"
+    assert payload["listing"][0]["has_worksheet"] is True
+
+    heat = {row["period"]: row for row in infy["heatmap"]["columns"]}
+    assert "FY23" in heat
+    published_row = next(row for row in infy["heatmap"]["rows"] if row["id"] == "published_year")
+    fy23_index = next(i for i, col in enumerate(infy["heatmap"]["columns"]) if col["period"] == "FY23")
+    assert published_row["values"][fy23_index] == 95.8
+    opening = infy["chronology"]["events"][0]
+    assert opening["date"] == "2021-04-14"
+    assert opening["kind"] == "guidance"
+    assert any(event["kind"] == "revision" for event in infy["chronology"]["events"])
+
+    detail = client.get("/api/ninja/indices/infy", headers=ONESTOP).json()
+    assert detail["calculation"]["delivery"] == 37.9
+    assert detail["chronology"]["events"][0]["date"] == "2021-04-14"
+    axis = client.get("/api/ninja/indices/axisbank", headers=ONESTOP).json()
+    assert axis["calculation"] is None
+    assert axis["chronology"]["events"]
+    assert axis["chronology"]["events"][0]["kind"] == "actual"
+    demo = client.get("/api/ninja/indices/adanient", headers=ONESTOP).json()
+    assert demo["chronology"]["events"] == []
+    assert get_company_gci("infy").gci_score == before
+
+
 def test_delivery_tests_count_the_published_record_only():
     body = client.get("/api/ninja/tests", headers=ONESTOP)
     assert body.status_code == 200, body.text

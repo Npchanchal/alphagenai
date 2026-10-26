@@ -106,7 +106,7 @@ export const TOURS: TourDef[] = [
       {
         selector: '[data-testid="evidence-table"]',
         title: "Evidence trail",
-        body: "Each row is one promise and the later reported figure: period, metric, guided band, actual, outcome, and both sources. Rows start grouped by metric, latest period first. Filter period or metric above the table.",
+        body: "Each row is one promise and the later reported figure: period, metric, guided band, actual, outcome, and both sources. Rows start with the latest period. Filter period or metric above the table.",
       },
       {
         selector: '[data-testid="revision-panel"]',

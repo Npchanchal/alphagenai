@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import unicodedata
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import quote as urlquote, urlsplit, urlunsplit
@@ -36,22 +37,127 @@ def citation_id_for(
     return f"cite_{digest}"
 
 
+_FOLD_CHARS = {
+    "\u2018": "'",
+    "\u2019": "'",
+    "\u201a": "'",
+    "\u201b": "'",
+    "\u201c": '"',
+    "\u201d": '"',
+    "\u201e": '"',
+    "\u201f": '"',
+    "\u2010": "-",
+    "\u2011": "-",
+    "\u2012": "-",
+    "\u2013": "-",
+    "\u2014": "-",
+    "\u2015": "-",
+    "\u2212": "-",
+    "\u00a0": " ",
+}
+
+
+def _fold_map(text: str) -> Tuple[str, List[int]]:
+    """Lower-case, straight quotes, collapsed whitespace, and original indexes."""
+    chars: List[str] = []
+    index: List[int] = []
+    prev_space = False
+    for i, raw in enumerate(text):
+        ch = unicodedata.normalize("NFKC", raw)
+        ch = _FOLD_CHARS.get(ch, ch)
+        if ch.isspace():
+            if prev_space or not chars:
+                continue
+            chars.append(" ")
+            index.append(i)
+            prev_space = True
+            continue
+        prev_space = False
+        for c in ch.lower():
+            chars.append(c)
+            index.append(i)
+    while chars and chars[-1] == " ":
+        chars.pop()
+        index.pop()
+    return "".join(chars), index
+
+
+def _range_from_fold(index: List[int], at: int, length: int) -> Tuple[Optional[int], Optional[int]]:
+    if at < 0 or length <= 0 or at + length > len(index):
+        return None, None
+    start = index[at]
+    end = index[at + length - 1] + 1
+    if end <= start:
+        return None, None
+    return start, end
+
+
 def span_offsets(text: str, quote: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
-    """Return (start, end) char offsets of quote in text, if found."""
+    """Return (start, end) char offsets of quote in text, if found.
+
+    Exact match first, then whitespace, quote marks, and dashes folded away.
+    """
     if not text or not quote:
         return None, None
-    q = quote.strip()
+    q = quote.strip().strip("\"'“”‘’")
     if not q:
         return None, None
     idx = text.find(q)
-    if idx < 0:
-        # try first 40 chars of quote
-        short = q[:40]
-        idx = text.find(short)
-        if idx < 0:
-            return None, None
-        return idx, idx + len(short)
-    return idx, idx + len(q)
+    if idx >= 0:
+        return idx, idx + len(q)
+    folded, index = _fold_map(text)
+    needle, _ = _fold_map(q)
+    if not folded or not needle:
+        return None, None
+    at = folded.find(needle)
+    if at >= 0:
+        return _range_from_fold(index, at, len(needle))
+    parts = [part.strip() for part in needle.replace("…", "...").split("...")]
+    parts = [part for part in parts if len(part) >= 8]
+    if len(parts) >= 2:
+        a = folded.find(parts[0])
+        b = folded.find(parts[-1], a + len(parts[0])) if a >= 0 else -1
+        if a >= 0 and b >= 0 and b - a < 800:
+            return _range_from_fold(index, a, b + len(parts[-1]) - a)
+    words = [word for word in needle.split(" ") if len(word) >= 4][:8]
+    if len(words) >= 3:
+        frm = 0
+        start_at = -1
+        end_at = -1
+        matched = 0
+        for word in words:
+            hit = folded.find(word, frm)
+            if hit < 0 or (start_at >= 0 and hit - end_at > 240):
+                break
+            if start_at < 0:
+                start_at = hit
+            end_at = hit + len(word)
+            frm = end_at
+            matched += 1
+        if matched >= 3 and start_at >= 0 and end_at > start_at:
+            return _range_from_fold(index, start_at, end_at - start_at)
+    short = needle[:40]
+    if len(short) >= 8:
+        return _range_from_fold(index, folded.find(short), len(short))
+    return None, None
+
+
+def _span_holds(text: str, start: Any, end: Any, quote: str) -> bool:
+    try:
+        s, e = int(start), int(end)
+    except (TypeError, ValueError):
+        return False
+    if s < 0 or e > len(text) or e <= s:
+        return False
+    snippet = text[s:e]
+    q = (quote or "").strip()
+    if not q:
+        return True
+    if q in snippet or snippet in q:
+        return True
+    left, _ = _fold_map(snippet)
+    right, _ = _fold_map(q)
+    return bool(left and right and (right in left or left in right))
 
 
 def is_indexed_excerpt_source(
@@ -204,8 +310,12 @@ def attach_source_document(record: Dict[str, Any]) -> Dict[str, Any]:
             source_verified=verified,
         )
     start, end = rec.get("span_start"), rec.get("span_end")
-    if text and q and (start is None or end is None):
-        start, end = span_offsets(text, q)
+    if text and q:
+        found_s, found_e = span_offsets(text, q)
+        if found_s is not None and found_e is not None:
+            start, end = found_s, found_e
+        elif not _span_holds(text, start, end, q):
+            start, end = None, None
     if text and start is not None and end is not None:
         rec["span_start"] = start
         rec["span_end"] = end

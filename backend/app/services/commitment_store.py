@@ -64,8 +64,20 @@ def list_commitments(
         if not include_unreviewed and r.get("review_status") != "accepted":
             continue
         out.append(r)
-    out.sort(key=lambda r: (rules.period_end(str(r.get("due_period") or "")) or "9999", r.get("id")))
-    return out
+    dated = []
+    unknown = []
+    for row in out:
+        end = rules.period_end(str(row.get("due_period") or "")) or ""
+        (dated if end else unknown).append(row)
+    dated.sort(
+        key=lambda row: (
+            rules.period_end(str(row.get("due_period") or "")) or "",
+            str(row.get("id") or ""),
+        ),
+        reverse=True,
+    )
+    unknown.sort(key=lambda row: str(row.get("id") or ""))
+    return dated + unknown
 
 
 def get_commitment(cid: str) -> Optional[Dict[str, Any]]:

@@ -2077,12 +2077,23 @@ def documents_list(
     company_id: Optional[str] = None,
     doc_type: Optional[str] = None,
     review_status: Optional[str] = None,
+    url: Optional[str] = None,
 ) -> Dict[str, Any]:
     from app.data import doc_store
+
+    from app.services.changes import sort_document_listing
+
+    if url and url.strip():
+        if not doc_store.list_documents():
+            doc_store.seed_from_outcomes_and_transcripts()
+        found = doc_store.find_by_url(url)
+        rows = [found] if found else []
+        return {"count": len(rows), "documents": rows}
 
     rows = doc_store.list_documents(company_id=company_id, doc_type=doc_type)
     if review_status:
         rows = [d for d in rows if d.get("review_status") == review_status]
+    rows = sort_document_listing(rows)
     return {"count": len(rows), "documents": rows}
 
 
