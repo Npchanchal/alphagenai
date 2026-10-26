@@ -110,7 +110,6 @@ describe("promise thread heatmap", () => {
 
   it("draws a revision range from the opening band through each later band", () => {
     const candle = revisionCandle({
-      metric: "revenue_growth_cc_pct",
       guided_value: 13,
       guided_low: 12,
       guided_high: 14,
