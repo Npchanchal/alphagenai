@@ -43,7 +43,9 @@ export default function HighlightedDocument({
         </p>
       )}
       {quote && !parts && (
-        <blockquote className="quote-span">“{quote}”</blockquote>
+        <blockquote className="quote-span">
+          “<mark className="source-highlight" data-testid="source-highlight">{quote}</mark>”
+        </blockquote>
       )}
       <pre className="source-doc-body">
         {parts ? (
