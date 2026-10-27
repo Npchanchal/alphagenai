@@ -62,7 +62,6 @@ import { CONTACT_EMAIL } from "../lib/legal";
 import { useI18n } from "../i18n";
 import { useEntitlements } from "../lib/entitlements";
 import { useAuth } from "../lib/auth";
-import { isPlatformSuper } from "../lib/platformRole";
 import { trackEvent } from "../lib/analytics";
 
 const TOC_PUBLIC = [
@@ -70,12 +69,12 @@ const TOC_PUBLIC = [
   { id: "evidence", labelKey: "ui.CompanyDetailPage.toc.evidence" },
   { id: "revisions", labelKey: "ui.CompanyDetailPage.toc.revisions" },
   { id: "calc", labelKey: "ui.CompanyDetailPage.toc.calc" },
+  { id: "trend", labelKey: "ui.CompanyDetailPage.toc.trend" },
 ] as const;
 
 const TOC_PRIMARY = [
   { id: "ledger", labelKey: "ui.CompanyDetailPage.toc.ledger" },
   { id: "docs", labelKey: "ui.CompanyDetailPage.toc.docs" },
-  { id: "trend", labelKey: "ui.CompanyDetailPage.toc.trend" },
   { id: "report", labelKey: "ui.CompanyDetailPage.toc.report" },
 ] as const;
 
@@ -84,9 +83,7 @@ const TOC_MORE = [
   { id: "revisions", labelKey: "ui.CompanyDetailPage.toc.revisions" },
   { id: "analytics", labelKey: "ui.CompanyDetailPage.toc.analytics" },
   { id: "threads", labelKey: "ui.CompanyDetailPage.toc.threads" },
-  { id: "metrics", labelKey: "ui.CompanyDetailPage.toc.metrics" },
   { id: "notes", labelKey: "ui.CompanyDetailPage.toc.notes" },
-  { id: "pit", labelKey: "ui.CompanyDetailPage.toc.pit" },
   { id: "context", labelKey: "ui.CompanyDetailPage.toc.context" },
 ] as const;
 
@@ -94,7 +91,7 @@ export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t, lang: uiLang } = useI18n();
   const { has, entitlements } = useEntitlements();
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [commitments, setCommitments] = useState<CommitmentView | null>(null);
@@ -187,10 +184,10 @@ export default function CompanyDetailPage() {
   const [paywall, setPaywall] = useState<ApiError | null>(null);
   const dismissToast = useCallback(() => setToast(null), []);
 
-  // W1.2 (rule index-integrity): price tape, correlation / lead–lag, wordmap and
-  // narrative-consistency use synthetic inputs. Workbench seats only; never guests.
-  const showGciGraphs = isPlatformSuper(user);
-  const canAnalytics = has("analytics_experimental") && showGciGraphs;
+  // Price tape, correlation / lead–lag, and narrative consistency use synthetic
+  // inputs. Those stay on a workbench seat. The GCI trend, citeable deltas, and
+  // point-in-time series are the published score and stay on the public dossier.
+  const canAnalytics = has("analytics_experimental");
   const canWordmap = has("wordmap");
   const canNinja = has("ninja");
   const canNotes = canNinja || has("analyst_agent");
@@ -588,6 +585,14 @@ export default function CompanyDetailPage() {
             {t(s.labelKey)}
           </a>
         ))}
+        {hasMetricChanges && (
+          <a href="#metrics" className="dossier-toc-link">
+            {t("ui.CompanyDetailPage.toc.metrics")}
+          </a>
+        )}
+        <a href="#pit" className="dossier-toc-link">
+          {t("ui.CompanyDetailPage.toc.pit")}
+        </a>
         {showWorkbench ? (
           <>
             {TOC_PRIMARY.map((s) => (
@@ -599,7 +604,6 @@ export default function CompanyDetailPage() {
               <summary>{t("ui.CompanyDetailPage.tocMore")}</summary>
               {TOC_MORE.filter((s) => {
                 if (s.id === "threads") return hasThreads;
-                if (s.id === "metrics") return hasMetricChanges;
                 if (s.id === "analytics") return canAnalytics;
                 if (s.id === "notes") return canNotes;
                 if (s.id === "context") return canWordmap || canVernacular;
@@ -1039,6 +1043,8 @@ export default function CompanyDetailPage() {
           </ul>
         )}
       </div>
+        </>
+      )}
 
       <div className="panel" id="trend">
         <h2>
@@ -1047,7 +1053,7 @@ export default function CompanyDetailPage() {
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
           {t("ui.CompanyDetailPage.trend.lede")}
         </p>
-        {showGciGraphs && hasCiteableDeltas && (
+        {hasCiteableDeltas && (
           <div className="chart-block" data-testid="delta-horizon-chart">
             <h3 style={{ marginBottom: 4 }}>{t("ui.CompanyDetailPage.trend.horizons")}</h3>
             <BarChart
@@ -1066,8 +1072,8 @@ export default function CompanyDetailPage() {
             />
           </div>
         )}
-        {showGciGraphs && detail.trend.length >= 2 && (
-          <div className="chart-block">
+        {detail.trend.length >= 2 && (
+          <div className="chart-block" data-testid="gci-trend-chart">
             <LineChart
               points={detail.trend.map((pt) => ({
                 label: pt.period,
@@ -1501,11 +1507,10 @@ export default function CompanyDetailPage() {
           <h2>
             {t("ui.CompanyDetailPage.metrics.title")} <InfoTip termId="change_trend" />
           </h2>
-          {showGciGraphs && (
-          <div className="chart-block">
+          <div className="chart-block" data-testid="gci-metric-chart">
             <BarChart
               rows={Object.entries(detail.by_metric_changes!).map(([metric, b]) => ({
-                label: metric.replaceAll("_", " "),
+                label: metricDisplayName(metric),
                 value: Number(b.yoy_pct ?? b.qoq_pct ?? b.pop_pct ?? 0),
                 color:
                   Number(b.yoy_pct ?? b.qoq_pct ?? b.pop_pct ?? 0) >= 0
@@ -1519,11 +1524,10 @@ export default function CompanyDetailPage() {
               {t("ui.CompanyDetailPage.metrics.note")}
             </p>
           </div>
-          )}
           <div className="metrics">
             {Object.entries(detail.by_metric_changes!).map(([metric, b]) => (
               <div className="metric" key={metric}>
-                <div className="label">{metric}</div>
+                <div className="label">{metricDisplayName(metric)}</div>
                 <div className="value" style={{ fontSize: 22 }}>
                   {b.value ?? "—"}
                 </div>
@@ -1543,8 +1547,8 @@ export default function CompanyDetailPage() {
         <h2>
           {t("ui.CompanyDetailPage.pit.title")} <InfoTip termId="pit" />
         </h2>
-        {showGciGraphs && history.length >= 2 && (
-          <div className="chart-block">
+        {history.length >= 2 && (
+          <div className="chart-block" data-testid="gci-pit-chart">
             <LineChart
               points={history.map((h) => ({
                 label: h.as_of.slice(0, 7),
@@ -1559,7 +1563,7 @@ export default function CompanyDetailPage() {
           <table className="table" data-testid="pit-table">
             <thead>
               <tr>
-                <th>as_of</th>
+                <th>{t("ui.CompanyDetailPage.pit.date")}</th>
                 <th>GCI</th>
                 <th>Δ</th>
               </tr>
@@ -1664,8 +1668,6 @@ export default function CompanyDetailPage() {
         )}
         <Disclaimer compact />
       </div>
-      )}
-        </>
       )}
 
       <p className="muted dossier-footer" data-testid="dossier-footer">

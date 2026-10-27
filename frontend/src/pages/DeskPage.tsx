@@ -80,7 +80,6 @@ import { deskTabVisible } from "../lib/deskTabs";
 import { formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
-import { isPlatformSuper } from "../lib/platformRole";
 import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
 
@@ -127,8 +126,7 @@ type StatementDecision = {
 };
 
 export default function DeskPage() {
-  const { preferences, user } = useAuth();
-  const showGciGraphs = isPlatformSuper(user);
+  const { preferences } = useAuth();
   const { has } = useEntitlements();
   const { t, lang: uiLang } = useI18n();
   const navigate = useNavigate();
@@ -1279,7 +1277,7 @@ export default function DeskPage() {
             {t("ui.DeskPage.pit.lede.before")} <code className="inline-code">as_of</code> {t("ui.DeskPage.pit.lede.after")}{" "}
             <code className="inline-code">{demoApiKey()}</code>
           </p>
-          {showGciGraphs && history.length >= 2 && (
+          {history.length >= 2 && (
             <div className="chart-block">
               <h3 className="chart-title">{t("ui.DeskPage.pit.chartTitle")}</h3>
               <LineChart

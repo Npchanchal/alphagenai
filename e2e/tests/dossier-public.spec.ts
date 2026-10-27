@@ -58,6 +58,7 @@ test("guest dossier has no synthetic analytics and shows tier + as-of", async ({
   await expect(page.getByTestId("promise-threads")).toBeVisible();
   await expect(page.getByTestId("thread-promise").first()).toBeVisible();
 
+  await expect(page.getByTestId("gci-trend-chart")).toBeVisible();
   await expect(page.getByTestId("analytics-panel")).toHaveCount(0);
   await expect(page.getByTestId("gci-price-overlay")).toHaveCount(0);
   await expect(page.getByTestId("stock-history")).toHaveCount(0);
