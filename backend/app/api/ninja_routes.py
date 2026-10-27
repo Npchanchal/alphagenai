@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -57,10 +57,25 @@ def ninja_templates(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
 
 
 @router.post("/api/ninja/worksheets/{template}")
-def ninja_worksheet(template: str, body: Dict[str, Any], _ent=Depends(_require_ninja)) -> Dict[str, Any]:
-    from app.services.ninja import worksheet
+def ninja_worksheet(template: str, body: Dict[str, Any], ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import save_worksheet
 
-    return worksheet(template, body)
+    company_id = str(body.get("company_id") or "").strip()
+    if company_id:
+        _known_company(company_id)
+    return save_worksheet(str(ent.get("org_id") or ""), template, body)
+
+
+@router.get("/api/ninja/worksheets")
+def ninja_worksheet_record(
+    company_id: str,
+    template: Optional[str] = None,
+    ent=Depends(_require_ninja),
+) -> Dict[str, Any]:
+    from app.services.ninja import worksheet_record
+
+    _known_company(company_id)
+    return worksheet_record(str(ent.get("org_id") or ""), company_id, template or None)
 
 
 @router.get("/api/ninja/taxonomy")
@@ -78,6 +93,21 @@ def ninja_observation(body: Dict[str, Any], ent=Depends(_require_ninja)) -> Dict
     return add_observation(str(ent.get("org_id") or ""), body)
 
 
+@router.delete("/api/ninja/observations/{obs_id}")
+def ninja_observation_delete(obs_id: str, ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import delete_observation
+
+    return delete_observation(str(ent.get("org_id") or ""), obs_id)
+
+
+@router.post("/api/ninja/ratings")
+def ninja_rating(body: Dict[str, Any], ent=Depends(_require_ninja)) -> Dict[str, Any]:
+    from app.services.ninja import upsert_rating
+
+    _known_company(str(body.get("company_id") or ""))
+    return upsert_rating(str(ent.get("org_id") or ""), body)
+
+
 @router.get("/api/ninja/indices")
 def ninja_index_book(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
     from app.services.ninja import calculation_book
@@ -86,11 +116,15 @@ def ninja_index_book(_ent=Depends(_require_ninja)) -> Dict[str, Any]:
 
 
 @router.get("/api/ninja/indices/{company_id}")
-def ninja_index(company_id: str, ent=Depends(_require_ninja)) -> Dict[str, Any]:
+def ninja_index(
+    company_id: str,
+    period: Optional[str] = None,
+    ent=Depends(_require_ninja),
+) -> Dict[str, Any]:
     from app.services.ninja import calculation_for, chronology_for, layer_index
 
     _known_company(company_id)
-    payload = layer_index(str(ent.get("org_id") or ""), company_id)
+    payload = layer_index(str(ent.get("org_id") or ""), company_id, period or None)
     payload["calculation"] = calculation_for(company_id)
     payload["chronology"] = chronology_for(company_id)
     return payload

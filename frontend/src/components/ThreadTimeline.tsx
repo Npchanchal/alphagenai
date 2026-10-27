@@ -53,6 +53,34 @@ function finite(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
 
+/**
+ * Mouse x in viewBox units.
+ * The chart keeps its aspect ratio, so a wide box letterboxes the drawing.
+ * Mapping across the element width lands the pointer on the previous year.
+ */
+export function chartPointerX(
+  clientX: number,
+  rect: { left: number; width: number; height: number },
+  view: { width: number; height: number },
+): number {
+  const scale = Math.min(rect.width / view.width, rect.height / view.height) || 1;
+  const offsetX = (rect.width - view.width * scale) / 2;
+  return (clientX - rect.left - offsetX) / scale;
+}
+
+export function nearestChartIndex(pointerX: number, xs: readonly number[]): number {
+  let best = 0;
+  let bestD = Infinity;
+  xs.forEach((x, i) => {
+    const d = Math.abs(x - pointerX);
+    if (d < bestD) {
+      best = i;
+      bestD = d;
+    }
+  });
+  return best;
+}
+
 function stepView(
   o: OutcomeView,
   index: number,
@@ -167,20 +195,16 @@ function TrendChart({
   });
 
   const hovered = hover != null ? points[hover] : null;
+  const labelOnLeft = hover != null && x(hover) + 56 > w - 4;
+  const labelX = hover == null ? 0 : labelOnLeft ? x(hover) - 6 : x(hover) + 6;
+  const labelAnchor = labelOnLeft ? "end" : "start";
+  const labelY = (yPos: number) => Math.min(top + innerH - 2, Math.max(11, yPos - 6));
+  const tipAtStart = hover != null && x(hover) > w / 2;
 
   function onMove(e: MouseEvent<SVGSVGElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
-    const px = ((e.clientX - rect.left) / rect.width) * w;
-    let best = 0;
-    let bestD = Infinity;
-    points.forEach((_, i) => {
-      const d = Math.abs(x(i) - px);
-      if (d < bestD) {
-        best = i;
-        bestD = d;
-      }
-    });
-    setHover(best);
+    const px = chartPointerX(e.clientX, rect, { width: w, height: h });
+    setHover(nearestChartIndex(px, points.map((_, i) => x(i))));
   }
 
   return (
@@ -273,12 +297,22 @@ function TrendChart({
           />
         ) : null}
         {hovered && hover != null && hovered.actual != null ? (
-          <text x={x(hover) + 6} y={y(hovered.actual) - 6} className="trend-value">
+          <text
+            x={labelX}
+            y={labelY(y(hovered.actual))}
+            textAnchor={labelAnchor}
+            className="trend-value"
+          >
             {hovered.actualLabel}
           </text>
         ) : null}
         {hovered && hover != null && hovered.gci != null ? (
-          <text x={x(hover) + 6} y={yGci(hovered.gci) - 6} className="trend-value trend-value-gci">
+          <text
+            x={labelX}
+            y={labelY(yGci(hovered.gci))}
+            textAnchor={labelAnchor}
+            className="trend-value trend-value-gci"
+          >
             {formatScore(hovered.gci)}
           </text>
         ) : null}
@@ -289,7 +323,11 @@ function TrendChart({
         ))}
       </svg>
       {hovered ? (
-        <div className="thread-trend-tip" role="tooltip" data-testid="thread-trend-tip">
+        <div
+          className={`thread-trend-tip${tipAtStart ? " is-start" : ""}`}
+          role="tooltip"
+          data-testid="thread-trend-tip"
+        >
           <strong>{hovered.period}</strong>
           {hovered.gci != null ? (
             <span>{t("ui.ThreadTimeline.tip.gci", { value: formatScore(hovered.gci) })}</span>

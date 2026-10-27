@@ -27,7 +27,7 @@ The browser does not call those hosts. UI goes through `frontend/src/lib/api.ts`
 | Quote check | `services/source_verify.py` | Reads stored text. At most once per 24h when `INTELLENS_VERIFY_SOURCES=1` |
 | Commitments (not GCI) | `services/commitments.py`, `commitment_store.py`, `commitment_extract.py`, `commitment_monitor.py` | `commitments.json` |
 | Holdings look-through | `services/holdings.py` | Org file under `holdings/`. Reads `gci_score_cache` and the Commitment Record. Does not write a score. The saved file keeps the delivery tilt and the scheme change, and the page reloads that file. |
-| Financial Ninja | `services/ninja.py`, `api/ninja_routes.py` | Worksheets from desk inputs, org-scoped layer notes, counts of the published delivery record. The company page also shows the latest cited company, thematic, and sector note for that desk. Does not write a GCI. |
+| Financial Ninja | `services/ninja.py`, `api/ninja_routes.py` | Worksheets from desk inputs, saved on the organisation file. Org-scoped layer notes and a five-question desk sheet per layer. Counts of the published delivery record. The company page shows cited quotes only, with no sheet level. Does not write a GCI. |
 | Analyst model on a project | `services/agent/projects.py` | The analyst's figure, assumptions, sources, and what was not found. Does not write a GCI. |
 | Analyst skills, runs, exports | `services/agent/*`, `app/skills/*.json`, `api/analyst_routes.py` | Runs, projects, monitors, uploads, house style, destinations under the data dir |
 | Event filings | `services/event_filings.py` | Flag `ANALYST_EVENT_FILINGS` |

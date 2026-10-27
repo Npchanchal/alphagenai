@@ -3319,6 +3319,11 @@ h2 .info-tip {
   box-shadow: var(--shadow-soft);
 }
 
+.thread-trend-tip.is-start {
+  right: auto;
+  left: 8px;
+}
+
 .thread-trend-tip strong {
   font-size: 12px;
 }
@@ -5694,6 +5699,114 @@ h2 .info-tip {
   text-align: left;
   padding: 0.45rem 0.5rem;
   border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.ninja-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0.75rem 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.ninja-nav a {
+  font-size: 0.85rem;
+  color: var(--muted, #5c564e);
+  text-decoration: none;
+}
+
+.ninja-nav a.active,
+.ninja-nav a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.ninja-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 40rem;
+}
+
+.ninja-form label,
+.ninja-question label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ninja-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.ninja-figure-card {
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  padding: 0.75rem 0.85rem;
+}
+
+.ninja-figure-card span {
+  display: block;
+  color: var(--muted, #5c564e);
+  font-size: 0.8rem;
+}
+
+.ninja-figure-card strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ninja-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0 0.85rem;
+  font-size: 0.85rem;
+}
+
+.ninja-legend i {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.5rem;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.ninja-legend i.band { background: var(--band, #e7dfd4); }
+.ninja-legend i.ink { background: var(--ink); }
+.ninja-legend i.bad { background: var(--bad); }
+
+.ninja-question {
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  padding: 0.85rem 0;
+}
+
+.ninja-question p {
+  margin: 0.2rem 0 0.55rem;
+}
+
+.holdings-line,
+.holdings-scheme-line {
+  display: grid;
+  grid-template-columns: 1.3fr 0.6fr 0.8fr 1.1fr auto;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.holdings-scheme-line {
+  grid-template-columns: 1fr 1fr auto;
+}
+
+@media (max-width: 720px) {
+  .holdings-line,
+  .holdings-scheme-line {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ninja-listing {

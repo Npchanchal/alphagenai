@@ -38,6 +38,38 @@ _SECTOR_SCALES = (
 )
 STANCES = frozenset({"supported", "contradicted"})
 MIN_OBSERVATIONS = 3
+RATING_QUESTIONS = 5
+# Desk questions. They are not the published index. A missing rating stays blank.
+QUESTIONS = {
+    "accounting": (
+        ("definition_held", "How stable is the definition of the guided metric against the prior year?"),
+        ("bridge_shown", "How complete is the bridge from the guided metric to the reported figure?"),
+        ("one_offs_named", "How clearly are one-off items inside the metric named?"),
+        ("restatement_clear", "How clearly does the filing deal with any restatement of this metric?"),
+        ("segment_match", "How closely does the reported segment match the segment in the guidance?"),
+    ),
+    "causality": (
+        ("driver_named", "How clearly did management name the driver when it gave the guidance?"),
+        ("volume_price_mix", "How clearly are volume, price, and mix stated?"),
+        ("acquired_separated", "How clearly is acquired growth separated from the ongoing business?"),
+        ("external_vs_own", "How clearly is an external factor distinguished from the company's own action?"),
+        ("same_driver", "How clearly does the result discuss the same driver as the guidance?"),
+    ),
+    "conduct": (
+        ("cut_disclosed", "How plainly is an in-year cut or withdrawal disclosed?"),
+        ("words_match", "How closely do the words in the filing match the number?"),
+        ("question_answered", "How directly is a question on the call answered with a figure or a date?"),
+        ("prior_miss_named", "How plainly is a prior miss named?"),
+        ("metric_change", "How plainly is a change of metric disclosed?"),
+    ),
+    "execution": (
+        ("capacity_named", "How clearly is capacity, hiring, or capital expenditure named with the guidance?"),
+        ("milestone_dated", "How clearly does a milestone carry a date?"),
+        ("milestone_later", "How clearly is that milestone reported in a later filing?"),
+        ("spend_tied", "How clearly is the spend tied to the guided metric?"),
+        ("slippage_named", "How plainly is a slip against the stated date disclosed?"),
+    ),
+}
 TEMPLATES = ("dcf", "relative", "residual_income", "reverse_dcf", "asset_value")
 WORKSHEET_LINE = (
     "This worksheet figure is yours. It is not the Guidance Credibility Index and it is not a recommendation."
@@ -89,19 +121,71 @@ def _pack(template: str, figure: float, unit: str, inputs: Dict[str, Any]) -> Di
     }
 
 
+def _read_published_gci(company_id: str) -> Optional[float]:
+    """Read the published number. This does not append the score ledger."""
+    from app.data.seed import get_outcomes
+    from app.services.guidance_flags import audited_company_gci
+
+    try:
+        value = audited_company_gci(get_outcomes(company_id), company_id=company_id)
+    except Exception:
+        return None
+    if value is None:
+        return None
+    return round(float(value), 1)
+
+
+def _rate_sensitivity(kind: str, body: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Same inputs with the rate one point either way. Desk arithmetic only."""
+    field = None
+    noun = ""
+    if kind in ("dcf", "reverse_dcf"):
+        field = "discount_rate_pct"
+        noun = "Discount rate"
+    elif kind == "residual_income":
+        field = "cost_of_equity_pct"
+        noun = "Cost of equity"
+    if field is None:
+        return []
+    try:
+        rate = float(body.get(field))  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return []
+    builders = {"dcf": _dcf, "reverse_dcf": _reverse, "residual_income": _residual}
+    build = builders[kind]
+    points = []
+    for delta, side in ((-1.0, "one point lower"), (1.0, "one point higher")):
+        trial = dict(body)
+        trial[field] = rate + delta
+        try:
+            figure = build(trial)["figure"]
+        except HTTPException:
+            continue
+        points.append({"label": f"{noun} {side}", "figure": figure})
+    return points
+
+
 def worksheet(template: str, body: Dict[str, Any]) -> Dict[str, Any]:
     kind = (template or "").strip().lower()
     if kind == "dcf":
-        return _dcf(body)
-    if kind == "relative":
-        return _relative(body)
-    if kind == "residual_income":
-        return _residual(body)
-    if kind == "reverse_dcf":
-        return _reverse(body)
-    if kind == "asset_value":
-        return _asset(body)
-    raise HTTPException(status_code=400, detail="Unknown worksheet")
+        pack = _dcf(body)
+    elif kind == "relative":
+        pack = _relative(body)
+    elif kind == "residual_income":
+        pack = _residual(body)
+    elif kind == "reverse_dcf":
+        pack = _reverse(body)
+    elif kind == "asset_value":
+        pack = _asset(body)
+    else:
+        raise HTTPException(status_code=400, detail="Unknown worksheet")
+    company_id = str(body.get("company_id") or "").strip()
+    pack["saved"] = False
+    pack["sensitivity"] = _rate_sensitivity(kind, body) if company_id else []
+    if company_id:
+        pack["company_id"] = company_id
+        pack["published_gci"] = _read_published_gci(company_id)
+    return pack
 
 
 def _dcf(body: Dict[str, Any]) -> Dict[str, Any]:
@@ -208,6 +292,62 @@ def _asset(body: Dict[str, Any]) -> Dict[str, Any]:
     return _pack("asset_value", total, "currency", {"items": cleaned})
 
 
+def save_worksheet(org_id: str, template: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    """Persist the desk's inputs when a company is named. No ledger write."""
+    pack = worksheet(template, body)
+    company_id = str(pack.get("company_id") or "").strip()
+    if not company_id:
+        return pack
+    row = {
+        "id": hashlib.sha256(
+            f"{company_id}|{pack['template']}|{_now()}|{pack['figure']}".encode("utf-8")
+        ).hexdigest()[:16],
+        "company_id": company_id,
+        "template": pack["template"],
+        "figure": pack["figure"],
+        "unit": pack["unit"],
+        "inputs": pack["inputs"],
+        "statement": pack["statement"],
+        "published_gci": pack.get("published_gci"),
+        "sensitivity": pack.get("sensitivity") or [],
+        "saved_at": _now(),
+    }
+    with _LOCK:
+        data = _load(org_id)
+        rows = list(data.get("worksheets") or [])
+        rows.append(row)
+        data["worksheets"] = rows[-200:]
+        _save(org_id, data)
+    pack["saved"] = True
+    pack["saved_at"] = row["saved_at"]
+    pack["id"] = row["id"]
+    return pack
+
+
+def worksheet_record(org_id: str, company_id: str, template: Optional[str] = None) -> Dict[str, Any]:
+    rows = [
+        row
+        for row in _load(org_id).get("worksheets") or []
+        if row.get("company_id") == company_id
+    ]
+    history = list(reversed(rows))[:12]
+    latest = None
+    if template:
+        latest = next((row for row in history if row.get("template") == template), None)
+        if latest is None:
+            older = [row for row in reversed(rows) if row.get("template") == template]
+            latest = older[0] if older else None
+    elif history:
+        latest = history[0]
+    return {
+        "company_id": company_id,
+        "template": template,
+        "latest": latest,
+        "history": history,
+        "statement": WORKSHEET_LINE,
+    }
+
+
 def _load(org_id: str) -> Dict[str, Any]:
     path = _org_path(org_id)
     if not path.exists():
@@ -249,14 +389,209 @@ def add_observation(org_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
     with _LOCK:
         data = _load(org_id)
         observations = list(data.get("observations") or [])
+        row["id"] = hashlib.sha256(
+            f"{company_id}|{layer}|{quote}|{row['saved_at']}|{len(observations)}".encode("utf-8")
+        ).hexdigest()[:16]
         observations.append(row)
         data["observations"] = observations[-400:]
         _save(org_id, data)
     return row
 
 
-def layer_index(org_id: str, company_id: str) -> Dict[str, Any]:
-    """A level only after three cited observations. Otherwise the layer is unpublished."""
+def delete_observation(org_id: str, obs_id: str) -> Dict[str, Any]:
+    needle = (obs_id or "").strip()
+    if not needle:
+        raise HTTPException(status_code=404, detail="Observation not found")
+    with _LOCK:
+        data = _load(org_id)
+        rows = list(data.get("observations") or [])
+        kept = [row for row in rows if row.get("id") != needle]
+        if len(kept) == len(rows):
+            raise HTTPException(status_code=404, detail="Observation not found")
+        data["observations"] = kept
+        _save(org_id, data)
+    return {"deleted": needle}
+
+
+def _period(value: object) -> str:
+    text = str(value or "").strip()
+    if len(text) < 2 or len(text) > 16 or not text.replace("-", "").isalnum():
+        raise HTTPException(status_code=400, detail="Period must be a short label such as FY26")
+    return text
+
+
+def _rating_score(value: object) -> int:
+    if isinstance(value, bool):
+        raise HTTPException(status_code=400, detail="Rating must be a whole number from 0 to 4")
+    try:
+        score = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="Rating must be a whole number from 0 to 4")
+    if score < 0 or score > 4:
+        raise HTTPException(status_code=400, detail="Rating must be a whole number from 0 to 4")
+    return score
+
+
+def _question_prompt(layer: str, question: str) -> str:
+    for qid, prompt in QUESTIONS.get(layer, ()):
+        if qid == question:
+            return prompt
+    raise HTTPException(status_code=400, detail="Unknown question for this layer")
+
+
+def upsert_rating(org_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    layer = str(body.get("layer") or "").strip().lower()
+    if layer not in LAYERS:
+        raise HTTPException(status_code=400, detail="Layer must be accounting, causality, conduct, or execution")
+    question = str(body.get("question") or "").strip()
+    prompt = _question_prompt(layer, question)
+    quote = " ".join(str(body.get("quote") or "").split())
+    if len(quote) < 12:
+        raise HTTPException(status_code=400, detail="Quote the filing in at least a short sentence")
+    source = str(body.get("source_url") or "").strip()
+    if not source.startswith("http"):
+        raise HTTPException(status_code=400, detail="A source link is required")
+    company_id = str(body.get("company_id") or "").strip()
+    if not company_id:
+        raise HTTPException(status_code=400, detail="company_id is required")
+    period = _period(body.get("period"))
+    row = {
+        "company_id": company_id,
+        "layer": layer,
+        "question": question,
+        "prompt": prompt,
+        "period": period,
+        "score": _rating_score(body.get("score")),
+        "quote": quote[:500],
+        "source_url": source[:500],
+        "as_of": _date(body.get("as_of"), "as_of"),
+        "saved_at": _now(),
+    }
+    with _LOCK:
+        data = _load(org_id)
+        ratings = [
+            item
+            for item in list(data.get("ratings") or [])
+            if not (
+                item.get("company_id") == company_id
+                and item.get("layer") == layer
+                and item.get("question") == question
+                and item.get("period") == period
+            )
+        ]
+        row["id"] = hashlib.sha256(
+            f"{company_id}|{layer}|{question}|{period}|{row['saved_at']}|{len(ratings)}".encode("utf-8")
+        ).hexdigest()[:16]
+        ratings.append(row)
+        data["ratings"] = ratings[-800:]
+        _save(org_id, data)
+    return row
+
+
+def _desk_blend(company_id: str, period: str, layers: List[Dict[str, Any]]) -> Dict[str, Any]:
+    blank = {
+        "period": period or None,
+        "available": False,
+        "level": None,
+        "delivery": None,
+        "statement": (
+            "Desk blend appears when all four layers for that year have five cited ratings, "
+            "and a delivery score for that year is on the published record. "
+            "It is not the Guidance Credibility Index."
+        ),
+    }
+    if not period or any(not layer.get("complete") for layer in layers):
+        return blank
+    rows = [row for row in _scored_delivery_rows(company_id) if row.get("period") == period]
+    if not rows:
+        blank["statement"] = (
+            f"Delivery for {period} is not on the published record, so the desk blend stays blank. "
+            "It is not the Guidance Credibility Index."
+        )
+        return blank
+    delivery = sum(float(row["delivery"]) for row in rows) / len(rows)
+    by_layer = {str(layer["layer"]): float(layer["level"]) for layer in layers}
+    blend = (
+        LAYER_WEIGHTS["delivery"] * delivery
+        + LAYER_WEIGHTS["accounting"] * by_layer["accounting"]
+        + LAYER_WEIGHTS["causality"] * by_layer["causality"]
+        + LAYER_WEIGHTS["conduct"] * by_layer["conduct"]
+        + LAYER_WEIGHTS["execution"] * by_layer["execution"]
+    )
+    level = round(blend, 1)
+    return {
+        "period": period,
+        "available": True,
+        "level": level,
+        "delivery": round(delivery, 1),
+        "statement": (
+            f"Desk blend for {period} is {level}. Delivery in the blend is the average delivery score "
+            f"of the closed cited rows for that year ({round(delivery, 1)}). "
+            "This figure is yours. It is not the Guidance Credibility Index and it is not a recommendation."
+        ),
+    }
+
+
+def _sheet(org_id: str, company_id: str, period: Optional[str] = None) -> Dict[str, Any]:
+    ratings = [
+        row
+        for row in _load(org_id).get("ratings") or []
+        if row.get("company_id") == company_id
+    ]
+    periods = sorted({str(row.get("period") or "") for row in ratings if row.get("period")})
+    chosen = _period(period) if period else (periods[-1] if periods else "")
+    layers = []
+    for layer in LAYERS:
+        questions = []
+        cited = 0
+        scores: List[int] = []
+        for qid, prompt in QUESTIONS[layer]:
+            match = [
+                row
+                for row in ratings
+                if row.get("layer") == layer and row.get("question") == qid and (not chosen or row.get("period") == chosen)
+            ]
+            saved = match[-1] if match else None
+            if saved is not None:
+                cited += 1
+                scores.append(int(saved["score"]))
+            questions.append(
+                {
+                    "id": qid,
+                    "prompt": prompt,
+                    "score": None if saved is None else saved.get("score"),
+                    "quote": "" if saved is None else saved.get("quote") or "",
+                    "source_url": "" if saved is None else saved.get("source_url") or "",
+                    "as_of": "" if saved is None else saved.get("as_of") or "",
+                    "period": chosen,
+                }
+            )
+        complete = cited == RATING_QUESTIONS
+        layers.append(
+            {
+                "layer": layer,
+                "cited": cited,
+                "needed": RATING_QUESTIONS,
+                "complete": complete,
+                "level": round(sum(score / 4.0 for score in scores) / RATING_QUESTIONS * 100.0, 1) if complete else None,
+                "questions": questions,
+            }
+        )
+    return {
+        "period": chosen,
+        "periods": periods,
+        "scale": "0 is absent from the filing. 4 is fully shown.",
+        "layers": layers,
+        "desk_blend": _desk_blend(company_id, chosen, layers),
+        "statement": (
+            "A layer level appears when all five questions for that year have a source. "
+            "The desk blend is yours. It is not the Guidance Credibility Index and it is not a recommendation."
+        ),
+    }
+
+
+def layer_index(org_id: str, company_id: str, period: Optional[str] = None) -> Dict[str, Any]:
+    """A note-share only after three cited observations. The rating sheet stays separate."""
     rows = [
         row
         for row in _load(org_id).get("observations") or []
@@ -274,6 +609,8 @@ def layer_index(org_id: str, company_id: str) -> Dict[str, Any]:
                 "layer": layer,
                 "supported": supported,
                 "contradicted": contradicted,
+                "count": count,
+                "needed": MIN_OBSERVATIONS,
                 "level": round(100.0 * supported / count, 1) if published else None,
                 "published": published,
             }
@@ -282,6 +619,8 @@ def layer_index(org_id: str, company_id: str) -> Dict[str, Any]:
         "company_id": company_id,
         "min_observations": MIN_OBSERVATIONS,
         "layers": layers,
+        "observations": list(reversed(rows)),
+        "sheet": _sheet(org_id, company_id, period),
         "statement": (
             "A layer index is the share of this desk's cited observations marked supported. "
             "It is unpublished until three observations are on file. It is not the Guidance Credibility Index."
@@ -309,6 +648,20 @@ def profile_quotes(org_id: str, company_id: str) -> Dict[str, Any]:
                 "source_url": row.get("source_url"),
                 "as_of": row.get("as_of"),
                 "stance": row.get("stance"),
+            }
+        )
+    for row in _load(org_id).get("ratings") or []:
+        if row.get("company_id") != company_id:
+            continue
+        layer = row.get("layer")
+        if layer not in grouped:
+            continue
+        grouped[layer].append(
+            {
+                "quote": row.get("quote"),
+                "source_url": row.get("source_url"),
+                "as_of": row.get("as_of"),
+                "stance": "cited",
             }
         )
     from app.data.gci_score_cache import get_listing_score
@@ -344,18 +697,26 @@ def sector_taxonomy() -> Dict[str, Any]:
 
 def _delivery_rows() -> List[Dict[str, Any]]:
     from app.data.hand_labeled import HAND_LABELED
-    from app.data.seed import outcome_from_dict
+    from app.data.metric_catalog import display_name_for
+    from app.data.seed import list_companies, outcome_from_dict
     from app.services.gci_scoring import OutcomeLabel, classify_outcome
     from app.services.score_policy import excluded_from_score
 
+    names = {str(company.get("id")): company for company in list_companies()}
+    labels = {
+        OutcomeLabel.MET: "met",
+        OutcomeLabel.EXCEEDED: "exceeded",
+        OutcomeLabel.MISSED: "missed",
+    }
     rows = []
     for company_id, raw_rows in HAND_LABELED.items():
+        company = names.get(company_id) or {}
         for raw in raw_rows:
             outcome = outcome_from_dict(raw)
             if excluded_from_score(outcome):
                 continue
             label = classify_outcome(outcome)
-            if label not in (OutcomeLabel.MET, OutcomeLabel.EXCEEDED, OutcomeLabel.MISSED):
+            if label not in labels:
                 continue
             opening = outcome.guided_high
             downward = False
@@ -366,12 +727,47 @@ def _delivery_rows() -> List[Dict[str, Any]]:
             rows.append(
                 {
                     "company_id": company_id,
+                    "ticker": company.get("ticker") or company_id,
+                    "name": company.get("name") or company_id,
+                    "sector": company.get("sector") or "",
                     "period": outcome.period,
+                    "metric": outcome.metric,
+                    "metric_name": display_name_for(outcome.metric),
+                    "outcome": labels[label],
                     "missed": label == OutcomeLabel.MISSED,
                     "downward": downward,
                 }
             )
     return rows
+
+
+def _count_bucket() -> Dict[str, int]:
+    return {"met": 0, "exceeded": 0, "missed": 0}
+
+
+def _stored_flag_rows() -> Dict[str, List[Dict[str, Any]]]:
+    """Analyst-set flags only. Heuristic suggestions stay off this count."""
+    from app.data.seed import list_companies
+    from app.services.guidance_flags import list_audit_flag_records
+
+    grouped: Dict[str, List[Dict[str, Any]]] = {"guidance_withdrawal": [], "definition_shift": []}
+    for company in list_companies():
+        company_id = str(company.get("id") or "")
+        for rec in list_audit_flag_records(company_id):
+            flag = str(rec.get("flag") or "")
+            if flag not in grouped:
+                continue
+            grouped[flag].append(
+                {
+                    "company_id": company_id,
+                    "ticker": company.get("ticker") or company_id,
+                    "name": company.get("name") or company_id,
+                    "flag": flag,
+                    "source_url": rec.get("source_url"),
+                    "set_at": rec.get("set_at"),
+                }
+            )
+    return grouped
 
 
 def _share(flags: List[bool]) -> Optional[float]:
@@ -801,15 +1197,70 @@ def hypothesis_tests() -> Dict[str, Any]:
             pairs.append((ordered[-2]["missed"], ordered[-1]["missed"]))
     both_missed = [prior and latest for prior, latest in pairs]
     persistence_ready = len(both_missed) >= 5
+    pair_rows = []
+    for group in by_company.values():
+        ordered = sorted(group, key=lambda row: str(row["period"]))
+        if len(ordered) < 2:
+            continue
+        prior, latest = ordered[-2], ordered[-1]
+        pair_rows.append(
+            {
+                "company_id": prior["company_id"],
+                "ticker": prior["ticker"],
+                "name": prior["name"],
+                "prior_period": prior["period"],
+                "latest_period": latest["period"],
+                "prior_missed": prior["missed"],
+                "latest_missed": latest["missed"],
+                "both_missed": bool(prior["missed"] and latest["missed"]),
+            }
+        )
+    by_name: Dict[str, Dict[str, Any]] = {}
+    by_sector: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        company_bucket = by_name.setdefault(
+            row["company_id"],
+            {
+                "company_id": row["company_id"],
+                "ticker": row["ticker"],
+                "name": row["name"],
+                "sector": row["sector"],
+                **_count_bucket(),
+            },
+        )
+        company_bucket[row["outcome"]] += 1
+        sector_bucket = by_sector.setdefault(
+            row["sector"] or "Equity",
+            {"sector": row["sector"] or "Equity", **_count_bucket()},
+        )
+        sector_bucket[row["outcome"]] += 1
+    flags = _stored_flag_rows()
+    public_rows = [
+        {key: row[key] for key in ("company_id", "ticker", "name", "sector", "period", "metric_name", "outcome", "downward")}
+        for row in rows
+    ]
     return {
         "statement": (
             "These are counts of closed, cited guidance rows already on the published record. "
             "They are not a forecast and they do not use prices."
         ),
+        "rows": public_rows,
+        "by_company": sorted(by_name.values(), key=lambda item: str(item["name"]).lower()),
+        "by_sector": sorted(by_sector.values(), key=lambda item: str(item["sector"]).lower()),
+        "flags": {
+            "guidance_withdrawal": {"n": len(flags["guidance_withdrawal"]), "rows": flags["guidance_withdrawal"]},
+            "definition_shift": {"n": len(flags["definition_shift"]), "rows": flags["definition_shift"]},
+        },
         "downward_revision": {
             "sufficient": revision_ready,
-            "with_revision": {"n": len(with_revision), "miss_share_pct": _share(with_revision)},
-            "without_revision": {"n": len(without_revision), "miss_share_pct": _share(without_revision)},
+            "with_revision": {
+                "n": len(with_revision),
+                "miss_share_pct": _share(with_revision) if revision_ready else None,
+            },
+            "without_revision": {
+                "n": len(without_revision),
+                "miss_share_pct": _share(without_revision) if revision_ready else None,
+            },
             "statement": (
                 "Miss share among rows whose in-year band was cut, beside rows that were not."
                 if revision_ready
@@ -820,6 +1271,7 @@ def hypothesis_tests() -> Dict[str, Any]:
             "sufficient": persistence_ready,
             "companies": len(both_missed),
             "both_missed_share_pct": _share(both_missed) if persistence_ready else None,
+            "rows": pair_rows,
             "statement": (
                 "Share of companies whose last two closed rows were both misses."
                 if persistence_ready

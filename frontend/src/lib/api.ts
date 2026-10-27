@@ -3048,7 +3048,9 @@ export type HoldingsReport = {
     prior_as_of?: string;
     prior_covered_gci?: number | null;
     covered_gci_change?: number | null;
-    weight_changes?: { name?: string; prior_weight?: number; weight?: number }[];
+    entered?: HoldingsLine[];
+    exited?: HoldingsLine[];
+    weight_changes?: { name?: string; prior_weight?: number; weight?: number; prior_gci?: number | null; gci_score?: number | null }[];
   } | null;
 };
 
@@ -3076,6 +3078,21 @@ export type NinjaWorksheet = {
   figure: number;
   unit: string;
   statement: string;
+  saved?: boolean;
+  saved_at?: string;
+  company_id?: string;
+  published_gci?: number | null;
+  sensitivity?: { label: string; figure: number }[];
+  inputs?: Record<string, unknown>;
+  id?: string;
+};
+
+export type NinjaWorksheetRecord = {
+  company_id: string;
+  template: string | null;
+  latest: (NinjaWorksheet & { inputs: Record<string, unknown>; saved_at?: string }) | null;
+  history: (NinjaWorksheet & { inputs: Record<string, unknown>; saved_at?: string })[];
+  statement: string;
 };
 
 export type NinjaProfile = {
@@ -3097,6 +3114,16 @@ export function postNinjaWorksheet(
   token?: string | null,
 ): Promise<NinjaWorksheet> {
   return authJson(`/api/ninja/worksheets/${encodeURIComponent(template)}`, { method: "POST", body: JSON.stringify(body) }, token);
+}
+
+export function fetchNinjaWorksheets(
+  companyId: string,
+  template: string,
+  token?: string | null,
+): Promise<NinjaWorksheetRecord> {
+  const params = new URLSearchParams({ company_id: companyId });
+  if (template) params.set("template", template);
+  return authJson(`/api/ninja/worksheets?${params}`, { method: "GET" }, token);
 }
 
 export type NinjaChronology = {
@@ -3173,29 +3200,155 @@ export function fetchNinjaCalculations(
   return authJson("/api/ninja/indices", { method: "GET" }, token);
 }
 
+export type NinjaObservation = {
+  id?: string;
+  layer: string;
+  stance: string;
+  quote: string;
+  source_url: string;
+  as_of: string;
+};
+
+export type NinjaQuestion = {
+  id: string;
+  prompt: string;
+  score: number | null;
+  quote: string;
+  source_url: string;
+  as_of: string;
+  period: string;
+};
+
+export type NinjaSheetLayer = {
+  layer: string;
+  cited: number;
+  needed: number;
+  complete: boolean;
+  level: number | null;
+  questions: NinjaQuestion[];
+};
+
+export type NinjaSheet = {
+  period: string;
+  periods: string[];
+  scale: string;
+  layers: NinjaSheetLayer[];
+  statement: string;
+  desk_blend: {
+    period: string | null;
+    available: boolean;
+    level: number | null;
+    delivery: number | null;
+    statement: string;
+  };
+};
+
+export type NinjaIndex = {
+  statement: string;
+  min_observations: number;
+  layers: {
+    layer: string;
+    level: number | null;
+    supported: number;
+    contradicted: number;
+    count: number;
+    needed: number;
+    published: boolean;
+  }[];
+  observations: NinjaObservation[];
+  sheet: NinjaSheet;
+  calculation: NinjaCalculation | null;
+  chronology: NinjaChronology;
+};
+
 export function fetchNinjaIndex(
   companyId: string,
   token?: string | null,
-): Promise<{
-  statement: string;
-  layers: { layer: string; level: number | null; supported: number; contradicted: number; published: boolean }[];
-  calculation: NinjaCalculation | null;
-  chronology: NinjaChronology;
-}> {
-  return authJson(`/api/ninja/indices/${encodeURIComponent(companyId)}`, { method: "GET" }, token);
+  period?: string,
+): Promise<NinjaIndex> {
+  const params = new URLSearchParams();
+  if (period) params.set("period", period);
+  const qs = params.toString();
+  return authJson(`/api/ninja/indices/${encodeURIComponent(companyId)}${qs ? `?${qs}` : ""}`, { method: "GET" }, token);
 }
 
 export function postNinjaObservation(
   body: { company_id: string; layer: string; stance: string; quote: string; source_url: string; as_of: string },
   token?: string | null,
-): Promise<Record<string, unknown>> {
+): Promise<NinjaObservation> {
   return authJson("/api/ninja/observations", { method: "POST", body: JSON.stringify(body) }, token);
 }
 
+export function deleteNinjaObservation(obsId: string, token?: string | null): Promise<{ deleted: string }> {
+  return authJson(`/api/ninja/observations/${encodeURIComponent(obsId)}`, { method: "DELETE" }, token);
+}
+
+export function postNinjaRating(
+  body: {
+    company_id: string;
+    layer: string;
+    question: string;
+    period: string;
+    score: number;
+    quote: string;
+    source_url: string;
+    as_of: string;
+  },
+  token?: string | null,
+): Promise<Record<string, unknown>> {
+  return authJson("/api/ninja/ratings", { method: "POST", body: JSON.stringify(body) }, token);
+}
+
+export type NinjaTestRow = {
+  company_id: string;
+  ticker: string;
+  name: string;
+  sector: string;
+  period: string;
+  metric_name: string;
+  outcome: string;
+  downward: boolean;
+};
+
+export type NinjaOutcomeCount = {
+  company_id?: string;
+  ticker?: string;
+  name?: string;
+  sector: string;
+  met: number;
+  exceeded: number;
+  missed: number;
+};
+
 export function fetchNinjaTests(token?: string | null): Promise<{
   statement: string;
-  downward_revision: { sufficient: boolean; statement: string; with_revision: { n: number; miss_share_pct: number | null }; without_revision: { n: number; miss_share_pct: number | null } };
-  persistence: { sufficient: boolean; statement: string; companies: number; both_missed_share_pct: number | null };
+  rows: NinjaTestRow[];
+  by_company: NinjaOutcomeCount[];
+  by_sector: NinjaOutcomeCount[];
+  flags: {
+    guidance_withdrawal: { n: number; rows: { company_id: string; ticker: string; name: string; source_url?: string; set_at?: string }[] };
+    definition_shift: { n: number; rows: { company_id: string; ticker: string; name: string; source_url?: string; set_at?: string }[] };
+  };
+  downward_revision: {
+    sufficient: boolean;
+    statement: string;
+    with_revision: { n: number; miss_share_pct: number | null };
+    without_revision: { n: number; miss_share_pct: number | null };
+  };
+  persistence: {
+    sufficient: boolean;
+    statement: string;
+    companies: number;
+    both_missed_share_pct: number | null;
+    rows: {
+      company_id: string;
+      ticker: string;
+      name: string;
+      prior_period: string;
+      latest_period: string;
+      both_missed: boolean;
+    }[];
+  };
 }> {
   return authJson("/api/ninja/tests", { method: "GET" }, token);
 }

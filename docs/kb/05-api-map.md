@@ -29,12 +29,15 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | GET | `/api/products` | Portfolio SKU catalog (Score / Cite / Radar / Ledger / Data / Sights / Holdings) |
 | POST | `/api/holdings/lookthrough` | Dated holdings file → covered published GCI, gaps, residual, delivery tilt, and scheme change from values in the file. Feature `holdings`: paid desk, or an admin-approved pilot inside 30/45/60 days. An approved term that has ended closes the pilot desk. |
 | GET | `/api/holdings/latest` | Last holdings file for the caller's org |
-| POST | `/api/ninja/worksheets/{template}` | Valuation worksheet from numbers the desk enters. Feature `ninja`. Not a published GCI. |
+| POST | `/api/ninja/worksheets/{template}` | Valuation worksheet from numbers the desk enters. Saved on the organisation when `company_id` is set. Feature `ninja`. Not a published GCI. |
+| GET | `/api/ninja/worksheets` | Latest saved worksheet and recent history for `company_id` and optional `template` |
 | POST | `/api/ninja/observations` | Cited note on accounting, causality, conduct, or execution |
+| DELETE | `/api/ninja/observations/{obs_id}` | Remove one cited note from this organisation |
+| POST | `/api/ninja/ratings` | One 0–4 desk rating on a named question. Requires a quote and a source. Not a published GCI. |
 | GET | `/api/ninja/indices` | Universe stock listing plus the specification delivery worksheet, score heatmap, and filing chronology for every company with a closed, cited guidance row. Feature `ninja`. Not a published GCI. |
-| GET | `/api/ninja/indices/{company_id}` | Desk layer index, unpublished until three cited notes, plus that company's delivery worksheet and filing chronology |
-| GET | `/api/ninja/profile/{company_id}` | Cited layer text for the dossier. No index level. Empty for a guest |
-| GET | `/api/ninja/tests` | Counts on the published delivery record |
+| GET | `/api/ninja/indices/{company_id}` | Note share (blank under three cited notes), desk layer sheet, delivery worksheet, and filing chronology. Optional `period`. |
+| GET | `/api/ninja/profile/{company_id}` | Cited layer text for the dossier. No index level and no rating score. Empty for a guest |
+| GET | `/api/ninja/tests` | Counts on the published delivery record, with the rows behind each count. A thin comparison withholds the miss share. |
 | GET | `/api/ninja/taxonomy` | Sectors already stored on companies |
 | POST | `/api/analyst/projects/{project_id}/models` | Analyst-owned model figure on a project |
 | GET | `/api/radar/feed` | CiteAlpha Radar change feed |

@@ -74,7 +74,7 @@ export const NAV_ENTRIES: NavEntry[] = [
       { to: "/ninja", end: true, labelKey: "nav.ninja_valuation" },
       { to: "/ninja/indices", labelKey: "nav.ninja_indices" },
       { to: "/ninja/tests", labelKey: "nav.ninja_tests" },
-      { to: "/holdings", labelKey: "nav.holdings" },
+      { to: "/holdings", labelKey: "nav.ninja_holdings" },
     ],
   },
   {

@@ -263,3 +263,114 @@ def test_refresh_listing_score_keeps_the_composite(tmp_path, monkeypatch):
         assert cache.get_listing_score("infy")["confidence_tier"] == "deep"
     finally:
         cache.clear_memory_cache()
+
+
+def test_saved_worksheet_restores_for_this_org_and_leaves_gci_alone(tmp_path, monkeypatch):
+    import app.services.ninja as ninja
+    from app.services.repository import get_company_gci
+
+    monkeypatch.setattr(ninja, "_root", lambda: tmp_path)
+    before = get_company_gci("infy").gci_score
+    saved = client.post(
+        "/api/ninja/worksheets/dcf",
+        headers=ONESTOP,
+        json={"company_id": "infy", "cash_flows": [100], "discount_rate_pct": 10, "terminal_value": 0},
+    )
+    assert saved.status_code == 200, saved.text
+    body = saved.json()
+    assert body["saved"] is True
+    assert body["published_gci"] == before
+    assert body["sensitivity"]
+    assert "not the Guidance Credibility Index" in body["statement"]
+    record = client.get(
+        "/api/ninja/worksheets",
+        headers=ONESTOP,
+        params={"company_id": "infy", "template": "dcf"},
+    )
+    assert record.status_code == 200, record.text
+    assert record.json()["latest"]["inputs"]["cash_flows"] == [100.0]
+    assert ninja.worksheet_record("other-org", "infy", "dcf")["latest"] is None
+    assert get_company_gci("infy").gci_score == before
+
+
+def test_rating_sheet_stays_blank_until_five_cited_questions(tmp_path, monkeypatch):
+    import app.services.ninja as ninja
+    from app.services.repository import get_company_gci
+
+    monkeypatch.setattr(ninja, "_root", lambda: tmp_path)
+    before = get_company_gci("infy").gci_score
+    bare = {
+        "company_id": "infy",
+        "layer": "accounting",
+        "question": "definition_held",
+        "period": "FY24",
+        "score": 2,
+        "quote": "The filing keeps the same revenue definition.",
+        "source_url": "",
+        "as_of": "2024-04-18",
+    }
+    assert client.post("/api/ninja/ratings", headers=ONESTOP, json=bare).status_code == 400
+    bare["source_url"] = "https://www.infosys.com/investors/reports-filings/annual-report.html"
+    assert client.post("/api/ninja/ratings", headers=ONESTOP, json=bare).status_code == 200
+    thin = client.get("/api/ninja/indices/infy", headers=ONESTOP, params={"period": "FY24"}).json()
+    accounting = next(layer for layer in thin["sheet"]["layers"] if layer["layer"] == "accounting")
+    assert accounting["cited"] == 1
+    assert accounting["level"] is None
+    assert thin["sheet"]["desk_blend"]["available"] is False
+
+    for question, _prompt in ninja.QUESTIONS["accounting"]:
+        bare["question"] = question
+        assert client.post("/api/ninja/ratings", headers=ONESTOP, json=bare).status_code == 200
+    full = client.get("/api/ninja/indices/infy", headers=ONESTOP, params={"period": "FY24"}).json()
+    accounting = next(layer for layer in full["sheet"]["layers"] if layer["layer"] == "accounting")
+    assert accounting["complete"] is True
+    assert accounting["level"] == 50.0
+    assert full["sheet"]["desk_blend"]["available"] is False
+    profile = client.get("/api/ninja/profile/infy", headers=ONESTOP).json()
+    cited = profile["layers"]["accounting"][0]
+    assert "level" not in cited
+    assert "score" not in cited
+    guest = client.get("/api/ninja/profile/infy").json()
+    assert guest["layers"]["accounting"] == []
+    assert get_company_gci("infy").gci_score == before
+
+
+def test_a_cited_note_can_be_removed(tmp_path, monkeypatch):
+    import app.services.ninja as ninja
+
+    monkeypatch.setattr(ninja, "_root", lambda: tmp_path)
+    saved = client.post(
+        "/api/ninja/observations",
+        headers=ONESTOP,
+        json={
+            "company_id": "infy",
+            "layer": "conduct",
+            "stance": "supported",
+            "quote": "The call named the prior-year miss.",
+            "source_url": "https://www.infosys.com/investors/reports-filings/annual-report.html",
+            "as_of": "2024-04-18",
+        },
+    )
+    assert saved.status_code == 200, saved.text
+    removed = client.delete(f"/api/ninja/observations/{saved.json()['id']}", headers=ONESTOP)
+    assert removed.status_code == 200, removed.text
+    view = client.get("/api/ninja/indices/infy", headers=ONESTOP).json()
+    assert view["observations"] == []
+    conduct = next(layer for layer in view["layers"] if layer["layer"] == "conduct")
+    assert conduct["count"] == 0
+    assert conduct["level"] is None
+
+
+def test_delivery_counts_list_rows_and_withhold_a_thin_share():
+    body = client.get("/api/ninja/tests", headers=ONESTOP)
+    assert body.status_code == 200, body.text
+    payload = body.json()
+    assert payload["rows"]
+    assert payload["rows"][0]["company_id"]
+    assert payload["by_company"]
+    assert payload["by_sector"]
+    assert "guidance_withdrawal" in payload["flags"]
+    revision = payload["downward_revision"]
+    if not revision["sufficient"]:
+        assert revision["with_revision"]["miss_share_pct"] is None
+        assert revision["without_revision"]["miss_share_pct"] is None

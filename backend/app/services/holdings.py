@@ -181,10 +181,10 @@ def _manager(
         else round(float(covered_gci) - float(universe_gci), 1)
     )
     if tilt is None:
-        text = "Manager skill needs at least one holding with a published GCI."
+        text = "Delivery tilt needs at least one holding with a published GCI."
     else:
         text = (
-            f"Manager skill on this file is {tilt} points: the weighted published GCI "
+            f"Delivery tilt on this file is {tilt} points: the weighted published GCI "
             f"minus the equal-weight published GCI of the same scored names ({equal})."
         )
         if versus_universe is not None:

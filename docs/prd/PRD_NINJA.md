@@ -16,11 +16,13 @@ An analyst opens Financial Ninja to do the valuation work next to the delivery r
 
 `/ninja` is the valuation desk. The templates are the ones a desk already names: discounted cash flow, relative value, residual income, reverse discounted cash flow, and asset value. Each input is labeled with its unit. The result sits under the inputs, and the sentence on it is always the same idea, in plain words: this figure is yours, it is not the Guidance Credibility Index, and it is not a recommendation. That sentence is in the saved worksheet, not only on the screen.
 
-Saving keeps the inputs and the result for this organisation. Reopening the page restores them. Another desk does not see them.
+Saving keeps the inputs and the result for this organisation, for that company and template. Reopening the page restores the latest save and lists earlier saves. Another desk does not see them. The published GCI is printed beside the figure and is not rewritten. Where the template has a rate, the page also shows that rate one point lower and one point higher. Those figures are the desk's arithmetic.
 
 ### Notes that earn an index, and counts that stay counts
 
-`/ninja/indices` is the layer record: accounting, causality, conduct, and execution. An observation needs a source. Without one, the page asks for the source and does not store a floating claim. A layer shows an index only after three cited observations. With two, the page shows the two observations and says an index waits for a third. It does not draw a number from a thin file.
+`/ninja/indices` is the layer record: accounting, causality, conduct, and execution. An observation needs a source. Without one, the page asks for the source and does not store a floating claim. The share of notes marked supported appears only after three cited observations. With two, the page shows the two observations and says the share waits for a third.
+
+Each layer also has five desk questions, scored 0 to 4, each with a quote, a source, a date, and a financial year. A layer level appears only when all five questions for that year are cited. The desk blend appears only when all four layers for that year are complete and that year has a delivery score on the published record. The blend is labeled as the desk's. It is not written to the company page as a level, and it does not enter the score ledger. The dossier shows the quotes only.
 
 `/ninja/tests` counts the published delivery record: how often guidance was met, exceeded, missed. The count is a count. It does not become a price target, and it does not rewrite the GCI it counted.
 
@@ -63,7 +65,7 @@ A worksheet figure is labeled as the desk’s. No role can file it as the compan
 |---|---|
 | D1 | Templates are discounted cash flow, relative, residual income, reverse discounted cash flow, and asset value. Inputs are the desk’s numbers. |
 | D2 | Every worksheet result carries the sentence that the figure is the desk’s, is not the GCI, and is not a recommendation. |
-| D3 | Layers are accounting, causality, conduct, and execution. An index for a layer requires at least three cited observations. Stances are supported or contradicted. |
+| D3 | Layers are accounting, causality, conduct, and execution. The share of notes marked supported requires at least three cited observations. A desk layer level requires five cited questions for that year, each scored 0 to 4 with a source. The desk blend is not a published GCI. |
 | D4 | Tests count published outcomes. They do not produce a price target. |
 | D5 | Notes stay on the organisation’s Ninja file. |
 | D6 | The page is behind `PlanAccessGate` for the Ninja feature. |
