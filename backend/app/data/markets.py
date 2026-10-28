@@ -312,6 +312,37 @@ def _universe_size(market_id: str) -> int:
     return len(_market_universe(market_id)) or MARKET_TOP_N
 
 
+def market_is_listed(market_id: str) -> bool:
+    """True when the market's rows come from a published listing, not constituent pads."""
+    mid = market_id.upper()
+    if mid == "IN":
+        return True
+    if mid == "US":
+        from app.data.us_listings import us_equity_universe
+
+        return bool(us_equity_universe())
+    return False
+
+
+def index_is_listed(index_id: str) -> bool:
+    """True when every member of the index comes from a published listing.
+
+    Outside India only the primary index carries the listing master; secondary
+    indexes (DJI, NDX) hold just the hand-tagged anchors and would read as a
+    partial index.
+    """
+    ix = get_index_raw(index_id)
+    if ix is None or not market_is_listed(ix["market_id"]):
+        return False
+    if ix["market_id"] == "IN":
+        return ix["id"] in INDIA_INDEX_IDS
+    return ix["id"] == _PRIMARY_INDEX.get(ix["market_id"])
+
+
+def listed_market_ids() -> List[str]:
+    return [m["id"] for m in MARKETS if market_is_listed(m["id"])]
+
+
 def list_markets() -> List[Dict[str, Any]]:
     out = []
     for m in MARKETS:
@@ -320,6 +351,7 @@ def list_markets() -> List[Dict[str, Any]]:
                 **m,
                 "universe_size": _universe_size(m["id"]),
                 "primary_index": _PRIMARY_INDEX[m["id"]],
+                "listed": market_is_listed(m["id"]),
             }
         )
     return out
@@ -332,6 +364,7 @@ def get_market(market_id: str) -> Optional[Dict[str, Any]]:
         return None
     m["universe_size"] = _universe_size(mid)
     m["primary_index"] = _PRIMARY_INDEX[mid]
+    m["listed"] = market_is_listed(mid)
     return m
 
 
@@ -347,7 +380,13 @@ def list_indexes(market_id: Optional[str] = None) -> List[Dict[str, Any]]:
         rows = [i for i in INDEXES if i["market_id"] == mid]
     out = []
     for ix in rows:
-        out.append({**ix, "constituent_count": constituent_count(ix["id"])})
+        out.append(
+            {
+                **ix,
+                "constituent_count": constituent_count(ix["id"]),
+                "listed": index_is_listed(ix["id"]),
+            }
+        )
     return out
 
 
@@ -355,7 +394,11 @@ def get_index(index_id: str) -> Optional[Dict[str, Any]]:
     ix = get_index_raw(index_id)
     if ix is None:
         return None
-    return {**ix, "constituent_count": constituent_count(ix["id"])}
+    return {
+        **ix,
+        "constituent_count": constituent_count(ix["id"]),
+        "listed": index_is_listed(ix["id"]),
+    }
 
 
 def constituent_count(index_id: str) -> int:
