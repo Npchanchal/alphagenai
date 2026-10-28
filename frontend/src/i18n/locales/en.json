@@ -1936,7 +1936,7 @@
   "screener.kicker": "{index} · {scored} of {total} scored",
   "palette.hint": "Search",
   "palette.hintTitle": "Company or tool. Press / outside a text field.",
-  "published.sentence": "{count} companies carry a published GCI; {ranked} of them are Established or Deep. A Provisional row is a record you can open, not a rank.",
+  "published.sentence": "Published GCI: {count} Indian companies. Established or Deep, and so rankable: {ranked}. A Provisional row is a record you can open, not a rank.",
   "rankings.noneRankable": "No company has reached the established tier yet (three closed reporting periods across two or more metrics). Provisional scores are published on each company page but are not ranked.",
   "dossier.footer.method": "Scoring method {v}",
   "auth.totp": "Authenticator code",

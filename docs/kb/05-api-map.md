@@ -7,7 +7,7 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/health` | Liveness |
-| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median); `published_gci_count` / `published_ranked_count` from `repository.list_published_companies()` (the one count every public page states) |
+| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median); `published_gci_count` / `published_ranked_count`: India rows with a score from the same `score_meta` call as the screener (the one count every public page states; `PublishedCountLine`) |
 
 **Score policy:** only `hand_labeled` companies carry a public `gci_score`. Listings and demo companies return `score: null` with status `not_yet_scored` (see `services/score_policy.py`). Outcome rows may include `revisions[]`, `revision_direction` (raised/cut/unchanged), `final_guided_low/high` and a context-only `final_label`; the score always uses the opening band.
 | GET | `/api/ops/pending-depth` | Depth backlog + optional `?bootstrap=true` |

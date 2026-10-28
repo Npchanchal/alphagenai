@@ -356,3 +356,12 @@ def test_since_last_open_first_visit_caps_filings_per_name():
         missed_for=lambda _cid: [],
     )
     assert [r["doc_id"] for r in out] == ["5", "4", "3"]
+
+
+def test_published_count_matches_the_india_rows_the_screener_shows():
+    meta = client.get("/api/meta").json()
+    rows = client.get("/api/companies").json()
+    shown = [r for r in rows if r.get("market_id", "IN") == "IN" and r.get("gci_score") is not None]
+    assert meta["published_gci_count"] == len(shown)
+    ranked = [r for r in shown if r.get("confidence_tier") in ("established", "deep")]
+    assert meta["published_ranked_count"] == len(ranked)

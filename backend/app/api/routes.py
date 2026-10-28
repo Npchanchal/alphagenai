@@ -894,24 +894,32 @@ def meta() -> Dict[str, Any]:
     from app.services.coverage import universe_coverage_counts
     from app.services.score_policy import is_scoreable
 
-    scored = sum(
-        1
-        for c in data["companies"]
-        if is_scoreable(c.get("data_quality"))
-        and compute_company_gci(get_outcomes(c["id"])) is not None
-    )
+    from app.services.guidance_flags import score_meta
+    from app.services.score_policy import is_rankable
+
+    scored = 0
+    published_tiers: List[Optional[str]] = []
+    for c in data["companies"]:
+        if not is_scoreable(c.get("data_quality")):
+            continue
+        outcomes = get_outcomes(c["id"])
+        if compute_company_gci(outcomes) is not None:
+            scored += 1
+        if (c.get("market_id") or "IN") != "IN":
+            continue
+        # Same scorer call as the screener rows, so the sentence and the table agree.
+        shown = score_meta(outcomes, company_id=c["id"], data_quality=c.get("data_quality"))
+        if shown["gci_score"] is not None:
+            published_tiers.append(shown["confidence_tier"])
     from app.data.gci_score_cache import load_cache
 
     gci_cache = load_cache()
     listing_scored = int(gci_cache.get("scored_count") or 0)
     depth = pending_depth_report(bootstrap=False)
-    from app.services.score_policy import is_rankable
-
-    published = repository.list_published_companies()
     return {
         "version": APP_VERSION,
-        "published_gci_count": len(published),
-        "published_ranked_count": sum(1 for r in published if is_rankable(r.confidence_tier)),
+        "published_gci_count": len(published_tiers),
+        "published_ranked_count": sum(1 for tier in published_tiers if is_rankable(tier)),
         "company_count": len(data["companies"]),
         "hand_labeled_count": labeled,
         "demo_structured_count": demo,
