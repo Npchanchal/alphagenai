@@ -10,7 +10,7 @@ import { useI18n } from "../i18n";
 import { trackEvent } from "../lib/analytics";
 import { fetchProductMeta, type ProductMeta } from "../lib/api";
 import { useAuth } from "../lib/auth";
-import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
+import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME, TAGLINE } from "../lib/legal";
 import { SEO_STRUCTURED } from "../lib/seoJsonLd";
 import { seatLanding } from "../lib/seatLanding";
 const PERSONAS = [
@@ -61,6 +61,9 @@ export default function LandingPage() {
       <div className="landing-hero panel">
         <p className="landing-kicker">{t("landing.hero.kicker")}</p>
         <h1>{t("landing.hero.title")}</h1>
+        <p className="landing-tagline" data-testid="landing-tagline">
+          {TAGLINE}
+        </p>
         <p className="muted landing-lede">
           {t("landing.hero.lede", { product: PRODUCT_NAME })}
         </p>

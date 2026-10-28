@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n";
-import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
+import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME, TAGLINE } from "../lib/legal";
 import { useAuth } from "../lib/auth";
 
 type FooterLink = { to: string; labelKey: string; hashHome?: string };
@@ -98,6 +98,9 @@ export default function SiteFooter() {
             extra={signedIn ? <Link to="/billing">{t("footer.billing")}</Link> : null}
           />
         </div>
+        <p className="site-footer-tagline" data-testid="footer-tagline">
+          {PRODUCT_NAME} · {TAGLINE}
+        </p>
         <p className="site-footer-copy">{copyrightLine()}</p>
         <p className="muted site-footer-note">
           {t("footer.note", { product: PRODUCT_NAME, entity: LEGAL_ENTITY })}

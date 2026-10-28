@@ -49,6 +49,13 @@ test.describe("Terminal pass", () => {
 test.describe("Sector tab", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
+  test("homepage and footer carry the tagline", async ({ page }) => {
+    await page.goto("/");
+    await dismissOverlays(page);
+    await expect(page.getByTestId("landing-tagline")).toHaveText("Beyond Guidance. Into Credibility.");
+    await expect(page.getByTestId("footer-tagline")).toContainText("Beyond Guidance. Into Credibility.");
+  });
+
   test("explains published coverage and lists every sector that holds a published name", async ({ page }) => {
     await page.goto("/tracker?tab=sectors");
     await dismissOverlays(page);
