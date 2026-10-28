@@ -31,6 +31,8 @@ TIER_PROVISIONAL = "provisional"
 TIER_ESTABLISHED = "established"
 TIER_DEEP = "deep"
 RANKABLE_TIERS = frozenset({TIER_ESTABLISHED, TIER_DEEP})
+# A sector average needs this many published company scores before it is shown.
+SECTOR_AVG_MIN_NAMES = 3
 
 ESTABLISHED_MIN_PERIODS = 3
 DEEP_MIN_PERIODS = 5

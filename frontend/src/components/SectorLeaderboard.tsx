@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import InfoTip from "./InfoTip";
+import TierBadge from "./TierBadge";
 import { useI18n } from "../i18n";
 import {
   fetchSectorBenchmark,
   fetchSectorLeaderboard,
   type CompanySummary,
+  type ConfidenceTier,
 } from "../lib/api";
 import { formatScore, scoreClass, formatCompanyScore, NOT_SCORED_LABEL } from "../lib/score";
 
@@ -19,6 +21,7 @@ type SectorRow = {
     name: string;
     gci_score: number | null;
   } | null;
+  names?: { id: string; ticker: string; name: string; confidence_tier?: string | null }[];
 };
 
 type Props = {
@@ -36,7 +39,8 @@ export default function SectorLeaderboard({
   compact = false,
 }: Props) {
   const { t } = useI18n();
-  const [rows, setRows] = useState<SectorRow[]>([]);
+  const [rows, setRows] = useState<SectorRow[] | null>(null);
+  const [minNames, setMinNames] = useState(3);
   const [openSector, setOpenSector] = useState<string | null>(null);
   const [peers, setPeers] = useState<CompanySummary[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +51,7 @@ export default function SectorLeaderboard({
       .then((r) => {
         if (!cancelled) {
           setRows((r.sectors || []) as SectorRow[]);
+          if (r.min_names) setMinNames(r.min_names);
           setError(null);
         }
       })
@@ -78,7 +83,10 @@ export default function SectorLeaderboard({
       </div>
     );
   }
-  if (!rows.length) return null;
+  if (rows === null) return null;
+  const averaged = rows.filter((s) => s.avg != null);
+  const building = rows.filter((s) => s.avg == null);
+  const published = rows.reduce((n, s) => n + (s.count || 0), 0);
 
   return (
     <div className="panel" data-testid="sector-leaderboard">
@@ -97,6 +105,15 @@ export default function SectorLeaderboard({
           {t("ui.SectorLeaderboard.lede")}
         </p>
       )}
+      <p data-testid="sector-coverage">
+        {published === 0
+          ? t("ui.SectorLeaderboard.nonePublished")
+          : averaged.length === 0
+            ? t("ui.SectorLeaderboard.noneAveraged", { n: published, sectors: rows.length, min: minNames })
+            : t("ui.SectorLeaderboard.coverage", { n: published, sectors: rows.length, averaged: averaged.length, min: minNames })}{" "}
+        {published === 0 ? <Link to="/tracker">{t("ui.SectorLeaderboard.openScreener")}</Link> : null}
+      </p>
+      {averaged.length > 0 && (
       <div className="table-scroll">
         <table className="table">
           <thead>
@@ -109,9 +126,7 @@ export default function SectorLeaderboard({
             </tr>
           </thead>
           <tbody>
-            {rows
-              .filter((s) => (s.count || 0) >= 3)
-              .map((s, i) => (
+            {averaged.map((s, i) => (
               <tr
                 key={s.sector}
                 className="row-link"
@@ -146,7 +161,7 @@ export default function SectorLeaderboard({
                       </span>
                     </>
                   ) : (
-                    "—"
+                    <span className="muted" title={t("ui.SectorLeaderboard.bestNone")}>—</span>
                   )}
                 </td>
               </tr>
@@ -154,6 +169,42 @@ export default function SectorLeaderboard({
           </tbody>
         </table>
       </div>
+      )}
+      {building.length > 0 && (
+        <div className="table-scroll" data-testid="sector-building">
+          <h3 style={{ fontSize: 14 }}>{t("ui.SectorLeaderboard.buildingTitle", { min: minNames })}</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{t("ui.SectorLeaderboard.th.sector")}</th>
+                <th className="num">{t("ui.SectorLeaderboard.th.published")}</th>
+                <th>{t("ui.SectorLeaderboard.th.companies")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {building.map((s) => (
+                <tr key={s.sector} data-testid={`sector-building-${s.sector}`}>
+                  <td>
+                    <strong>{s.sector}</strong>
+                  </td>
+                  <td className="num">
+                    {s.count} / {minNames}
+                  </td>
+                  <td>
+                    {(s.names || []).map((n, i) => (
+                      <span key={n.id}>
+                        {i > 0 ? " · " : ""}
+                        <Link to={`/companies/${n.id}`}>{n.name}</Link>{" "}
+                        <TierBadge tier={(n.confidence_tier || null) as ConfidenceTier | null} />
+                      </span>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {openSector && (
         <div className="sector-peers" data-testid="sector-peers">
           <h3 style={{ fontSize: 14 }}>{t("ui.SectorLeaderboard.peerRanking", { sector: openSector })}</h3>

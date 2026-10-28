@@ -173,8 +173,17 @@ def sectors_leaderboard(
     index: Optional[str] = None,
     limit: int = 40,
 ) -> Dict[str, Any]:
+    from app.services.score_policy import SECTOR_AVG_MIN_NAMES
+
     rows = repository.sector_leaderboard(market=market, index=index, limit=limit)
-    return {"market": market, "index": index, "count": len(rows), "sectors": rows}
+    return {
+        "market": market,
+        "index": index,
+        "count": len(rows),
+        "published_count": sum(r["count"] for r in rows),
+        "min_names": SECTOR_AVG_MIN_NAMES,
+        "sectors": rows,
+    }
 
 
 @router.post("/api/gci/score-universe")
@@ -3045,6 +3054,7 @@ def markets_list() -> Dict[str, Any]:
         "count": len(rows),
         "markets": rows,
         "gci_deep_markets": markets_data.GCI_DEEP_MARKETS,
+        "listed_markets": markets_data.listed_market_ids(),
         "note": markets_data.markets_meta()["scaffold_note"],
     }
 

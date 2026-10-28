@@ -1190,77 +1190,55 @@ def search_entities(
 def sector_leaderboard(
     market: Optional[str] = None, index: Optional[str] = None, *, limit: int = 40
 ) -> List[Dict[str, Any]]:
-    """Sector avg GCI for any market/index — cache/membership only (no full summary build)."""
+    """Sector average of published GCI — the same scorer call as the screener rows.
+
+    A sector carries an average only at ``SECTOR_AVG_MIN_NAMES`` published names;
+    ``best`` names a company only when its confidence tier may be ranked.
+    """
     from app.data import markets as markets_data
-    from app.data.gci_score_cache import load_cache
+    from app.services.score_policy import SECTOR_AVG_MIN_NAMES, is_rankable
 
     mid = market.upper() if market else None
     iid = index.upper() if index else None
-    if not mid and not iid:
-        rows = list_company_summaries()
-        stock_ids = {r.id for r in rows}
-        score_rows = {
-            r.id: {
-                "gci_score": r.gci_score,
-                "sector": r.sector,
-                "ticker": r.ticker,
-                "name": r.name,
-            }
-            for r in rows
-            if r.gci_score is not None
-        }
-    else:
-        stocks = (
-            markets_data.constituents_readonly(iid)
-            if iid
-            else markets_data.list_stocks(market_id=mid, index_id=None)
-        )
-        stock_ids = {s["id"] for s in stocks}
-        stock_meta = {s["id"]: s for s in stocks}
-        cache_scores = load_cache().get("scores") or {}
-        score_rows = {}
-        for cid in stock_ids:
-            cached = cache_scores.get(cid)
-            if not cached or cached.get("gci_score") is None:
-                continue
-            meta = stock_meta.get(cid) or {}
-            score_rows[cid] = {
-                "gci_score": cached["gci_score"],
-                "sector": cached.get("sector") or meta.get("sector") or "Equity",
-                "ticker": meta.get("ticker") or cached.get("ticker") or cid,
-                "name": meta.get("name") or cached.get("name") or cid,
-            }
+    members = {s["id"] for s in markets_data.constituents_readonly(iid)} if iid else None
 
     by: Dict[str, Dict[str, Any]] = {}
-    for cid, row in score_rows.items():
-        sector = row["sector"]
-        sc = float(row["gci_score"])
-        cur = by.setdefault(
-            sector,
-            {"sector": sector, "scores": [], "best": None, "count": 0},
-        )
+    for c in list_companies():
+        if mid and (c.get("market_id") or "IN").upper() != mid:
+            continue
+        if members is not None and c["id"] not in members:
+            continue
+        if not is_scoreable(c.get("data_quality")):
+            continue
+        meta = score_meta(get_outcomes(c["id"]), company_id=c["id"], data_quality=c.get("data_quality"))
+        if meta["gci_score"] is None:
+            continue
+        sector = c.get("sector") or "Equity"
+        cur = by.setdefault(sector, {"sector": sector, "scores": [], "names": [], "best": None})
+        sc = float(meta["gci_score"])
+        tier = meta["confidence_tier"]
         cur["scores"].append(sc)
-        cur["count"] += 1
-        best = cur["best"]
-        if best is None or sc > float(best["gci_score"] or -1):
-            cur["best"] = {
-                "id": cid,
-                "ticker": row["ticker"],
-                "name": row["name"],
-                "gci_score": sc,
-            }
+        cur["names"].append(
+            {"id": c["id"], "ticker": c.get("ticker") or c["id"], "name": c.get("name") or c["id"], "confidence_tier": tier}
+        )
+        if is_rankable(tier) and (cur["best"] is None or sc > cur["best"]["gci_score"]):
+            cur["best"] = {"id": c["id"], "ticker": c.get("ticker") or c["id"], "name": c.get("name") or c["id"], "gci_score": sc}
+
     out = []
     for sector, v in by.items():
-        avg = round(sum(v["scores"]) / len(v["scores"]), 1)
+        count = len(v["scores"])
+        enough = count >= SECTOR_AVG_MIN_NAMES
         out.append(
             {
                 "sector": sector,
-                "avg": avg,
-                "count": v["count"],
-                "best": v["best"],
+                "avg": round(sum(v["scores"]) / count, 1) if enough else None,
+                "count": count,
+                "min_names": SECTOR_AVG_MIN_NAMES,
+                "best": v["best"] if enough else None,
+                "names": sorted(v["names"], key=lambda n: n["name"]),
             }
         )
-    out.sort(key=lambda r: -(r["avg"] or -1))
+    out.sort(key=lambda r: (r["avg"] is None, -(r["avg"] or 0), -r["count"], r["sector"]))
     return out[:limit]
 
 

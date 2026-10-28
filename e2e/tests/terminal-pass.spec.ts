@@ -46,6 +46,19 @@ test.describe("Terminal pass", () => {
   });
 });
 
+test.describe("Sector tab", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("explains published coverage and lists every sector that holds a published name", async ({ page }) => {
+    await page.goto("/tracker?tab=sectors");
+    await dismissOverlays(page);
+    await expect(page.getByTestId("sector-leaderboard")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("sector-coverage")).toContainText(/published GCI/);
+    const listed = page.locator("[data-testid^=sector-row-], [data-testid^=sector-building-]");
+    expect(await listed.count()).toBeGreaterThan(0);
+  });
+});
+
 test.describe("Dossier delivery chips", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 

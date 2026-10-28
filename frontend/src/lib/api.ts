@@ -532,11 +532,15 @@ export function fetchSectorLeaderboard(opts?: {
   market?: string;
   index?: string;
   count: number;
+  published_count?: number;
+  min_names?: number;
   sectors: Array<{
     sector: string;
     avg: number | null;
     count: number;
+    min_names?: number;
     best: { id: string; ticker: string; name: string; gci_score: number | null } | null;
+    names?: Array<{ id: string; ticker: string; name: string; confidence_tier?: string | null }>;
   }>;
 }> {
   const params = new URLSearchParams();
@@ -3494,6 +3498,10 @@ export type Market = {
   name: string;
   currency: string;
   timezone: string;
+  primary_index?: string;
+  universe_size?: number;
+  /** Rows come from a published listing, not constituent placeholders. */
+  listed?: boolean;
 };
 
 export type MarketIndex = {
@@ -3502,6 +3510,8 @@ export type MarketIndex = {
   name: string;
   ticker: string;
   constituent_count?: number;
+  /** Every member comes from a published listing. */
+  listed?: boolean;
 };
 
 async function authJson<T>(
@@ -3827,6 +3837,7 @@ export function fetchMarkets(): Promise<{
   count: number;
   markets: Market[];
   gci_deep_markets: string[];
+  listed_markets?: string[];
   note: string;
 }> {
   return getJson("/api/markets");
