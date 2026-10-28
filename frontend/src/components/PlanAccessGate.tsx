@@ -18,6 +18,8 @@ type Props = {
   /** page = full route shell; panel = inset block inside a tab/panel */
   variant?: "page" | "panel";
   testId?: string;
+  /** A room the seat can open instead, e.g. the screener. */
+  alternate?: { to: string; label: string };
 };
 
 /** Renders children when entitled; otherwise plans / login upsell (nav stays visible). */
@@ -30,6 +32,7 @@ export default function PlanAccessGate({
   children,
   variant = "page",
   testId = "plan-access-gate",
+  alternate,
 }: Props) {
   const { t } = useI18n();
   const { user, token } = useAuth();
@@ -83,6 +86,13 @@ export default function PlanAccessGate({
             {t("nav.billing")}
           </Link>
         </div>
+      )}
+      {alternate && (
+        <p style={{ marginTop: "0.75rem" }}>
+          <Link to={alternate.to} data-testid={`${testId}-alternate`}>
+            {alternate.label}
+          </Link>
+        </p>
       )}
       {guestOrSignedOut && (
         <p className="muted" style={{ fontSize: 13, marginTop: "0.75rem" }}>

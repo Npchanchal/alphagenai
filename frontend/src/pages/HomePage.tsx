@@ -308,7 +308,7 @@ export default function HomePage() {
     sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : "";
 
   return (
-    <section>
+    <section className="screener-page">
       <p className="page-kicker" data-testid="screener-kicker">
         {!loading && total > 0 && total <= PAGE_SIZE
           ? t("screener.kicker", { index: indexName, scored: scoredCount, total })
@@ -328,7 +328,8 @@ export default function HomePage() {
         </p>
       )}
       <PublishedCountLine />
-      <p className="muted lede">
+      <p className="muted screener-lede-short">{t("screener.ledeShort")}</p>
+      <p className="muted lede screener-lede">
         {t("home.lede")} <InfoTip termId="gci" /> {t("ui.HomePage.prefer")}{" "}
         <strong>{t("ui.HomePage.citeable")}</strong> {t("ui.HomePage.preferTail")}{" "}
         <InfoTip termId="corpus_status" />
@@ -569,7 +570,7 @@ export default function HomePage() {
                           {sortMark("tier")}
                         </button>
                       </th>
-                      <th>{t("screener.th.closed")}</th>
+                      <th className="num">{t("screener.th.closed")}</th>
                       <th>{t("screener.th.lastFiling")}</th>
                     </tr>
                   </thead>
@@ -657,8 +658,8 @@ export default function HomePage() {
                               "—"
                             )}
                           </td>
-                          <td>{c.closed_periods ?? "—"}</td>
-                          <td>{c.as_of ? formatDossierDate(c.as_of) : "—"}</td>
+                          <td className="num">{c.closed_periods ?? "—"}</td>
+                          <td className="mono">{c.as_of ? formatDossierDate(c.as_of) : "—"}</td>
                         </tr>
                       );
                     })}

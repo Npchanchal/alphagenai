@@ -574,7 +574,11 @@ export default function OrgSettingsPage() {
       <p className="page-kicker">Organisation</p>
       <h1>Organisation settings</h1>
       <p className="muted lede">
-        Seats, sign-in, keys, and billing for {(org?.name || "this organisation").trim()}.
+        {canAdmin
+          ? `Seats, sign-in, keys, and billing for ${(org?.name || "this organisation").trim()}.`
+          : canAudit
+            ? `The audit trail for ${(org?.name || "this organisation").trim()}: review decisions, pack exports, and seat changes.`
+            : `Your seat on ${(org?.name || "this organisation").trim()}.`}
       </p>
       <div className="panel settings-panel">{body}</div>
       {!token && (

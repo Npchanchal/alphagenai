@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n";
 import type { ProductMeta } from "../lib/api";
+import PublishedCountLine from "./PublishedCountLine";
 
 /** Live coverage counts, stated at the precision a research head will check. */
 export default function LandingProofPanel({ meta }: { meta: ProductMeta | null }) {
@@ -23,7 +24,7 @@ export default function LandingProofPanel({ meta }: { meta: ProductMeta | null }
             </li>
           ) : null}
           <li data-testid="coverage-hand-labeled">
-            {t("landing.coverage.handLabeled", { count: meta.gci_scored_count })}
+            <PublishedCountLine meta={meta} />
           </li>
           <li data-testid="coverage-demo">
             {t("landing.coverage.demo", { count: meta.demo_structured_count })}

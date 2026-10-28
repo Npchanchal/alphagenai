@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { dismissOverlays, waitForCompanyTable, waitForDossier } from "../helpers";
+import { dismissOverlays, showEvidenceRows, waitForCompanyTable, waitForDossier } from "../helpers";
 
 test("US-001/002/003: list companies, open detail, see evidence", async ({ page }) => {
   await page.goto("/tracker");
@@ -12,7 +12,7 @@ test("US-001/002/003: list companies, open detail, see evidence", async ({ page 
   await waitForDossier(page);
   await expect(page.getByTestId("company-name")).toContainText("Infosys");
   await expect(page.getByTestId("gci-score")).not.toHaveText("N/A");
-  await expect(page.getByTestId("evidence-table")).toBeVisible();
+  await showEvidenceRows(page);
   await expect(page.getByTestId("trend-row")).toBeVisible();
   await expect(page.getByTestId("evidence-table").locator("tbody tr").first()).toBeVisible();
 });
@@ -22,6 +22,7 @@ test("labels and sources visible on detail", async ({ page }) => {
   await dismissOverlays(page);
   await waitForDossier(page);
   await expect(page.getByTestId("gci-score")).not.toHaveText("N/A", { timeout: 10_000 });
+  await showEvidenceRows(page);
   const table = page.getByTestId("evidence-table");
   await expect(table.locator(".pill").first()).toBeVisible();
   await expect(table).toContainText(/exceeded|met|missed|pending|dropped/i);

@@ -101,7 +101,8 @@ function WeightTable({ title, rows, testId }: { title: string; rows: HoldingsLin
 
 function HoldingsDesk() {
   const { t } = useI18n();
-  const { token } = useAuth();
+  const { token, preferences } = useAuth();
+  const starred = preferences?.watchlist ?? [];
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [asOf, setAsOf] = useState(today);
   const [lines, setLines] = useState<EditorLine[]>([{ ...EMPTY_LINE }]);
@@ -155,7 +156,133 @@ function HoldingsDesk() {
         <NinjaNav />
         <p className="landing-kicker">{t("holdings.kicker")}</p>
         <h1 style={{ marginTop: 0 }}>{t("holdings.title")}</h1>
-        <p className="muted">{t("holdings.lede")}</p>
+        <p className="muted">
+          {t("holdings.lede")} <Link to="/tracker">{t("holdings.openScreener")}</Link>
+        </p>
+        {report ? (
+          <div data-testid="holdings-result">
+            <div className="ninja-figures">
+              <div className="ninja-figure-card">
+                <span>{t("holdings.covered")}</span>
+                <strong data-testid="holdings-covered-gci">{report.covered_gci ?? "—"}</strong>
+                <p>{report.covered_weight_pct}% {t("holdings.ofFile")}</p>
+              </div>
+              <div className="ninja-figure-card">
+                <span>{t("holdings.tilt")}</span>
+                <strong data-testid="holdings-manager">{report.manager?.delivery_tilt ?? "—"}</strong>
+                <p>{t("holdings.tiltHelp")} {report.manager?.equal_weight_gci ?? "—"}.</p>
+              </div>
+              <div className="ninja-figure-card">
+                <span>{t("holdings.schemeChange")}</span>
+                <strong data-testid="holdings-scheme-result">{report.scheme?.change_pct == null ? "—" : `${report.scheme.change_pct}%`}</strong>
+                <p>{t("holdings.schemeHelp")}</p>
+              </div>
+            </div>
+            <p>{report.statement}</p>
+            {report.manager ? <p className="muted">{report.manager.statement}</p> : null}
+            {report.scheme?.points && report.scheme.points.length > 1 ? (
+              <div>
+                <h2>{t("holdings.schemeSeries")}</h2>
+                <SchemeChart points={report.scheme.points} />
+                <p className="muted">{report.scheme.statement}</p>
+              </div>
+            ) : null}
+            {report.diff?.prior_as_of ? (
+              <p data-testid="holdings-diff">
+                {t("holdings.prior", { date: report.diff.prior_as_of })}{" "}
+                {report.diff.prior_covered_gci ?? "—"}
+                {report.diff.covered_gci_change != null
+                  ? ` (${report.diff.covered_gci_change > 0 ? "+" : ""}${report.diff.covered_gci_change})`
+                  : ""}
+              </p>
+            ) : null}
+            <WeightTable title={t("holdings.entered")} rows={report.diff?.entered || []} testId="holdings-entered" />
+            <WeightTable title={t("holdings.exited")} rows={report.diff?.exited || []} testId="holdings-exited" />
+            {(report.diff?.weight_changes || []).length > 0 ? (
+              <div>
+                <h2>{t("holdings.weightChanges")}</h2>
+                <table className="admin-table" data-testid="holdings-weights">
+                  <thead>
+                    <tr>
+                      <th>{t("holdings.name")}</th>
+                      <th>{t("holdings.priorWeight")}</th>
+                      <th>{t("holdings.weight")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.diff?.weight_changes?.map((row) => (
+                      <tr key={`${row.name}-${row.weight}`}>
+                        <td>{row.name}</td>
+                        <td>{row.prior_weight}</td>
+                        <td>{row.weight}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+            <WeightTable title={t("holdings.scored")} rows={report.scored} testId="holdings-scored" />
+            <WeightTable title={t("holdings.gaps")} rows={report.gaps} testId="holdings-gaps" />
+            <WeightTable title={t("holdings.residual")} rows={report.residual} testId="holdings-residual" />
+            <h2>Since you last opened this</h2>
+            {report.last_opened_at ? (
+              <p className="muted" style={{ fontSize: 12 }}>
+                Last opened {String(report.last_opened_at).slice(0, 10)}.
+              </p>
+            ) : null}
+            {(report.since_last_open || []).length > 0 ? (
+              <ul data-testid="holdings-since">
+                {(report.since_last_open || []).map((item, i) => (
+                  <li key={`${item.company_id}-${item.kind}-${i}`}>
+                    <Link to={`/companies/${item.company_id}`}>{item.name}</Link>
+                    {": "}
+                    {item.kind === "filing"
+                      ? `new filing${item.title ? `, ${item.title}` : ""}${item.at ? ` (${String(item.at).slice(0, 10)})` : ""}`
+                      : item.kind === "open_guidance"
+                        ? `${item.count} open guidance ${item.count === 1 ? "item" : "items"}`
+                        : `missed ${item.period ?? ""} ${item.metric ? metricDisplayName(item.metric) : ""}`.trim()}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p data-testid="holdings-since">Nothing new on the names this book can score.</p>
+            )}
+          </div>
+        ) : null}
+        {!report?.lines?.length ? (
+          <div data-testid="holdings-intro">
+            <p>{t("holdings.introPaste")}</p>
+            <p className="muted">{t("holdings.introKinds")}</p>
+          </div>
+        ) : null}
+        {starred.length > 0 ? (
+          <div data-testid="holdings-starred">
+            <h2>{t("holdings.starredTitle")}</h2>
+            <p className="muted">{t("holdings.starredHelp")}</p>
+            <ul className="about-list">
+              {starred.map((id) => (
+                <li key={id}>
+                  <Link to={`/companies/${id}`} className="mono">
+                    {id.toUpperCase()}
+                  </Link>{" "}
+                  <button
+                    type="button"
+                    className="btn-ghost small"
+                    data-testid={`holdings-add-starred-${id}`}
+                    onClick={() =>
+                      setLines((current) => [
+                        ...current.filter((line) => line.isin || line.name || line.weight),
+                        { ...EMPTY_LINE, name: id.toUpperCase() },
+                      ])
+                    }
+                  >
+                    {t("holdings.addStarred")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -269,96 +396,6 @@ function HoldingsDesk() {
           </button>
         </form>
         {error ? <p className="error">{error}</p> : null}
-        {report ? (
-          <div data-testid="holdings-result">
-            <div className="ninja-figures">
-              <div className="ninja-figure-card">
-                <span>{t("holdings.covered")}</span>
-                <strong data-testid="holdings-covered-gci">{report.covered_gci ?? "—"}</strong>
-                <p>{report.covered_weight_pct}% {t("holdings.ofFile")}</p>
-              </div>
-              <div className="ninja-figure-card">
-                <span>{t("holdings.tilt")}</span>
-                <strong data-testid="holdings-manager">{report.manager?.delivery_tilt ?? "—"}</strong>
-                <p>{t("holdings.tiltHelp")} {report.manager?.equal_weight_gci ?? "—"}.</p>
-              </div>
-              <div className="ninja-figure-card">
-                <span>{t("holdings.schemeChange")}</span>
-                <strong data-testid="holdings-scheme-result">{report.scheme?.change_pct == null ? "—" : `${report.scheme.change_pct}%`}</strong>
-                <p>{t("holdings.schemeHelp")}</p>
-              </div>
-            </div>
-            <p>{report.statement}</p>
-            {report.manager ? <p className="muted">{report.manager.statement}</p> : null}
-            {report.scheme?.points && report.scheme.points.length > 1 ? (
-              <div>
-                <h2>{t("holdings.schemeSeries")}</h2>
-                <SchemeChart points={report.scheme.points} />
-                <p className="muted">{report.scheme.statement}</p>
-              </div>
-            ) : null}
-            {report.diff?.prior_as_of ? (
-              <p data-testid="holdings-diff">
-                {t("holdings.prior", { date: report.diff.prior_as_of })}{" "}
-                {report.diff.prior_covered_gci ?? "—"}
-                {report.diff.covered_gci_change != null
-                  ? ` (${report.diff.covered_gci_change > 0 ? "+" : ""}${report.diff.covered_gci_change})`
-                  : ""}
-              </p>
-            ) : null}
-            <WeightTable title={t("holdings.entered")} rows={report.diff?.entered || []} testId="holdings-entered" />
-            <WeightTable title={t("holdings.exited")} rows={report.diff?.exited || []} testId="holdings-exited" />
-            {(report.diff?.weight_changes || []).length > 0 ? (
-              <div>
-                <h2>{t("holdings.weightChanges")}</h2>
-                <table className="admin-table" data-testid="holdings-weights">
-                  <thead>
-                    <tr>
-                      <th>{t("holdings.name")}</th>
-                      <th>{t("holdings.priorWeight")}</th>
-                      <th>{t("holdings.weight")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.diff?.weight_changes?.map((row) => (
-                      <tr key={`${row.name}-${row.weight}`}>
-                        <td>{row.name}</td>
-                        <td>{row.prior_weight}</td>
-                        <td>{row.weight}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : null}
-            <WeightTable title={t("holdings.scored")} rows={report.scored} testId="holdings-scored" />
-            <WeightTable title={t("holdings.gaps")} rows={report.gaps} testId="holdings-gaps" />
-            <WeightTable title={t("holdings.residual")} rows={report.residual} testId="holdings-residual" />
-            <h2>Since you last opened this</h2>
-            {report.last_opened_at ? (
-              <p className="muted" style={{ fontSize: 12 }}>
-                Last opened {String(report.last_opened_at).slice(0, 10)}.
-              </p>
-            ) : null}
-            {(report.since_last_open || []).length > 0 ? (
-              <ul data-testid="holdings-since">
-                {(report.since_last_open || []).map((item, i) => (
-                  <li key={`${item.company_id}-${item.kind}-${i}`}>
-                    <Link to={`/companies/${item.company_id}`}>{item.name}</Link>
-                    {": "}
-                    {item.kind === "filing"
-                      ? `new filing${item.title ? `, ${item.title}` : ""}${item.at ? ` (${String(item.at).slice(0, 10)})` : ""}`
-                      : item.kind === "open_guidance"
-                        ? `${item.count} open guidance ${item.count === 1 ? "item" : "items"}`
-                        : `missed ${item.period ?? ""} ${item.metric ? metricDisplayName(item.metric) : ""}`.trim()}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p data-testid="holdings-since">Nothing new on the names this book can score.</p>
-            )}
-          </div>
-        ) : null}
       </div>
       <Disclaimer />
     </section>
@@ -374,6 +411,7 @@ export default function HoldingsPage() {
       description={t("holdings.gate")}
       returnTo="/holdings"
       testId="holdings-gate"
+      alternate={{ to: "/tracker", label: t("holdings.openScreener") }}
     >
       <HoldingsDesk />
     </PlanAccessGate>

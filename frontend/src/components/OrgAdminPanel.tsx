@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
+  fetchCompanies,
   fetchMyOrg,
   fetchOrgMembers,
   postMemberRole,
@@ -8,6 +9,7 @@ import {
   postOrgRevoke,
   postPartnerInvite,
   type AuthUser,
+  type CompanySummary,
   type OrgPayload,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -17,6 +19,94 @@ const WORKING_ROLES = ["viewer", "pm", "data", "ir", "oversight", "analyst", "la
 
 function seatLabel(id: string): string {
   return SEAT_COPY[id]?.label || id;
+}
+
+let coveredCompanies: Promise<CompanySummary[]> | null = null;
+
+function loadCoveredCompanies(): Promise<CompanySummary[]> {
+  if (!coveredCompanies) {
+    coveredCompanies = fetchCompanies().catch((err) => {
+      coveredCompanies = null;
+      throw err;
+    });
+  }
+  return coveredCompanies;
+}
+
+/** IR allow-list: a search over covered companies, saved on each add or remove. */
+function IrScopeEditor({
+  label,
+  scope,
+  onSave,
+}: {
+  label: string;
+  scope: string[];
+  onSave: (scope: string[]) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [companies, setCompanies] = useState<CompanySummary[]>([]);
+  const needle = query.trim().toLowerCase();
+  const hits = needle
+    ? companies
+        .filter(
+          (c) =>
+            !scope.includes(c.id) &&
+            (c.name.toLowerCase().includes(needle) || c.ticker.toLowerCase().includes(needle)),
+        )
+        .slice(0, 6)
+    : [];
+  const names = new Map(companies.map((c) => [c.id, c.name]));
+
+  return (
+    <div className="ir-scope" data-testid="ir-scope">
+      <span>Companies this seat may pack</span>
+      {scope.length === 0 ? (
+        <span className="muted"> No company named yet</span>
+      ) : (
+        <ul className="index-chips" aria-label={`Companies for ${label}`}>
+          {scope.map((id) => (
+            <li key={id}>
+              <button
+                type="button"
+                className="chip active"
+                title="Remove"
+                onClick={() => onSave(scope.filter((item) => item !== id))}
+              >
+                {names.get(id) || id.toUpperCase()} ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <input
+        type="search"
+        aria-label={`Add a company for ${label}`}
+        placeholder="Search a covered company"
+        value={query}
+        onFocus={() => void loadCoveredCompanies().then(setCompanies).catch(() => undefined)}
+        onChange={(e) => setQuery(e.target.value)}
+        data-testid="ir-scope-search"
+      />
+      {hits.length > 0 && (
+        <ul className="entity-search-results">
+          {hits.map((c) => (
+            <li key={c.id}>
+              <button
+                type="button"
+                data-testid={`ir-scope-add-${c.id}`}
+                onClick={() => {
+                  setQuery("");
+                  onSave([...scope, c.id]);
+                }}
+              >
+                <strong className="mono">{c.ticker}</strong> {c.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 function friendly(err: unknown, fallback: string): string {
@@ -127,28 +217,17 @@ export function OrgMembersPanel() {
                 </select>
               )}
               {canEdit && m.role === "ir" && (
-                <label>
-                  Companies this seat may pack
-                  <input
-                    aria-label={`Companies for ${m.email || m.name}`}
-                    defaultValue={(m.company_scope || []).join(", ")}
-                    placeholder="infy"
-                    onBlur={(e) => {
-                      if (!token || !orgId) return;
-                      const scope = e.target.value
-                        .split(/[,\s]+/)
-                        .map((id) => id.trim().toLowerCase())
-                        .filter(Boolean);
-                      setError(null);
-                      void postMemberRole(orgId, token, m.id, "ir", scope)
-                        .then(() => reload())
-                        .catch((err) => setError(friendly(err, "Company list failed")));
-                    }}
-                  />
-                  {(m.company_scope || []).length === 0 ? (
-                    <span className="muted"> No company named yet</span>
-                  ) : null}
-                </label>
+                <IrScopeEditor
+                  label={m.email || m.name || m.id}
+                  scope={m.company_scope || []}
+                  onSave={(scope) => {
+                    if (!token || !orgId) return;
+                    setError(null);
+                    void postMemberRole(orgId, token, m.id, "ir", scope)
+                      .then(() => reload())
+                      .catch((err) => setError(friendly(err, "Company list failed")));
+                  }}
+                />
               )}
               {canEdit && (
                 <button

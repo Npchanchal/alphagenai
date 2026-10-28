@@ -41,6 +41,8 @@ export default function SourceViewer({ target, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [busy, setBusy] = useState(true);
   const [showOriginal, setShowOriginal] = useState(Boolean(target.preferSplit));
+  const [wide, setWide] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [resolved, setResolved] = useState<Resolved>(() => ({
     title: target.title || t("ui.SourceViewer.defaultTitle"),
     text: target.document_text || "",
@@ -199,6 +201,27 @@ export default function SourceViewer({ target, onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("source-docked");
+    root.classList.toggle("source-docked-wide", wide);
+    return () => {
+      root.classList.remove("source-docked", "source-docked-wide");
+    };
+  }, [wide]);
+
+  async function copyCitationLink() {
+    if (!resolved.citationId) return;
+    const link = `${window.location.origin}/c/${encodeURIComponent(resolved.citationId)}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   const originalUrl = frameUrl(resolved.highlightUrl || resolved.url);
   const originalLabel = showOriginal
     ? t("ui.SourceViewer.hideOriginal")
@@ -209,7 +232,7 @@ export default function SourceViewer({ target, onClose }: Props) {
         : t("ui.SourceViewer.openOriginal");
 
   return (
-    <div className="source-viewer-overlay is-dock" role="presentation">
+    <div className={`source-viewer-overlay is-dock${wide ? " is-wide" : ""}`} role="presentation">
       <div
         className={`source-viewer${showOriginal ? " is-split" : ""}`}
         role="dialog"
@@ -223,15 +246,26 @@ export default function SourceViewer({ target, onClose }: Props) {
             <p className="page-kicker">{t("ui.SourceViewer.kicker")}</p>
             <h2 id="source-viewer-title">{resolved.title}</h2>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            className="btn ghost small"
-            onClick={onClose}
-            data-testid="source-viewer-close"
-          >
-            {t("ui.SourceViewer.close")}
-          </button>
+          <div className="source-dock-actions">
+            <button
+              type="button"
+              className="btn ghost small"
+              aria-pressed={wide}
+              onClick={() => setWide((w) => !w)}
+              data-testid="source-viewer-wide"
+            >
+              {wide ? t("ui.SourceViewer.narrower") : t("ui.SourceViewer.wider")}
+            </button>
+            <button
+              ref={closeRef}
+              type="button"
+              className="btn ghost small"
+              onClick={onClose}
+              data-testid="source-viewer-close"
+            >
+              {t("ui.SourceViewer.close")}
+            </button>
+          </div>
         </header>
         {busy && <p className="muted">{t("ui.SourceViewer.loading")}</p>}
         {resolved.error && <p className="error">{resolved.error}</p>}
@@ -278,7 +312,17 @@ export default function SourceViewer({ target, onClose }: Props) {
             </button>
           ) : null}
           {resolved.citationId && (
-            <Link to={`/c/${encodeURIComponent(resolved.citationId)}`}>{t("ui.SourceViewer.permalink")}</Link>
+            <>
+              <Link to={`/c/${encodeURIComponent(resolved.citationId)}`}>{t("ui.SourceViewer.permalink")}</Link>
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => void copyCitationLink()}
+                data-testid="source-viewer-copy-link"
+              >
+                {copied ? t("ui.SourceViewer.copied") : t("ui.SourceViewer.copyLink")}
+              </button>
+            </>
           )}
           {resolved.companyId && (
             <Link to={`/companies/${resolved.companyId}`}>{t("ui.SourceViewer.openDossier")}</Link>

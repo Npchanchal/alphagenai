@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import { useI18n } from "../i18n";
+import { useAuth } from "../lib/auth";
+import { SEAT_COPY, seatLanding } from "../lib/seatLanding";
 
 const JOBS = [
   {
@@ -52,6 +54,9 @@ const JOBS = [
 export default function WorkflowsPage() {
   const { t } = useI18n();
   const location = useLocation();
+  const { user } = useAuth();
+  const role = (user?.role || "").toLowerCase();
+  const seat = user && user.kind !== "guest" && role ? SEAT_COPY[role] : undefined;
 
   useEffect(() => {
     const id = location.hash.replace(/^#/, "");
@@ -64,6 +69,12 @@ export default function WorkflowsPage() {
       <p className="page-kicker">{t("workflows.kicker")}</p>
       <h1>{t("workflows.title")}</h1>
       <p className="lede muted">{t("workflows.lede")}</p>
+      {seat ? (
+        <p data-testid="workflows-seat">
+          {t("workflows.seat", { seat: seat.label })}{" "}
+          <Link to={seatLanding(user?.role, user?.company_scope)}>{t("workflows.seatLink")}</Link>
+        </p>
+      ) : null}
       <nav className="about-toc" aria-label={t("workflows.toc")}>
         {JOBS.map((job) => (
           <a key={job.id} href={`#${job.id}`}>

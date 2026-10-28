@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { dismissOverlays, waitForCompanyTable } from "../helpers";
+import { dismissOverlays, showEvidenceRows, waitForCompanyTable } from "../helpers";
 import { RESEARCH_TABS } from "../routes";
 
 test.describe("Research Terminal — all tabs", () => {
@@ -85,7 +85,7 @@ test.describe("Dossier portfolio panels", () => {
     await page.goto("/companies/infy");
     await dismissOverlays(page);
     await expect(page.getByTestId("company-name")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("evidence-table")).toBeVisible();
+    await showEvidenceRows(page);
     await expect(page.getByTestId("ledger-panel")).toBeVisible();
     await expect(page.getByTestId("radar-diff-panel")).toBeVisible();
     await expect(page.getByTestId("trend-row")).toBeVisible();

@@ -38,4 +38,43 @@ test.describe("Terminal pass", () => {
     await page.goBack();
     await expect(page).toHaveURL(/scored=0/);
   });
+
+  test("workflows names the signed-in seat", async ({ page }) => {
+    await page.goto("/workflows");
+    await dismissOverlays(page);
+    await expect(page.getByTestId("workflows-seat")).toBeVisible({ timeout: 15_000 });
+  });
+});
+
+test.describe("Dossier delivery chips", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("no chip reads zero", async ({ page }) => {
+    await page.goto("/companies/infy");
+    await dismissOverlays(page);
+    const chips = page.locator("[data-testid^=delivery-chip-]");
+    await expect(chips.first()).toBeVisible({ timeout: 20_000 });
+    for (const value of await chips.locator(".value").allInnerTexts()) {
+      expect(value.trim()).not.toBe("0");
+    }
+  });
+});
+
+test.describe("Terminal pass, signed out", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("compact screener shows 25 rows on 1920×1080 without scrolling the window", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto("/tracker?scored=0");
+    await dismissOverlays(page);
+    await expect(page.getByTestId("company-table")).toBeVisible({ timeout: 20_000 });
+    const visible = await page.evaluate(
+      () =>
+        [...document.querySelectorAll("[data-testid=company-table] tbody tr")].filter((row) => {
+          const box = row.getBoundingClientRect();
+          return box.top >= 0 && box.bottom <= window.innerHeight;
+        }).length,
+    );
+    expect(visible).toBeGreaterThanOrEqual(25);
+  });
 });

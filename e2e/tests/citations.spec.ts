@@ -1,13 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { dismissOverlays, waitForDossier } from "../helpers";
+import { dismissOverlays, showEvidenceRows, waitForDossier } from "../helpers";
 
 test("citation open source highlights quoted text", async ({ page }) => {
   await page.goto("/companies/infy");
   await dismissOverlays(page);
   await waitForDossier(page);
 
+  await showEvidenceRows(page);
   const table = page.getByTestId("evidence-table");
-  await expect(table).toBeVisible();
+  await expect(table).toBeVisible({ timeout: 30_000 });
   const open = table.getByTestId("open-source-0");
   await expect(open).toBeVisible();
   await open.click();
@@ -22,6 +23,29 @@ test("citation open source highlights quoted text", async ({ page }) => {
   }
   await page.getByTestId("source-viewer-close").click();
   await expect(viewer).toBeHidden();
+});
+
+test("docked source keeps the table, widens on request, and offers the citation link", async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.goto("/companies/infy");
+  await dismissOverlays(page);
+  await waitForDossier(page);
+  await showEvidenceRows(page);
+  const open = page.getByTestId("evidence-table").getByTestId("open-source-0");
+  await expect(open).toBeVisible({ timeout: 30_000 });
+  await open.click();
+  await expect(page.getByTestId("source-viewer")).toBeVisible();
+  await expect(page.locator("html")).toHaveClass(/source-docked/);
+  await expect(page.getByTestId("evidence-table")).toBeVisible();
+  const wide = page.getByTestId("source-viewer-wide");
+  await wide.click();
+  await expect(wide).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveClass(/source-docked-wide/);
+  if (await page.getByTestId("source-viewer-copy-link").count()) {
+    await expect(page.getByTestId("source-viewer-copy-link")).toBeVisible();
+  }
+  await page.getByTestId("source-viewer-close").click();
+  await expect(page.locator("html")).not.toHaveClass(/source-docked/);
 });
 
 test("research chat citation marker opens highlighted source", async ({ page }) => {

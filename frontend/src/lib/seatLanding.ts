@@ -61,6 +61,10 @@ export const SEAT_COPY: Record<string, { label: string; sentence: string }> = {
     label: "Admin",
     sentence: "Invites seats and runs the desk. Cannot appoint another admin.",
   },
+  owner: {
+    label: "Owner",
+    sentence: "Holds the plan and the bill, and appoints admins.",
+  },
 };
 
 const SKILL_GROUPS: { title: string; ids: string[] }[] = [

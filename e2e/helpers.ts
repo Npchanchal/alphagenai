@@ -139,6 +139,14 @@ export async function waitForDossier(page: Page): Promise<void> {
   ).toBeVisible({ timeout: 25_000 });
 }
 
+/** Readers open on the year view; a reviewing seat opens on rows. Pick rows explicitly. */
+export async function showEvidenceRows(page: Page): Promise<void> {
+  const byRow = page.getByRole("group", { name: "Evidence layout" }).getByRole("button", { name: "By row" });
+  await expect(byRow).toBeVisible({ timeout: 30_000 });
+  await byRow.click();
+  await expect(page.getByTestId("evidence-table")).toBeVisible({ timeout: 30_000 });
+}
+
 /** Visit a route and assert it loads (no 404 shell). */
 export async function assertRouteLoads(
   page: Page,

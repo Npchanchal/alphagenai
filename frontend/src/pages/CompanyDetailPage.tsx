@@ -665,8 +665,10 @@ export default function CompanyDetailPage() {
           <h2>{t("dossier.delivery.title")}</h2>
         </div>
         <div className="metrics">
-          {Object.entries(detail.label_counts).map(([label, n]) => (
-            <div className="metric" key={label}>
+          {Object.entries(detail.label_counts)
+            .filter(([, n]) => Number(n) > 0)
+            .map(([label, n]) => (
+            <div className="metric" key={label} data-testid={`delivery-chip-${label}`}>
               <div className="label">
                 {formatOutcomeLabel(label)}{" "}
                 <InfoTip termId={label.toLowerCase()} text={tipForLabel(label)} />
