@@ -92,7 +92,7 @@ test.describe("Guest user journey", () => {
     await expect(page.getByTestId("methodology-formula")).toContainText("floor of 60");
     await expect(page.getByTestId("methodology-formula")).toContainText("promise-keeping discipline");
     await expect(page.getByTestId("methodology-formula")).toContainText("about 59");
-    await expect(page.getByTestId("methodology-page")).toContainText("one analyst");
+    await expect(page.getByTestId("methodology-page")).toContainText("score ledger");
     await expect(page.getByTestId("methodology-page")).toContainText("Payment never influences");
   });
 

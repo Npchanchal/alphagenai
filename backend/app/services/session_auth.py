@@ -39,8 +39,33 @@ DEFAULT_PREFS: Dict[str, Any] = {
 }
 
 ALLOWED_ROLES = frozenset(
-    {"viewer", "analyst", "labeler", "reviewer", "admin", "owner", "member", "guest"}
+    {
+        "viewer",
+        "analyst",
+        "labeler",
+        "reviewer",
+        "admin",
+        "owner",
+        "member",
+        "guest",
+        "pm",
+        "data",
+        "oversight",
+        "ir",
+    }
 )
+
+SEAT_LABELS = {
+    "viewer": "Read published scores",
+    "analyst": "Prepare a result, cannot accept",
+    "labeler": "Attach a filing quote",
+    "reviewer": "Accept a row onto the index",
+    "pm": "Read holdings and alerts",
+    "data": "Take the data feed",
+    "oversight": "Read who changed a published row",
+    "ir": "Pack one listed company",
+    "admin": "Run the desk",
+}
 
 _PBKDF2_ITERS = 120_000
 MIN_PASSWORD_LEN = 12
@@ -220,6 +245,7 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "account_type": user.get("account_type", "b2b"),
         "org_id": user.get("org_id"),
         "role": user.get("role", "member"),
+        "company_scope": [str(c) for c in (user.get("company_scope") or [])],
         "email_verified": bool(user.get("email_verified")),
         "active": user.get("active", True) is not False,
         "terms_version": user.get("terms_version"),
@@ -743,7 +769,9 @@ def accept_org_invite(
     )
 
 
-_DESK_ASSIGNABLE = frozenset({"viewer", "analyst", "labeler", "reviewer"})
+_DESK_ASSIGNABLE = frozenset(
+    {"viewer", "analyst", "labeler", "reviewer", "pm", "data", "oversight", "ir"}
+)
 
 
 def seat_role_for_actor(actor_role: str, requested: str) -> str:
@@ -764,7 +792,21 @@ def seat_role_for_actor(actor_role: str, requested: str) -> str:
     return mapped
 
 
-def set_member_role(*, org_id: str, user_id: str, role: str, actor: Dict[str, Any]) -> Dict[str, Any]:
+def company_scope_for(user_id: Optional[str]) -> List[str]:
+    user = _find_user(user_id) if user_id else None
+    if not user:
+        return []
+    return [str(c).strip().lower() for c in (user.get("company_scope") or []) if str(c).strip()]
+
+
+def set_member_role(
+    *,
+    org_id: str,
+    user_id: str,
+    role: str,
+    actor: Dict[str, Any],
+    company_scope: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     if actor.get("org_id") != org_id:
         raise HTTPException(status_code=403, detail="Org mismatch")
     if actor.get("role") not in ("owner", "admin"):
@@ -781,8 +823,30 @@ def set_member_role(*, org_id: str, user_id: str, role: str, actor: Dict[str, An
             detail="Only the organisation owner can change an admin",
         )
     _refuse_if_protected(user)
+    prior_role = user.get("role")
     user["role"] = mapped
+    if mapped != "ir":
+        user["company_scope"] = []
+    elif company_scope is not None:
+        user["company_scope"] = company_scope
     _save_users()
+    try:
+        from app.data import audit_log
+
+        audit_log.record(
+            "seat_change",
+            org=org_id,
+            actor=str(actor.get("email") or actor.get("id") or "unknown"),
+            role=str(actor.get("role") or ""),
+            detail={
+                "member": user.get("email") or user_id,
+                "from": prior_role,
+                "to": mapped,
+                "company_scope": list(user.get("company_scope") or []),
+            },
+        )
+    except Exception:
+        pass
     return {"ok": True, "user": _public_user(user)}
 
 

@@ -51,3 +51,5 @@ When an approved pilot term ends, that organisation’s features fall back to `t
 | `admin`, `owner` | Every feature on the plan, including data-file export and SSO where the plan has them. Appointing seats is the admin document. Analyst keys, delivery destinations, and house style are this pair only |
 
 `member` and `viewer` carry the same features. Each PRD below states which of these roles may perform each action on that route, and which refusal the server returns. Hiding a control is presentation. A direct call without the feature returns 403 and does not write.
+
+Seats `pm`, `data`, `oversight`, and `ir` are in the product. Behaviour is [`docs/PRD_ROLES.md`](../PRD_ROLES.md). The build record is [`docs/TRD_ROLES.md`](../TRD_ROLES.md).

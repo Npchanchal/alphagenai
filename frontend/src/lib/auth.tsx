@@ -28,7 +28,7 @@ type AuthCtx = {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string, totpCode?: string) => Promise<void>;
+  login: (email: string, password: string, totpCode?: string) => Promise<AuthUser>;
   register: (
     email: string,
     password: string,
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             default_index: "SENSEX",
             watchlist: [],
             show_demo_tape: true,
-            density: "comfortable",
+            density: "compact",
             ...local,
           } as UserPreferences);
         }
@@ -175,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string, totpCode?: string) => {
       const res = await postLogin(email, password, totpCode);
       applySession(res.token, res.user);
+      return res.user;
     },
     [applySession],
   );

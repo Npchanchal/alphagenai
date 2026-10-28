@@ -13,6 +13,10 @@
 | Nav | `NavMenu.tsx` | Jobs, left to right: GCI Screener · Research (Filing Search, CiteAlpha Analyst, Public Snapshot) · Workspace (Analyst Workbench, Disclosure Explorer, Financial Ninja, Holdings) · Pricing · Learn (Workflows, methodology, changelog, blog, help, FAQ, about, Trust, API, status, press). Billing stays in the account menu. An admin bar (`AdminMenuBar`) sits under this nav only for an organisation owner, organisation admin, or platform role. |
 | Blog | `BlogIndexPage`, `BlogPostPage` | SEO research articles (`/blog`) |
 
+## Next development
+
+Role seats and the screens they open are specified in `docs/BRD_ROLES.md`, `docs/PRD_ROLES.md`, and `docs/TRD_ROLES.md`. The 28 Oct 2026 walk that fed them is `docs/PLAN_ROLE_UX.md`. Density, the year pivot, and the docked citation pane stay in `docs/prd/PRD_TERMINAL.md`. This page stays the map of what ships today.
+
 ## Design rules (institutional)
 
 1. One composition per viewport — not widget soup.

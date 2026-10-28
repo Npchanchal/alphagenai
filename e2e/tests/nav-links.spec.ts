@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { dismissOverlays, ensurePrimaryNav } from "../helpers";
 
-const NAV_TARGETS: { label: RegExp; url: RegExp; menu?: RegExp }[] = [
+const NAV_TARGETS: { label: RegExp; url: RegExp; menu?: RegExp; from?: string }[] = [
   { label: /^GCI Screener$/i, url: /\/tracker$/ },
   { label: /^Filing Search$/i, url: /\/research/, menu: /^Research$/i },
   { label: /^Analyst Workbench$/i, url: /\/desk/, menu: /^Workspace$/i },
   { label: /^Overview$/i, url: /\/sights$/, menu: /^Workspace$/i },
-  { label: /^Pricing$/i, url: /\/products/ },
+  { label: /^Pricing$/i, url: /\/products/, from: "/methodology" },
 ];
 
 const FOOTER_TARGETS: { label: RegExp; url: RegExp }[] = [
@@ -24,7 +24,12 @@ test.describe("Navigation & footer links", () => {
   });
 
   for (const target of NAV_TARGETS) {
-    test(`primary nav → ${target.menu ?? target.label}`, async ({ page }) => {
+    test(`primary nav → ${target.menu ? `${target.menu} › ` : ""}${target.label}`, async ({ page }) => {
+      if (target.from) {
+        await page.goto(target.from);
+        await dismissOverlays(page);
+        await ensurePrimaryNav(page);
+      }
       if (target.menu) {
         await page.getByRole("button", { name: target.menu }).first().click();
         await page.getByRole("menuitem", { name: target.label }).first().click();
@@ -34,6 +39,13 @@ test.describe("Navigation & footer links", () => {
       await expect(page).toHaveURL(target.url);
     });
   }
+
+  test("working route uses the short frame", async ({ page }) => {
+    const header = page.locator("header.topbar");
+    await expect(header).toHaveAttribute("data-frame", "short");
+    await expect(header.getByRole("link", { name: /^Pricing$/i })).toHaveCount(0);
+    await expect(page.getByTestId("palette-hint")).toBeVisible();
+  });
 
   test("footer legal and help links", async ({ page }) => {
     for (const target of FOOTER_TARGETS) {

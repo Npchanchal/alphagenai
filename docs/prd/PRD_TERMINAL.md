@@ -1,7 +1,7 @@
 # PRD — Institutional terminal pass
 
 **Product:** CiteAlpha · **Legal entity:** Ocotillo Innovation Private Limited  
-**Status:** Decisions confirmed · **Date:** 2026-10-25  
+**Status:** Decisions confirmed · **Date:** 2026-10-25 · **Restated, unchanged, in** `docs/BRD_ROLES.md`, `docs/PRD_ROLES.md`, and `docs/TRD_ROLES.md`  
 **Source note:** *CiteAlpha: Product UI/UX Quick Overhaul*, 25 October 2026  
 **Does not replace:** [PRD_DOSSIER.md](PRD_DOSSIER.md) · [PRD_SCREENER.md](PRD_SCREENER.md) · [PRD_HOMEPAGE.md](PRD_HOMEPAGE.md) · [PRD_WORKBENCH.md](PRD_WORKBENCH.md) · [PRD_FILING_SEARCH.md](PRD_FILING_SEARCH.md)  
 **Owners to extend:** `EvidenceTable.tsx`, `CompanyDetailPage.tsx`, `SourceViewer.tsx`, `SourceViewerContext.tsx`, `HomePage.tsx`, `NavMenu.tsx`, `App.tsx`, `TierBadge.tsx`, `GET /api/companies/{id}/gci`, `GET /api/companies/search`

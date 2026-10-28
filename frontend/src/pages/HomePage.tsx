@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChangeTriple } from "../components/ChangeChip";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
+import PublishedCountLine from "../components/PublishedCountLine";
 import QualityBadge from "../components/QualityBadge";
 import TierBadge from "../components/TierBadge";
 import SectorLeaderboard from "../components/SectorLeaderboard";
@@ -27,9 +28,11 @@ import {
 } from "../lib/api";
 import { formatScore, scoreClass, formatCompanyScore, formatDossierDate } from "../lib/score";
 import { severityLabel } from "../lib/severity";
+import { setSeoOverride } from "../lib/seoOverride";
 
 const GCI_DEEP = new Set(["IN"]);
 const PAGE_SIZE = 100;
+const COVERAGE_SENTENCES = new Set(["open_period", "filing_in_review", "no_quantified_guidance", "listed_only"]);
 
 type SortKey = "name" | "gci" | "delta" | "sector" | "tier";
 type HomeTab = "universe" | "sectors";
@@ -77,7 +80,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [indexes, setIndexes] = useState<MarketIndex[]>([]);
-  const [market, setMarket] = useState(preferences?.default_market ?? "IN");
+  const [market, setMarket] = useState("IN");
   const [index, setIndex] = useState(preferences?.default_index ?? "SENSEX");
   const [query, setQuery] = useState("");
   const entityQuery = query;
@@ -100,17 +103,30 @@ export default function HomePage() {
   >([]);
   const [sortKey, setSortKey] = useState<SortKey>("gci");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  // Full list on every market and index. Scored names sort first; "Scored only" hides the rest.
-  const [scoredOnly, setScoredOnly] = useState(false);
+  // India indexes open on scored names. scored=0 on the URL shows the rest.
+  const [scoredOnly, setScoredOnly] = useState(searchParams.get("scored") !== "0");
   const deep = GCI_DEEP.has(market) && index === "SENSEX";
   const showLeaderboard = GCI_DEEP.has(market);
   const unscoredCount = useMemo(
     () => rows.filter((c) => c.gci_score == null).length,
     [rows],
   );
+  const packed = useMemo(
+    () =>
+      (searchParams.get("packed") || "")
+        .split(",")
+        .map((id) => id.trim().toLowerCase())
+        .filter(Boolean),
+    [searchParams],
+  );
+  const indexName = indexes.find((ix) => ix.id === index)?.name || index;
+  const scoredCount = rows.length - unscoredCount;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = rows;
+    if (packed.length > 0) {
+      list = list.filter((c) => packed.includes(c.id.toLowerCase()));
+    }
     if (scoredOnly) {
       list = list.filter((c) => c.gci_score != null);
     }
@@ -149,7 +165,15 @@ export default function HomePage() {
           return (na(a.gci_score) - na(b.gci_score)) * dir;
       }
     });
-  }, [rows, query, sortKey, sortDir, scoredOnly]);
+  }, [rows, query, sortKey, sortDir, scoredOnly, packed]);
+
+  useEffect(() => {
+    setSeoOverride({
+      path: "/tracker",
+      title: `GCI Screener: ${indexName} Guidance Credibility Scores — GCI by CiteAlpha`,
+    });
+    return () => setSeoOverride(null);
+  }, [indexName]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -165,9 +189,9 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    if (preferences?.default_market) setMarket(preferences.default_market);
+    setMarket("IN");
     if (preferences?.default_index) setIndex(preferences.default_index);
-  }, [preferences?.default_market, preferences?.default_index]);
+  }, [preferences?.default_index]);
 
   useEffect(() => {
     let cancelled = false;
@@ -254,10 +278,23 @@ export default function HomePage() {
     return () => window.clearTimeout(handle);
   }, [entityQuery, entityExchange, entityQuality, entityCorpus]);
 
+  function setScored(next: boolean) {
+    setScoredOnly(next);
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.set("scored", next ? "1" : "0");
+        return params;
+      },
+      { replace: true },
+    );
+  }
+
   function onMarketChange(m: string) {
-    setMarket(m);
+    if (m !== "IN") return;
+    setMarket("IN");
     setPage(0);
-    void updatePreferences({ default_market: m });
+    void updatePreferences({ default_market: "IN" });
   }
 
   function onIndexChange(ix: string) {
@@ -272,10 +309,25 @@ export default function HomePage() {
 
   return (
     <section>
-      <p className="page-kicker">{deep ? t("home.kicker") : `${market} · ${index}`}</p>
+      <p className="page-kicker" data-testid="screener-kicker">
+        {!loading && total > 0 && total <= PAGE_SIZE
+          ? t("screener.kicker", { index: indexName, scored: scoredCount, total })
+          : `${indexName}${total > 0 ? ` · ${t("home.names", { n: total })}` : ""}`}
+      </p>
       <h1>
         {t("home.title")} <InfoTip termId="tracker" />
       </h1>
+      {searchParams.get("ir") === "unnamed" && (
+        <p className="muted" data-testid="ir-unnamed">
+          Your desk admin has not named a company for packs yet.
+        </p>
+      )}
+      {packed.length > 0 && (
+        <p className="muted" data-testid="ir-packed">
+          The companies this seat may pack. <Link to="/tracker">Show the full index</Link>
+        </p>
+      )}
+      <PublishedCountLine />
       <p className="muted lede">
         {t("home.lede")} <InfoTip termId="gci" /> {t("ui.HomePage.prefer")}{" "}
         <strong>{t("ui.HomePage.citeable")}</strong> {t("ui.HomePage.preferTail")}{" "}
@@ -290,7 +342,10 @@ export default function HomePage() {
             onChange={(e) => onMarketChange(e.target.value)}
             data-testid="market-select"
           >
-            {(markets.length ? markets : [{ id: market, name: market }]).map((m) => (
+            {(markets.filter((m) => m.id === "IN").length
+              ? markets.filter((m) => m.id === "IN")
+              : [{ id: "IN", name: "India" }]
+            ).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>
@@ -433,23 +488,26 @@ export default function HomePage() {
             {loading && !error && <Skeleton rows={8} label={t("common.loading")} />}
             {!loading && !error && rows.length > 0 && (
               <div className="screener-scope" data-testid="screener-scope">
-                <label className="toggle-inline">
-                  <input
-                    type="checkbox"
-                    checked={scoredOnly}
-                    onChange={(e) => setScoredOnly(e.target.checked)}
+                <div className="index-chips" role="group" aria-label="Scored names">
+                  <button
+                    type="button"
+                    className={scoredOnly ? "chip active" : "chip"}
+                    aria-pressed={scoredOnly}
                     data-testid="scored-only-toggle"
-                  />{" "}
-                  {t("screener.filter.scored")}
-                </label>
-                {unscoredCount > 0 ? (
-                  <span className="muted" style={{ fontSize: 12 }}>
-                    {t(
-                      scoredOnly ? "screener.filter.unscoredNote" : "screener.filter.unscoredShown",
-                      { n: unscoredCount }
-                    )}
-                  </span>
-                ) : null}
+                    onClick={() => setScored(true)}
+                  >
+                    {t("screener.filter.scored")} ({scoredCount})
+                  </button>
+                  <button
+                    type="button"
+                    className={!scoredOnly ? "chip active" : "chip"}
+                    aria-pressed={!scoredOnly}
+                    data-testid="scored-all-toggle"
+                    onClick={() => setScored(false)}
+                  >
+                    {t("screener.filter.all")} ({rows.length})
+                  </button>
+                </div>
               </div>
             )}
             {!loading && !error && filtered.length === 0 && (
@@ -543,7 +601,7 @@ export default function HomePage() {
                               {c.name}
                             </Link>
                           </td>
-                          <td>{c.ticker}</td>
+                          <td className="mono">{c.ticker}</td>
                           <td>{c.sector}</td>
                           <td
                             className={`score ${scoreClass(c.gci_score)}${
@@ -560,7 +618,13 @@ export default function HomePage() {
                             }
                             data-testid={c.gci_score == null ? `not-scored-${c.id}` : undefined}
                           >
-                            {formatCompanyScore(c.gci_score, 1, c.coverage_status, c.coverage_reason)}
+                            {c.gci_score == null
+                              ? t(
+                                  COVERAGE_SENTENCES.has(c.coverage_status || "")
+                                    ? `screener.coverage.${c.coverage_status}`
+                                    : "screener.coverage.default",
+                                )
+                              : formatCompanyScore(c.gci_score, 1)}
                           </td>
                           <td>
                             <ChangeTriple
@@ -573,13 +637,19 @@ export default function HomePage() {
                             />
                           </td>
                           <td>
-                            <QualityBadge
-                              quality={c.data_quality}
-                              testId={`quality-${c.id}`}
-                            />
+                            {c.gci_score == null ? (
+                              <span className="muted">—</span>
+                            ) : (
+                              <QualityBadge
+                                quality={c.data_quality}
+                                testId={`quality-${c.id}`}
+                              />
+                            )}
                           </td>
                           <td>
-                            {c.confidence_tier ? (
+                            {c.gci_score == null ? (
+                              <TierBadge unscored testId={`tier-${c.id}`} />
+                            ) : c.confidence_tier ? (
                               <span title={t("tier.depth", { periods: c.closed_periods ?? 0, metrics: c.metrics_scored ?? 0 })}>
                                 <TierBadge tier={c.confidence_tier} testId={`tier-${c.id}`} />
                               </span>

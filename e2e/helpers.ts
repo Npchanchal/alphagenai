@@ -134,7 +134,9 @@ export async function waitForCompanyTable(page: Page): Promise<void> {
 /** Wait for company dossier GCI + evidence to finish loading. */
 export async function waitForDossier(page: Page): Promise<void> {
   await expect(page.getByTestId("company-name")).toBeVisible({ timeout: 25_000 });
-  await expect(page.getByTestId("evidence-table")).toBeVisible({ timeout: 25_000 });
+  await expect(
+    page.locator('[data-testid="evidence-table"], [data-testid="evidence-year"]').first(),
+  ).toBeVisible({ timeout: 25_000 });
 }
 
 /** Visit a route and assert it loads (no 404 shell). */
@@ -160,7 +162,9 @@ export async function assertRouteLoads(
 
   await expect(page.getByRole("heading", { name: "Page not found" })).toHaveCount(0);
   if (spec.testId) {
-    await expect(page.getByTestId(spec.testId).first()).toBeVisible({ timeout });
+    const ids = spec.testId.split("|");
+    const target = ids.map((id) => `[data-testid="${id}"]`).join(", ");
+    await expect(page.locator(target).first()).toBeVisible({ timeout });
   } else if (spec.heading) {
     await expect(page.getByRole("heading", { name: spec.heading }).first()).toBeVisible({
       timeout,

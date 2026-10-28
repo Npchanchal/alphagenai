@@ -33,6 +33,7 @@ import {
   type AnalystMonitorScope,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { groupAnalystSkills } from "../lib/seatLanding";
 import { useI18n } from "../i18n";
 import {
   DestinationsPanel,
@@ -782,26 +783,35 @@ export default function AnalystPage() {
           <div className="panel-head">
             <h2>{t("analyst.skills")}</h2>
           </div>
-          <ul className="analyst-skills">
-            {skills.map((s) => (
-              <li key={s.id}>
-                <div>
-                  <strong>{s.title}</strong>
-                  <p className="muted analyst-small">{s.description}</p>
+          <div data-testid="analyst-skill-groups">
+            {groupAnalystSkills(skills).map((group) => {
+              return (
+                <div key={group.title}>
+                  <h3>{group.title}</h3>
+                  <ul className="analyst-skills">
+                    {group.skills.map((s) => (
+                      <li key={s.id}>
+                        <div>
+                          <strong>{s.title}</strong>
+                          <p className="muted analyst-small">{s.description}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          disabled={!!busy || !companyId || (!!s.requires_project && !projectId)}
+                          title={s.requires_project && !projectId ? t("analyst.projects.needsProject") : undefined}
+                          onClick={() => void runSkill(s.id)}
+                          data-testid={`analyst-run-${s.id}`}
+                        >
+                          {busy === s.id ? t("analyst.running") : t("analyst.run")}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  disabled={!!busy || !companyId || (!!s.requires_project && !projectId)}
-                  title={s.requires_project && !projectId ? t("analyst.projects.needsProject") : undefined}
-                  onClick={() => void runSkill(s.id)}
-                  data-testid={`analyst-run-${s.id}`}
-                >
-                  {busy === s.id ? t("analyst.running") : t("analyst.run")}
-                </button>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         </section>
 
         {run && <RunOutput run={run} />}

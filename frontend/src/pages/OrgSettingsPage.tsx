@@ -306,6 +306,28 @@ function PilotPanel({ orgId }: { orgId: string }) {
   );
 }
 
+const AUDIT_ACTIONS: Record<string, string> = {
+  review_accept: "Accepted a row",
+  review_edit: "Edited a row",
+  review_reject: "Rejected a row",
+  pack_export: "Exported a board pack",
+  seat_change: "Changed a seat",
+};
+
+function auditActionLabel(action?: string | null): string {
+  if (!action) return "—";
+  return AUDIT_ACTIONS[action] || action.replace(/_/g, " ");
+}
+
+function auditDetail(detail?: Record<string, unknown> | null): string {
+  if (!detail) return "—";
+  const parts: string[] = [];
+  if (detail.company_id) parts.push(String(detail.company_id).toUpperCase());
+  if (detail.member) parts.push(String(detail.member));
+  if (detail.from || detail.to) parts.push(`${String(detail.from || "—")} → ${String(detail.to || "—")}`);
+  return parts.length ? parts.join(" · ") : "—";
+}
+
 function AuditPanel() {
   const { token } = useAuth();
   const [events, setEvents] = useState<OrgAuditEvent[]>([]);
@@ -321,7 +343,10 @@ function AuditPanel() {
   return (
     <div data-testid="org-audit">
       <h2 style={{ marginTop: 0 }}>Audit</h2>
-      <p className="muted">Recent sign-in and administration events for this organisation.</p>
+      <p className="muted">
+        Newest first: who accepted or rejected a row, who exported a pack, who changed a seat, and
+        sign-in events for this organisation.
+      </p>
       {events.length === 0 ? (
         <p className="muted">No events yet.</p>
       ) : (
@@ -330,8 +355,9 @@ function AuditPanel() {
             <thead>
               <tr>
                 <th>Time</th>
-                <th>Actor</th>
+                <th>Person</th>
                 <th>Action</th>
+                <th>Detail</th>
               </tr>
             </thead>
             <tbody>
@@ -339,7 +365,8 @@ function AuditPanel() {
                 <tr key={`${event.ts || ""}-${i}`}>
                   <td>{event.ts ? String(event.ts).slice(0, 19).replace("T", " ") : "—"}</td>
                   <td>{event.actor || "—"}</td>
-                  <td>{event.action || "—"}</td>
+                  <td>{auditActionLabel(event.action)}</td>
+                  <td>{auditDetail(event.detail)}</td>
                 </tr>
               ))}
             </tbody>
@@ -424,9 +451,14 @@ export default function OrgSettingsPage() {
     );
   }
 
+  const canAudit = has("org_audit");
   let body = null;
-  if (!canAdmin && section !== "overview") {
-    body = (
+  if (section === "audit" && canAudit) {
+    body = <AuditPanel />;
+  } else if (!canAdmin && section !== "overview") {
+    body = canAudit ? (
+      <Denied>This seat reads the audit trail. It does not invite seats or open billing.</Denied>
+    ) : (
       <Denied>
         Signed in as {user.email} ({user.role}). Ask an owner or admin to change seats, keys, or
         sign-in.
@@ -482,6 +514,13 @@ export default function OrgSettingsPage() {
           Org id <code>{orgId}</code>
           {!canAdmin && " · read-only — ask an owner or admin to change seats"}
         </p>
+        {!canAdmin && canAudit && (
+          <div className="row gap" style={{ marginTop: 12 }}>
+            <Link to="/org/settings?section=audit" className="btn" data-testid="org-audit-link">
+              Audit trail
+            </Link>
+          </div>
+        )}
         {canAdmin && (
           <div className="row gap" style={{ marginTop: 12 }}>
             <Link to="/org/settings?section=members" className="btn">

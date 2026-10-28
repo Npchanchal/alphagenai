@@ -50,6 +50,7 @@ test("guest dossier has no synthetic analytics and shows tier + as-of", async ({
   await expect(page.getByRole("button", { name: /Run extract/i })).toHaveCount(0);
 
   const table = page.getByTestId("evidence-table");
+  await page.getByTestId("evidence-by-row").click();
   await expect(table).toBeVisible();
   const tableText = await table.innerText();
   expect(tableText).not.toMatch(/\{o\.|span_end/);
@@ -58,7 +59,7 @@ test("guest dossier has no synthetic analytics and shows tier + as-of", async ({
   await expect(page.getByTestId("promise-threads")).toBeVisible();
   await expect(page.getByTestId("thread-promise").first()).toBeVisible();
 
-  await expect(page.getByTestId("gci-trend-chart")).toBeVisible();
+  await expect(page.getByTestId("gci-trend-chart")).toHaveCount(0);
   await expect(page.getByTestId("analytics-panel")).toHaveCount(0);
   await expect(page.getByTestId("gci-price-overlay")).toHaveCount(0);
   await expect(page.getByTestId("stock-history")).toHaveCount(0);
@@ -92,7 +93,7 @@ test("guest dossier is readable at 390 px", async ({ page }) => {
   await expect(page.getByTestId("gci-score")).toBeVisible();
   await expect(page.getByTestId("dossier-record")).toBeVisible();
   await expect(page.getByTestId("delivery-record")).toBeVisible();
-  await expect(page.getByTestId("evidence-table")).toBeVisible();
+  await expect(page.getByTestId("evidence-year")).toBeVisible();
 });
 
 test("public snapshot ranks only established/deep and explains an empty list", async ({ page }) => {
@@ -129,17 +130,18 @@ test("screener lists every name, with scored rows first", async ({ page }) => {
   await page.goto("/tracker");
   await dismissOverlays(page);
   await expect(page.getByTestId("company-table")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("scored-only-toggle")).not.toBeChecked();
+  await expect(page.getByTestId("scored-only-toggle")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("scored-all-toggle").click();
   const unscored = page.locator("[data-testid^='not-scored-']");
   if ((await unscored.count()) > 0) {
     await expect(unscored.first()).toHaveAttribute(
       "title",
-      /Not yet scored|No numeric guidance|being checked|being read|not yet closed|closes [A-Z][a-z]{2} \d{4}|not yet read|not yet matched/,
+      /not yet quoted|no numeric guidance|has not closed|not been read yet|Not yet scored/i,
     );
     const lastScore = page.locator("[data-testid='company-table'] tbody tr").last().locator("td.score");
     await expect(lastScore).toHaveAttribute(
       "title",
-      /Not yet scored|No numeric guidance|being checked|being read|not yet closed|closes [A-Z][a-z]{2} \d{4}|not yet read|not yet matched/,
+      /not yet quoted|no numeric guidance|has not closed|not been read yet|Not yet scored/i,
     );
   }
 });

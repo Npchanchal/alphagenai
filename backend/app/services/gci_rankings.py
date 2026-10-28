@@ -76,7 +76,11 @@ def gci_rankings(
     records = _delivery_records(rows)
     ranked = len(scored) >= RANKED_THRESHOLD
     return {
-        "title": "Guidance Credibility Quarterly — citeable rankings",
+        "title": (
+            "Guidance Credibility Quarterly — ranked"
+            if ranked
+            else "Delivery record — published GCI, not a rank"
+        ),
         "as_of": as_of,
         "market": market,
         "index": index,
@@ -136,8 +140,14 @@ def rankings_markdown(payload: Optional[Dict[str, Any]] = None, **kwargs: Any) -
     lines = [
         f"# {data['title']}",
         "",
-        f"**As of:** {data['as_of']} · **Universe:** {data['index']} ({data['market']}) · "
-        f"n={data['universe_n']} established/deep · mode={data.get('mode')}",
+        (
+            f"**As of:** {data['as_of']} · **Universe:** {data['index']} ({data['market']}) · "
+            f"{data['universe_n']} established or deep names ranked"
+            if data.get("mode") == "ranked"
+            else f"**As of:** {data['as_of']} · **Universe:** {data['index']} ({data['market']}) · "
+            f"{len(data.get('records') or [])} published names, shown as a delivery record. "
+            "A provisional row is not a rank."
+        ),
         "",
         data["methodology"],
         "",
@@ -175,7 +185,7 @@ def rankings_markdown(payload: Optional[Dict[str, Any]] = None, **kwargs: Any) -
         ]
         for r in data.get("records") or []:
             lines.append(
-                f"| {r['ticker']} {r['name']} | {r.get('confidence_tier') or ''} | "
+                f"| {r['ticker']} {r['name']} | {(r.get('confidence_tier') or '').capitalize()} | "
                 f"{r.get('met', 0)} | {r.get('exceeded', 0)} | {r.get('missed', 0)} | "
                 f"{r.get('as_of') or ''} |"
             )

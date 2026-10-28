@@ -11,12 +11,12 @@ describe("glossary", () => {
     expect(blob).not.toMatch(/alphasense/);
   });
 
-  it("describes scorer v4 for dropped and listings", () => {
-    expect(GLOSSARY.dropped.tip).toMatch(/v4/i);
-    expect(GLOSSARY.dropped.tip).toMatch(/−15|-15/);
-    expect(GLOSSARY.nse_bse.tip).toMatch(/Not yet scored/);
-    expect(GLOSSARY.exceeded.tip).toMatch(/v4/);
-    expect(GLOSSARY.exceeded.tip).toMatch(/60/);
+  it("states the scorer rules for dropped, beats and listings in plain words", () => {
+    expect(GLOSSARY.dropped.tip).toMatch(/15-point withdrawal deduction/);
+    expect(GLOSSARY.nse_bse.tip).toMatch(/Not scored/);
+    expect(GLOSSARY.exceeded.tip).toMatch(/never go below 60/);
+    const blob = Object.values(GLOSSARY).map((g) => g.tip).join("\n");
+    expect(blob).not.toMatch(/\bv4\b/);
   });
 
   it("includes Sights, SKUs, rankings, and Trust Center", () => {

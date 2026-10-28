@@ -1876,6 +1876,124 @@ button.linkish:hover {
   font-size: 13px;
 }
 
+.source-viewer-overlay.is-dock {
+  background: transparent;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 0;
+  pointer-events: none;
+}
+
+.source-viewer-overlay.is-dock .source-viewer {
+  pointer-events: auto;
+  width: 40vw;
+  max-width: 40vw;
+  min-width: 320px;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+}
+
+html[data-density="compact"] .table td,
+html[data-density="compact"] .table th {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.score,
+.table td.score {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-family: var(--sans);
+}
+
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(14, 26, 22, 0.28);
+  display: flex;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.palette {
+  width: min(560px, 92vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 16px 48px rgba(14, 26, 22, 0.18);
+}
+
+.palette input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.palette ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.palette button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.tier-unscored {
+  color: var(--muted);
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.mono,
+.table td.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.table td.num,
+.table th.num,
+.year-cell .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.year-cell {
+  vertical-align: top;
+  min-width: 108px;
+}
+
+.year-cell .pill {
+  margin-top: 2px;
+  display: inline-block;
+}
+
+.published-count {
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+.palette-hint kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 4px;
+  margin-left: 4px;
+}
+
+.topbar.is-short {
+  min-height: 48px;
+}
+
 .source-viewer-overlay {
   position: fixed;
   inset: 0;

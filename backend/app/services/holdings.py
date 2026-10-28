@@ -317,6 +317,102 @@ def diff_snapshots(prior: Optional[Dict[str, Any]], current: Dict[str, Any]) -> 
     }
 
 
+_SINCE_FILING_KINDS = frozenset({"results", "filing", "ir_guidance", "transcript"})
+FILINGS_PER_NAME = 3
+
+
+def since_last_open(
+    company_rows: List[Dict[str, Any]],
+    *,
+    since: Optional[str],
+    filings_for: Callable[[str], List[Dict[str, Any]]],
+    missed_for: Callable[[str], List[Dict[str, Any]]],
+) -> List[Dict[str, Any]]:
+    """Stored records on held names since the last open. Pure given the two readers.
+
+    A new filing and a missed row count only after ``since``. Open guidance is listed
+    whenever the count is above zero. Nothing here writes a score.
+    """
+    cutoff = str(since or "")
+    out: List[Dict[str, Any]] = []
+    seen: set = set()
+    for row in company_rows:
+        cid = str(row.get("company_id") or "")
+        if not cid or cid in seen:
+            continue
+        seen.add(cid)
+        name = row.get("name") or row.get("ticker") or cid
+        docs = sorted(
+            filings_for(cid),
+            key=lambda d: str(d.get("ingested_at") or d.get("date") or ""),
+            reverse=True,
+        )
+        for doc in docs[:FILINGS_PER_NAME]:
+            stamp = str(doc.get("ingested_at") or doc.get("date") or "")
+            if cutoff and stamp <= cutoff:
+                continue
+            out.append(
+                {
+                    "company_id": cid,
+                    "name": name,
+                    "kind": "filing",
+                    "title": doc.get("title") or doc.get("doc_type"),
+                    "at": stamp,
+                    "doc_id": doc.get("doc_id"),
+                }
+            )
+        if int(row.get("open_commitments") or 0) > 0:
+            out.append(
+                {
+                    "company_id": cid,
+                    "name": name,
+                    "kind": "open_guidance",
+                    "count": int(row.get("open_commitments") or 0),
+                }
+            )
+        for miss in missed_for(cid):
+            stamp = str(miss.get("as_of") or "")
+            if cutoff and stamp and stamp <= cutoff[:10]:
+                continue
+            out.append(
+                {
+                    "company_id": cid,
+                    "name": name,
+                    "kind": "missed",
+                    "period": miss.get("period"),
+                    "metric": miss.get("metric"),
+                    "at": stamp or None,
+                }
+            )
+    return out
+
+
+def _stored_filings(company_id: str) -> List[Dict[str, Any]]:
+    from app.data import doc_store
+
+    return [
+        d
+        for d in doc_store.list_documents(company_id=company_id, hydrate=False)
+        if d.get("review_status") == "accepted" and str(d.get("doc_type") or "") in _SINCE_FILING_KINDS
+    ]
+
+
+def _published_misses(company_id: str) -> List[Dict[str, Any]]:
+    from app.services.repository import get_company_gci
+
+    try:
+        detail = get_company_gci(company_id)
+    except HTTPException:
+        return []
+    if detail.gci_score is None:
+        return []
+    return [
+        {"period": o.period, "metric": o.metric, "as_of": o.as_of}
+        for o in detail.outcomes
+        if str(o.label or "").lower() == "missed"
+    ]
+
+
 def _load(org_id: str) -> Dict[str, Any]:
     path = _org_path(org_id)
     if not path.exists():
@@ -418,7 +514,12 @@ def submit_lookthrough(org_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
 
 def latest_lookthrough(org_id: str) -> Dict[str, Any]:
     with _LOCK:
-        snapshots = list(_load(org_id).get("snapshots") or [])
+        stored = _load(org_id)
+        snapshots = list(stored.get("snapshots") or [])
+        last_opened = stored.get("last_opened_at")
+        if snapshots:
+            stored["last_opened_at"] = _now()
+            _save(org_id, stored)
     if not snapshots:
         raise HTTPException(status_code=404, detail="No holdings file saved for this desk")
     stored_row = dict(snapshots[-1])
@@ -454,4 +555,11 @@ def latest_lookthrough(org_id: str) -> Dict[str, Any]:
     report["product"] = "CiteAlpha Holdings"
     report["diff"] = diff_snapshots(prior, report)
     report["org_id"] = org_id
+    report["last_opened_at"] = last_opened
+    report["since_last_open"] = since_last_open(
+        list(report.get("scored") or []) + list(report.get("gaps") or []),
+        since=last_opened,
+        filings_for=_stored_filings,
+        missed_for=_published_misses,
+    )
     return report

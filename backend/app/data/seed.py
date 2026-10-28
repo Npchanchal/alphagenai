@@ -330,7 +330,7 @@ def build_dataset() -> Dict[str, Any]:
         "pending_extracts": [],
         "company_audit_flags": {},
         "api_keys": [
-            {"key": "intellens-demo", "org": "demo", "role": "analyst"},
+            {"key": "intellens-demo", "org": "demo", "role": "reviewer"},
             {"key": "intellens-admin", "org": "demo", "role": "admin", "platform_admin_role": "super"},
             {"key": "intellens-viewer", "org": "demo", "role": "viewer"},
             {"key": "intellens-retail", "org": "retail", "role": "viewer"},

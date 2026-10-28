@@ -5,6 +5,7 @@ import { LineChart, Sparkline } from "../components/Charts";
 import CompanyPicker from "../components/CompanyPicker";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
+import PublishedCountLine from "../components/PublishedCountLine";
 import QualityBadge from "../components/QualityBadge";
 import ScoreReveal from "../components/ScoreReveal";
 import TabBar from "../components/TabBar";
@@ -70,7 +71,7 @@ const TABS: { id: Tab; labelKey: string; titleKey?: string; title?: string }[] =
   },
 ];
 
-const DOC_TYPES = ["all", "guidance", "transcript", "filing", "news", "expert"] as const;
+const DOC_TYPES = ["all", "guidance", "transcript", "filing", "news"] as const;
 const SAVED_KEY = "citealpha_sights_saved_queries";
 
 function loadSaved(fromPrefs?: string[]): string[] {
@@ -305,6 +306,13 @@ export default function ResearchPage() {
         {t("ui.ResearchPage.lede.after")}{" "}
         <InfoTip termId="citability" />
       </p>
+      {readingRoom ? (
+        <PublishedCountLine />
+      ) : (
+        <p className="muted published-count" data-testid="research-list-scope">
+          {t("research.listScope", { index })}
+        </p>
+      )}
 
       <div className="panel research-toolbar research-sticky">
         <CompanyPicker

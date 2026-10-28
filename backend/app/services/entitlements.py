@@ -62,10 +62,19 @@ ROLE_FEATURES: Dict[str, Set[str]] = {
         "analytics_experimental",
         "holdings",
         "ninja",
+        "org_audit",
     },
+    # Role-only. Not on any plan. Kept after the plan ∩ role cut.
+    "pm": {"tracker", "research", "read_api", "feedback", "holdings", "alerts"},
+    "data": {"tracker", "research", "read_api", "feedback", "em_export"},
+    "oversight": {"tracker", "research", "read_api", "feedback", "org_audit"},
+    "ir": {"tracker", "research", "read_api", "feedback", "pack_export"},
     "admin": set(),  # filled below — all plan features
     "owner": set(),
 }
+
+# These names are seats, not plan rows. A Pilot admin still audits; a viewer does not.
+ROLE_ONLY_FEATURES = frozenset({"org_audit", "pack_export"})
 
 GUEST_FEATURES: Set[str] = {"tracker"}
 GUEST_LIMITS: Dict[str, int] = {"companies_viewed": 15, "chat": 0, "searches": 8}
@@ -82,8 +91,14 @@ GUEST_WRITE_ALLOW: tuple[str, ...] = (
 def _role_features(role: str) -> Set[str]:
     r = (role or "viewer").strip().lower()
     if r in ("admin", "owner"):
-        return set(orgs.ALL_FEATURES)
+        return set(orgs.ALL_FEATURES) | set(ROLE_ONLY_FEATURES)
     return set(ROLE_FEATURES.get(r, ROLE_FEATURES["viewer"]))
+
+
+def _effective_features(plan_feats: Set[str], role: str) -> Set[str]:
+    """Plan ∩ role, then the two seat-only names the plan does not sell."""
+    role_feats = _role_features(role)
+    return (set(plan_feats) & role_feats) | (role_feats & set(ROLE_ONLY_FEATURES))
 
 
 def _with_platform_super(feats: list, actor: Dict[str, Any]) -> list:
@@ -132,7 +147,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
     role = str(user.get("role") or "viewer")
     platform_role = effective_platform_role(user.get("email"), user.get("platform_admin_role"))
     feats = _with_platform_super(
-        sorted(plan_feats & _role_features(role)),
+        sorted(_effective_features(plan_feats, role)),
         {**user, "platform_admin_role": platform_role},
     )
     return {
@@ -141,6 +156,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "kind": user.get("kind") or "registered",
         "org_id": str(oid),
         "user_id": user.get("id"),
+        "email": user.get("email"),
         "features": feats,
         "skus": _skus_for(plan_feats),
         "limits": {},
@@ -168,7 +184,7 @@ def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
         None, key_row.get("platform_admin_role"), api_key=True
     )
     feats = _with_platform_super(
-        sorted(plan_feats & _role_features(role)),
+        sorted(_effective_features(plan_feats, role)),
         {**key_row, "platform_admin_role": platform_role},
     )
     return {

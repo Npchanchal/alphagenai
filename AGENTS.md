@@ -48,4 +48,4 @@ Canonical memory: [`docs/kb/README.md`](docs/kb/README.md).
 
 ## Demo write key
 
-`X-API-Key: intellens-demo`
+`X-API-Key: intellens-demo` (local demo org, seat `reviewer`)

@@ -9,8 +9,11 @@ const FALLBACK: Pick<SightsMeta, "job"> = {
 
 const QUICK: { to: string; label: string; blurb: string }[] = [
   { to: "/sights/themes", label: "ui.SightsHubPage.quick.themes.label", blurb: "ui.SightsHubPage.quick.themes.blurb" },
-  { to: "/sights/deep-dive", label: "ui.SightsHubPage.quick.deepDive.label", blurb: "ui.SightsHubPage.quick.deepDive.blurb" },
+  { to: "/sights/street", label: "ui.SightsHubPage.quick.street.label", blurb: "ui.SightsHubPage.quick.street.blurb" },
+  { to: "/sights/field", label: "ui.SightsHubPage.quick.field.label", blurb: "ui.SightsHubPage.quick.field.blurb" },
   { to: "/sights/grid", label: "ui.SightsHubPage.quick.grid.label", blurb: "ui.SightsHubPage.quick.grid.blurb" },
+  { to: "/sights/deep-dive", label: "ui.SightsHubPage.quick.deepDive.label", blurb: "ui.SightsHubPage.quick.deepDive.blurb" },
+  { to: "/sights/fundamentals", label: "ui.SightsHubPage.quick.fundamentals.label", blurb: "ui.SightsHubPage.quick.fundamentals.blurb" },
 ];
 
 const BRAND_LINKS: Record<string, string> = {
@@ -53,7 +56,7 @@ export default function SightsHubPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const job = meta?.job ?? t(FALLBACK.job);
+  const job = t(FALLBACK.job);
   const brandMap = meta?.brand_map ?? {};
 
   return (

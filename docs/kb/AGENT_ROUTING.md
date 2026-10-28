@@ -10,6 +10,7 @@ Use this map to pick the right **rule set**, **skill**, and **agent** for a task
 | Score / GCI API / Screener backend | `gci-engineer` | `citealpha-gci-dev` | gci-scoring, python-backend, api-contracts, index-integrity | 03, 05 |
 | Close gaps G01–G23 / pipeline | `gci-engineer` | `citealpha-close-gaps` | gci-pipeline | 04, GAPS doc |
 | Public pages: homepage, dossier, Screener, Snapshot, Package, copy voice | `frontend-designer` | `citealpha-expert-ux` | frontend-ux, public-copy-voice, compliance-sebi | 06 |
+| Seat roles and role UX (`BRD_ROLES`, `PRD_ROLES`, `TRD_ROLES`) | `platform-engineer` (seats) · `frontend-designer` (screens) | `citealpha-production`, `citealpha-expert-ux` | production-monetization, public-copy-voice, index-integrity | 09, 06, those three docs |
 | Workbench / Filing Search chrome, tabs, toasts | `frontend-designer` | `citealpha-frontend-ux` | frontend, frontend-ux | 06 |
 | Research search/chat | `research-terminal` | `citealpha-research` | research-terminal | 07 |
 | Hand-label Sensex | `labeling-analyst` | `citealpha-labeling` / phase0 | data-quality | 08 |

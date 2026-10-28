@@ -287,13 +287,25 @@ function NavDropdown({ group }: { group: NavGroup }) {
   );
 }
 
-/** Primary topnav with dropdown groups. */
-export default function NavMenu() {
+const WORKING_PREFIXES = ["/tracker", "/companies", "/research", "/analyst", "/rankings", "/desk", "/sights", "/ninja", "/holdings"];
+
+/** Working routes get the short frame: product rooms only, no Pricing or Learn. */
+export function isWorkingRoute(pathname: string): boolean {
+  return WORKING_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+const MARKETING_ENTRY_IDS = new Set(["/products#plans", "learn"]);
+
+/** Primary topnav with dropdown groups. ``working`` drops the marketing entries. */
+export default function NavMenu({ working = false }: { working?: boolean }) {
   const { t } = useI18n();
+  const entries = working
+    ? NAV_ENTRIES.filter((e) => !MARKETING_ENTRY_IDS.has(e.kind === "group" ? e.id : e.to))
+    : NAV_ENTRIES;
 
   return (
     <>
-      {NAV_ENTRIES.map((entry) => {
+      {entries.map((entry) => {
         if (entry.kind === "group") {
           return <NavDropdown key={entry.id} group={entry} />;
         }

@@ -4,6 +4,8 @@ import {
   compareEvidence,
   compareEvidenceLatestFirst,
   englishRecordSentence,
+  evidenceTrack,
+  evidenceYearColumns,
   formatCharLocator,
   formatGuideGap,
   heatLevel,
@@ -14,6 +16,27 @@ import {
   revisionCandle,
 } from "./score";
 import { dossierSeo, resolveSeo } from "./seo";
+
+describe("evidence by year", () => {
+  it("puts the newest year first and unknown labels last", () => {
+    expect(evidenceYearColumns(["FY22", "FY26", "FY24", "FY26", "misc", "FY25"])).toEqual([
+      "FY26",
+      "FY25",
+      "FY24",
+      "FY22",
+      "misc",
+    ]);
+  });
+
+  it("tracks closed outcomes oldest to newest and leaves pending out", () => {
+    expect(evidenceTrack(["pending", "missed", undefined, "exceeded", "met", "pending_guidance_cite", "met"])).toEqual([
+      "met",
+      "met",
+      "exceeded",
+      "missed",
+    ]);
+  });
+});
 
 describe("evidence listing order", () => {
   it("orders latest period, then latest result date, and leaves unknown labels last", () => {

@@ -236,6 +236,28 @@ export function periodRank(period: string | null | undefined): number | null {
   return null;
 }
 
+/** Year-view columns: the company's periods, newest first. Unknown labels last. */
+export function evidenceYearColumns(periods: (string | null | undefined)[]): string[] {
+  const unique = [...new Set(periods.filter((p): p is string => !!p))];
+  return unique.sort((a, b) => {
+    const ka = periodRank(a);
+    const kb = periodRank(b);
+    if (ka == null && kb == null) return b.localeCompare(a);
+    if (ka == null) return 1;
+    if (kb == null) return -1;
+    return kb - ka;
+  });
+}
+
+const CLOSED_OUTCOMES = new Set(["met", "exceeded", "missed", "dropped"]);
+
+/** Track column: closed outcome labels oldest to newest, given cells newest first. */
+export function evidenceTrack(labelsNewestFirst: (string | null | undefined)[]): string[] {
+  return [...labelsNewestFirst]
+    .reverse()
+    .filter((label): label is string => !!label && CLOSED_OUTCOMES.has(label.toLowerCase()));
+}
+
 function chronoText(value: unknown): string {
   return typeof value === "string" ? value : "";
 }

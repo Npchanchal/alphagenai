@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import PlanAccessGate from "../components/PlanAccessGate";
 import { NinjaNav } from "./NinjaPage";
@@ -10,6 +11,7 @@ import {
   type HoldingsReport,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { metricDisplayName } from "../lib/score";
 
 type EditorLine = { isin: string; weight: string; residual: string; name: string };
 type SchemePoint = { as_of: string; value: string };
@@ -332,6 +334,29 @@ function HoldingsDesk() {
             <WeightTable title={t("holdings.scored")} rows={report.scored} testId="holdings-scored" />
             <WeightTable title={t("holdings.gaps")} rows={report.gaps} testId="holdings-gaps" />
             <WeightTable title={t("holdings.residual")} rows={report.residual} testId="holdings-residual" />
+            <h2>Since you last opened this</h2>
+            {report.last_opened_at ? (
+              <p className="muted" style={{ fontSize: 12 }}>
+                Last opened {String(report.last_opened_at).slice(0, 10)}.
+              </p>
+            ) : null}
+            {(report.since_last_open || []).length > 0 ? (
+              <ul data-testid="holdings-since">
+                {(report.since_last_open || []).map((item, i) => (
+                  <li key={`${item.company_id}-${item.kind}-${i}`}>
+                    <Link to={`/companies/${item.company_id}`}>{item.name}</Link>
+                    {": "}
+                    {item.kind === "filing"
+                      ? `new filing${item.title ? `, ${item.title}` : ""}${item.at ? ` (${String(item.at).slice(0, 10)})` : ""}`
+                      : item.kind === "open_guidance"
+                        ? `${item.count} open guidance ${item.count === 1 ? "item" : "items"}`
+                        : `missed ${item.period ?? ""} ${item.metric ? metricDisplayName(item.metric) : ""}`.trim()}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p data-testid="holdings-since">Nothing new on the names this book can score.</p>
+            )}
           </div>
         ) : null}
       </div>

@@ -191,6 +191,14 @@ export default function SourceViewer({ target, onClose }: Props) {
     };
   }, [target]);
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const originalUrl = frameUrl(resolved.highlightUrl || resolved.url);
   const originalLabel = showOriginal
     ? t("ui.SourceViewer.hideOriginal")
@@ -201,7 +209,7 @@ export default function SourceViewer({ target, onClose }: Props) {
         : t("ui.SourceViewer.openOriginal");
 
   return (
-    <div className="source-viewer-overlay" role="presentation" onClick={onClose}>
+    <div className="source-viewer-overlay is-dock" role="presentation">
       <div
         className={`source-viewer${showOriginal ? " is-split" : ""}`}
         role="dialog"

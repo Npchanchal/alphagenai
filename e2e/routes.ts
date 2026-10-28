@@ -80,6 +80,8 @@ export const CORE_ROUTES: RouteSpec[] = [
   { path: "/account", testId: "account-settings-page" },
   { path: "/org/settings", testId: "org-settings-page" },
   { path: "/admin", testId: "admin-access-denied", timeout: 35_000 },
+  { path: "/holdings", testId: "holdings-page|holdings-gate" },
+  { path: "/ninja", testId: "ninja-page|ninja-gate" },
 ];
 
 export const RESEARCH_TABS = ["search", "chat", "desk", "news", "watch"] as const;

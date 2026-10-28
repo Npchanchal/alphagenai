@@ -48,6 +48,34 @@ def _known_company(company_id: str) -> None:
         raise HTTPException(status_code=404, detail="Unknown company")
 
 
+def _assert_ir_scope(ent: Dict[str, Any], company_id: str) -> None:
+    if str(ent.get("role") or "").lower() != "ir":
+        return
+    from app.services.session_auth import company_scope_for
+
+    scope = company_scope_for(ent.get("user_id"))
+    if not scope:
+        raise HTTPException(
+            status_code=403,
+            detail="Your desk admin has not named a company for packs yet.",
+        )
+    if str(company_id or "").strip().lower() not in scope:
+        raise HTTPException(status_code=403, detail="This seat covers a listed company only")
+
+
+def _run_skill_id(out: Dict[str, Any]) -> str:
+    return str((out.get("skill") or {}).get("id") or (out.get("evidence_receipt") or {}).get("skill_id") or "")
+
+
+def require_analyst_or_pack(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+    if has_feature(ent, "analyst_agent") or has_feature(ent, "pack_export"):
+        return ent
+    raise HTTPException(
+        status_code=403,
+        detail="This action needs the Analyst seat or an IR pack",
+    )
+
+
 def require_reviewer(ent: Dict[str, Any] = Depends(require_feature("labeling"))) -> Dict[str, Any]:
     if str(ent.get("role") or "").lower() not in REVIEWER_ROLES:
         raise HTTPException(status_code=403, detail="Only a reviewer can accept or close a commitment")
@@ -65,13 +93,17 @@ def analyst_skills(_ent=Depends(require_feature("analyst_agent"))) -> Dict[str, 
 
 
 @router.post("/api/analyst/run")
-def analyst_run(body: AnalystRunRequest, ent=Depends(require_feature("analyst_agent"))) -> Dict[str, Any]:
+def analyst_run(body: AnalystRunRequest, ent=Depends(require_analyst_or_pack)) -> Dict[str, Any]:
     from app.services.agent import run_store, runtime, skills
 
     try:
         spec = skills.get_skill(body.skill_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="Unknown skill")
+    if not has_feature(ent, "analyst_agent"):
+        if body.skill_id != "board_scorecard" or body.project_id:
+            raise HTTPException(status_code=403, detail="This seat exports the board pack only")
+        _assert_ir_scope(ent, body.company_id)
     _known_company(body.company_id)
     project = None
     if body.project_id:
@@ -113,7 +145,7 @@ def analyst_run_detail(run_id: str, ent=Depends(require_feature("analyst_agent")
 
 
 @router.get("/api/analyst/runs/{run_id}/export")
-def analyst_run_export(run_id: str, format: str = "xlsx", ent=Depends(require_feature("analyst_agent"))) -> Response:
+def analyst_run_export(run_id: str, format: str = "xlsx", ent=Depends(require_analyst_or_pack)) -> Response:
     from app.services import mailer
     from app.services.agent import exports, house_style, run_store
 
@@ -123,6 +155,20 @@ def analyst_run_export(run_id: str, format: str = "xlsx", ent=Depends(require_fe
     out = run_store.get_run(_org_id(ent), run_id)
     if out is None:
         raise HTTPException(status_code=404, detail="Run not found")
+    if not has_feature(ent, "analyst_agent"):
+        if _run_skill_id(out) != "board_scorecard":
+            raise HTTPException(status_code=403, detail="This seat exports the board pack only")
+        _assert_ir_scope(ent, str(out.get("company_id") or ""))
+    if _run_skill_id(out) == "board_scorecard":
+        from app.data import audit_log
+
+        audit_log.record(
+            "pack_export",
+            org=_org_id(ent),
+            actor=str(ent.get("email") or ent.get("user_id") or "api_key"),
+            role=str(ent.get("role") or ""),
+            detail={"company_id": out.get("company_id"), "run_id": run_id, "format": fmt},
+        )
     return Response(
         content=exports.render(out, fmt, mailer.public_base_url(), style=house_style.get_style(_org_id(ent))),
         media_type=exports.FORMATS[fmt][0],

@@ -126,13 +126,14 @@ type StatementDecision = {
 };
 
 export default function DeskPage() {
-  const { preferences } = useAuth();
+  const { preferences, user } = useAuth();
   const { has } = useEntitlements();
   const { t, lang: uiLang } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
   const canWrite = has("desk_write");
+  const canAccept = ["reviewer", "admin", "owner"].includes((user?.role || "").toLowerCase());
   const canWordmap = has("wordmap");
   const canVernacular = has("vernacular");
   const tab: TabId =
@@ -697,7 +698,7 @@ export default function DeskPage() {
                   {t("ui.DeskPage.review.batch")} <code className="inline-code">{batch.id.slice(0, 8)}</code> ·{" "}
                   {t("ui.DeskPage.review.statementCount", { n: batch.statements.length })}
                 </span>
-                {canWrite && (
+                {canWrite && canAccept && (
                 <button
                   type="button"
                   className="btn small"
@@ -707,6 +708,9 @@ export default function DeskPage() {
                 >
                   {t("ui.DeskPage.review.commit")}
                 </button>
+                )}
+                {canWrite && !canAccept && (
+                  <span className="muted">A reviewer accepts the row.</span>
                 )}
               </div>
               {batch.statements.map((s, i) => {
@@ -766,7 +770,7 @@ export default function DeskPage() {
                         </div>
                       )}
                     </div>
-                    {canWrite && <div className="review-actions">
+                    {canWrite && canAccept && <div className="review-actions">
                       <button
                         type="button"
                         className={`btn ghost small ${d.action === "accept" && !d.editing ? "active-lang" : ""}`}

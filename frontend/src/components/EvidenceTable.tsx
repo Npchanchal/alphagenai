@@ -16,6 +16,8 @@ import {
   formatGuidedBand,
   metricDisplayName,
   DEFAULT_EVIDENCE_SORT,
+  evidenceTrack,
+  evidenceYearColumns,
   listEvidenceRows,
   periodRank,
   type EvidenceSort,
@@ -62,6 +64,74 @@ type EditDraft = {
   quote_span: string;
 };
 
+function promiseAfterResult(o: OutcomeView): boolean {
+  if (!o.guidance_as_of || !o.as_of) return false;
+  const promise = Date.parse(o.guidance_as_of);
+  const result = Date.parse(o.as_of);
+  return Number.isFinite(promise) && Number.isFinite(result) && promise > result;
+}
+
+function YearGrid({
+  rows,
+}: {
+  rows: { o: OutcomeView; period: string; metric: string }[];
+}) {
+  const periods = evidenceYearColumns(rows.map((row) => row.period));
+  const metrics = [...new Set(rows.map((row) => row.metric).filter(Boolean))].sort((a, b) =>
+    metricDisplayName(a).localeCompare(metricDisplayName(b)),
+  );
+  return (
+    <div className="table-scroll">
+      <table className="table" data-testid="evidence-year">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            {periods.map((period) => (
+              <th key={period} className="mono">
+                {period}
+              </th>
+            ))}
+            <th>Track</th>
+          </tr>
+        </thead>
+        <tbody>
+          {metrics.map((metric) => {
+            const cells = periods.map(
+              (period) => rows.find((row) => row.metric === metric && row.period === period)?.o,
+            );
+            return (
+              <tr key={metric} data-testid={`evidence-year-row-${metric}`}>
+                <td>{metricDisplayName(metric)}</td>
+                {cells.map((o, index) => (
+                  <td key={periods[index]} className="year-cell">
+                    {o ? (
+                      <>
+                        <div className="num">{formatGuidedBand({ ...o, metric: o.metric })}</div>
+                        <div className="num">{formatActual(o)}</div>
+                        <span className={`pill ${o.label}`}>{formatOutcomeLabel(o.label)}</span>
+                        {promiseAfterResult(o) ? (
+                          <div className="muted" style={{ fontSize: 11 }}>
+                            Promise date is after the result date
+                          </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                ))}
+                <td data-testid={`evidence-track-${metric}`}>
+                  {evidenceTrack(cells.map((o) => o?.label)).map(formatOutcomeLabel).join(" · ") || "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function EvidenceTable({
   outcomes,
   companyId,
@@ -75,6 +145,7 @@ export default function EvidenceTable({
   const { t } = useI18n();
   const { openSource } = useSourceViewer();
   const [sort, setSort] = useState<EvidenceSort>(DEFAULT_EVIDENCE_SORT);
+  const [layout, setLayout] = useState<"year" | "row">(onReview || onEdit ? "row" : "year");
   const [periodFilter, setPeriodFilter] = useState("");
   const [metricFilter, setMetricFilter] = useState("");
   const periods = useMemo(() => {
@@ -200,6 +271,26 @@ export default function EvidenceTable({
   return (
     <div data-testid="evidence-listing">
       <div className="evidence-controls" data-testid="evidence-controls">
+        <div className="index-chips" role="group" aria-label="Evidence layout">
+          <button
+            type="button"
+            className={layout === "year" ? "chip active" : "chip"}
+            aria-pressed={layout === "year"}
+            data-testid="evidence-by-year"
+            onClick={() => setLayout("year")}
+          >
+            By year
+          </button>
+          <button
+            type="button"
+            className={layout === "row" ? "chip active" : "chip"}
+            aria-pressed={layout === "row"}
+            data-testid="evidence-by-row"
+            onClick={() => setLayout("row")}
+          >
+            By row
+          </button>
+        </div>
         <label>
           {t("ui.EvidenceTable.filter.period")}
           <select
@@ -251,6 +342,8 @@ export default function EvidenceTable({
         <div className="empty" data-testid="evidence-filter-empty">
           {t("ui.EvidenceTable.filter.empty")}
         </div>
+      ) : layout === "year" ? (
+        <YearGrid rows={rows} />
       ) : (
     <div className="table-scroll">
       <table className="table" data-testid={testId}>
@@ -337,6 +430,11 @@ export default function EvidenceTable({
                 )}
                 <td>
                   <span className={`pill ${o.label}`}>{formatOutcomeLabel(o.label)}</span>{" "}
+                  {promiseAfterResult(o) ? (
+                    <span className="muted" data-testid={`promise-after-result-${sourceIndex}`}>
+                      Promise date is after the result date
+                    </span>
+                  ) : null}
                   <InfoTip termId={o.label.toLowerCase()} text={tipForLabel(o.label)} />
                 </td>
                 <td className="num" title={t("ui.EvidenceTable.gapTitle", { gap: formatGuideGap(o) })}>
@@ -349,13 +447,22 @@ export default function EvidenceTable({
                   {o.guidance_source_url ? (
                     <details>
                       <summary>
-                        <a
-                          href={o.guidance_source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          className="linkish"
+                          data-testid={`open-promise-${idx}`}
+                          onClick={() =>
+                            openSource({
+                              title: `${o.period} ${metricDisplayName(o.metric)} · promise`,
+                              source_url: o.guidance_source_url,
+                              highlight_url: withTextHighlight(o.guidance_source_url, o.guidance_quote),
+                              quote: o.guidance_quote,
+                              company_id: companyId,
+                            })
+                          }
                         >
                           {o.guidance_as_of ? formatDossierDate(o.guidance_as_of) : sourceHost(o.guidance_source_url)}
-                        </a>
+                        </button>
                       </summary>
                       {o.guidance_quote ? <blockquote className="quote-span">“{o.guidance_quote}”</blockquote> : null}
                     </details>

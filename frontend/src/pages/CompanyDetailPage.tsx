@@ -46,6 +46,8 @@ import {
   postGenerateReport,
   postNote,
   postReview,
+  postAnalystRun,
+  downloadAnalystExport,
   recordCiteCopy,
   ApiError,
   type CompanyGCIDetail,
@@ -62,6 +64,8 @@ import { CONTACT_EMAIL } from "../lib/legal";
 import { useI18n } from "../i18n";
 import { useEntitlements } from "../lib/entitlements";
 import { useAuth } from "../lib/auth";
+import { canAcceptRole } from "../lib/seatLanding";
+import { rememberCompany } from "../lib/recentCompanies";
 import { trackEvent } from "../lib/analytics";
 
 const TOC_PUBLIC = [
@@ -69,7 +73,6 @@ const TOC_PUBLIC = [
   { id: "evidence", labelKey: "ui.CompanyDetailPage.toc.evidence" },
   { id: "revisions", labelKey: "ui.CompanyDetailPage.toc.revisions" },
   { id: "calc", labelKey: "ui.CompanyDetailPage.toc.calc" },
-  { id: "trend", labelKey: "ui.CompanyDetailPage.toc.trend" },
 ] as const;
 
 const TOC_PRIMARY = [
@@ -91,7 +94,7 @@ export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t, lang: uiLang } = useI18n();
   const { has, entitlements } = useEntitlements();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [commitments, setCommitments] = useState<CommitmentView | null>(null);
@@ -113,6 +116,7 @@ export default function CompanyDetailPage() {
   }, [uiLang]);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [packBusy, setPackBusy] = useState(false);
   const [changes, setChanges] = useState<{
     wow_pct?: number | null;
     mom_pct?: number | null;
@@ -196,6 +200,10 @@ export default function CompanyDetailPage() {
   const [layerNotes, setLayerNotes] = useState<Awaited<ReturnType<typeof fetchNinjaProfile>> | null>(null);
   const isGuest = entitlements.plan === "guest" || entitlements.kind === "guest";
   const [citeCopied, setCiteCopied] = useState(false);
+
+  useEffect(() => {
+    if (id) rememberCompany(id);
+  }, [id]);
 
   const reload = useCallback(() => {
     if (!id) return;
@@ -426,6 +434,31 @@ export default function CompanyDetailPage() {
             {detail.reviewed_at && (
               <span data-testid="dossier-reviewed">
                 {t("dossier.reviewed", { date: formatDossierDate(detail.reviewed_at) })}
+              </span>
+            )}
+            {!isGuest && (has("pack_export") || has("ic_export")) && (
+              <span>
+                {" · "}
+                {user?.role === "ir" && (user.company_scope || []).length === 0 ? (
+                  <span data-testid="board-pack-unnamed">Your desk admin has not named a company for packs yet.</span>
+                ) : user?.role === "ir" && !(user.company_scope || []).includes(detail.id) ? null : (
+                  <button
+                    type="button"
+                    className="linkish"
+                    data-testid="board-pack"
+                    disabled={packBusy}
+                    onClick={() => {
+                      setPackBusy(true);
+                      void postAnalystRun({ skill_id: "board_scorecard", company_id: detail.id })
+                        .then((run) => downloadAnalystExport(run.run_id, "pdf"))
+                        .then(() => setToast("Board pack downloaded."))
+                        .catch((err) => setToast(err instanceof Error ? err.message : "Board pack failed."))
+                        .finally(() => setPackBusy(false));
+                    }}
+                  >
+                    {packBusy ? "Preparing board pack…" : "Board pack"}
+                  </button>
+                )}
               </span>
             )}
           </div>
@@ -684,6 +717,7 @@ export default function CompanyDetailPage() {
         </div>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
           {t("ui.CompanyDetailPage.evidence.lede")}
+          {showWorkbench && !canAcceptRole(user?.role) ? " A reviewer accepts the row." : ""}
           {showWorkbench ? (
             <>
               {" "}
@@ -707,7 +741,7 @@ export default function CompanyDetailPage() {
             companyId={detail.id}
             testId="evidence-table"
             onReview={
-              showWorkbench && has("desk_write")
+              showWorkbench && canAcceptRole(user?.role)
                 ? async (outcomeIndex, action) => {
                     await postReview({
                       company_id: detail.id,
@@ -725,7 +759,7 @@ export default function CompanyDetailPage() {
                 : undefined
             }
             onEdit={
-              showWorkbench && has("desk_write")
+              showWorkbench && canAcceptRole(user?.role)
                 ? async (outcomeIndex, edits) => {
                     await postReview({
                       company_id: detail.id,
@@ -1046,6 +1080,8 @@ export default function CompanyDetailPage() {
         </>
       )}
 
+      {!isGuest && (
+      <>
       <div className="panel" id="trend">
         <h2>
           {t("ui.CompanyDetailPage.trend.title")} <InfoTip termId="trend" />
@@ -1507,23 +1543,9 @@ export default function CompanyDetailPage() {
           <h2>
             {t("ui.CompanyDetailPage.metrics.title")} <InfoTip termId="change_trend" />
           </h2>
-          <div className="chart-block" data-testid="gci-metric-chart">
-            <BarChart
-              rows={Object.entries(detail.by_metric_changes!).map(([metric, b]) => ({
-                label: metricDisplayName(metric),
-                value: Number(b.yoy_pct ?? b.qoq_pct ?? b.pop_pct ?? 0),
-                color:
-                  Number(b.yoy_pct ?? b.qoq_pct ?? b.pop_pct ?? 0) >= 0
-                    ? "var(--good)"
-                    : "var(--bad)",
-              }))}
-              unit="%"
-              ariaLabel={t("ui.CompanyDetailPage.metrics.aria")}
-            />
-            <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-              {t("ui.CompanyDetailPage.metrics.note")}
-            </p>
-          </div>
+          <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
+            The figure is the level for this metric. A change in a growth rate is not a change in revenue.
+          </p>
           <div className="metrics">
             {Object.entries(detail.by_metric_changes!).map(([metric, b]) => (
               <div className="metric" key={metric}>
@@ -1531,12 +1553,6 @@ export default function CompanyDetailPage() {
                 <div className="value" style={{ fontSize: 22 }}>
                   {b.value ?? "—"}
                 </div>
-                <ChangeTriple
-                  mom={b.mom_pct}
-                  qoq={b.qoq_pct}
-                  yoy={b.yoy_pct}
-                  pop={b.pop_pct}
-                />
               </div>
             ))}
           </div>
@@ -1591,6 +1607,8 @@ export default function CompanyDetailPage() {
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {(canWordmap || canVernacular) && (
       <div className="panel" id="context">

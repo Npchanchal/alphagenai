@@ -11,8 +11,13 @@ import {
   type OrgPayload,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { SEAT_COPY } from "../lib/seatLanding";
 
-const WORKING_ROLES = ["viewer", "analyst", "labeler", "reviewer"] as const;
+const WORKING_ROLES = ["viewer", "pm", "data", "ir", "oversight", "analyst", "labeler", "reviewer"] as const;
+
+function seatLabel(id: string): string {
+  return SEAT_COPY[id]?.label || id;
+}
 
 function friendly(err: unknown, fallback: string): string {
   const msg = err instanceof Error ? err.message : fallback;
@@ -98,7 +103,7 @@ export function OrgMembersPanel() {
           return (
             <li key={m.id}>
               <span>
-                {m.email || m.name} · {m.role}
+                {m.email || m.name} · {seatLabel(m.role || "viewer")}
                 {m.active === false ? " · revoked" : ""}
                 {m.email_verified ? " · verified" : " · unverified"}
               </span>
@@ -116,10 +121,34 @@ export function OrgMembersPanel() {
                 >
                   {assignable.map((seat) => (
                     <option key={seat} value={seat}>
-                      {seat}
+                      {seatLabel(seat)}
                     </option>
                   ))}
                 </select>
+              )}
+              {canEdit && m.role === "ir" && (
+                <label>
+                  Companies this seat may pack
+                  <input
+                    aria-label={`Companies for ${m.email || m.name}`}
+                    defaultValue={(m.company_scope || []).join(", ")}
+                    placeholder="infy"
+                    onBlur={(e) => {
+                      if (!token || !orgId) return;
+                      const scope = e.target.value
+                        .split(/[,\s]+/)
+                        .map((id) => id.trim().toLowerCase())
+                        .filter(Boolean);
+                      setError(null);
+                      void postMemberRole(orgId, token, m.id, "ir", scope)
+                        .then(() => reload())
+                        .catch((err) => setError(friendly(err, "Company list failed")));
+                    }}
+                  />
+                  {(m.company_scope || []).length === 0 ? (
+                    <span className="muted"> No company named yet</span>
+                  ) : null}
+                </label>
               )}
               {canEdit && (
                 <button
@@ -205,10 +234,11 @@ export function OrgInvitesPanel() {
           >
             {assignable.map((seat) => (
               <option key={seat} value={seat}>
-                {seat}
+                {seatLabel(seat)}
               </option>
             ))}
           </select>
+          {SEAT_COPY[role]?.sentence ? <p className="muted">{SEAT_COPY[role].sentence}</p> : null}
         </label>
         <button type="submit" className="btn-primary" data-testid="org-invite-submit">
           Send invite

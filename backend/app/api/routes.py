@@ -700,15 +700,42 @@ def _import_facts(body: ImportFactsRequest) -> Dict[str, Any]:
 
 @router.post("/api/review")
 def review(body: ReviewRequest, auth=Depends(require_feature("desk_write"))) -> Dict[str, Any]:
-    return repository.apply_review(
+    action = (body.action or "").lower().strip()
+    role = str(auth.get("role") or "").lower()
+    if action in {"accept", "edit", "reject"} and role not in {"reviewer", "admin", "owner"}:
+        raise HTTPException(status_code=403, detail="A reviewer accepts the row")
+    reviewer = _actor_label(auth)
+    out = repository.apply_review(
         body.company_id,
         body.outcome_index,
         body.action,
         body.comment,
         body.edits,
-        reviewer=auth.get("org", "unknown"),
+        reviewer=reviewer,
         org_id=auth.get("org"),
     )
+    from app.data import audit_log
+
+    audit_log.record(
+        f"review_{action}",
+        org=str(auth.get("org") or "demo"),
+        actor=reviewer,
+        role=role,
+        detail={"company_id": body.company_id, "outcome_index": body.outcome_index},
+    )
+    return out
+
+
+def _actor_label(auth: Dict[str, Any]) -> str:
+    """The person on a session; a key is named by a short hash, never the key itself."""
+    if auth.get("email") or auth.get("user_id"):
+        return str(auth.get("email") or auth.get("user_id"))
+    key = str(auth.get("key") or "")
+    if key:
+        import hashlib
+
+        return "api_key:" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:10]
+    return str(auth.get("role") or "unknown")
 
 
 @router.get("/api/reviews")
@@ -878,8 +905,13 @@ def meta() -> Dict[str, Any]:
     gci_cache = load_cache()
     listing_scored = int(gci_cache.get("scored_count") or 0)
     depth = pending_depth_report(bootstrap=False)
+    from app.services.score_policy import is_rankable
+
+    published = repository.list_published_companies()
     return {
         "version": APP_VERSION,
+        "published_gci_count": len(published),
+        "published_ranked_count": sum(1 for r in published if is_rankable(r.confidence_tier)),
         "company_count": len(data["companies"]),
         "hand_labeled_count": labeled,
         "demo_structured_count": demo,
@@ -2186,8 +2218,10 @@ def audit_list(
 ) -> Dict[str, Any]:
     from app.data import audit_log
 
-    if auth.get("role") not in ("owner", "admin", "reviewer", "analyst"):
-        raise HTTPException(status_code=403, detail="Insufficient role")
+    from app.services.entitlements import has_feature
+
+    if not has_feature(auth, "org_audit"):
+        raise HTTPException(status_code=403, detail="This seat does not include the audit trail")
     caller = str(auth.get("org_id") or auth.get("org") or "")
     cross_org = str(auth.get("platform_admin_role") or "") == "super"
     if org and org != caller and not cross_org:
@@ -2646,8 +2680,27 @@ def org_member_role(
     from app.services import session_auth
 
     user = session_auth.require_session(session_auth.extract_bearer(authorization))
+    scope = body.company_scope
+    if scope is not None:
+        from app.data.seed import get_data
+
+        known = {str(c.get("id") or "").lower() for c in get_data().get("companies", [])}
+        cleaned: list[str] = []
+        for raw in scope:
+            cid = str(raw).strip().lower()
+            if not cid:
+                continue
+            if cid not in known:
+                raise HTTPException(status_code=400, detail="Unknown company")
+            if cid not in cleaned:
+                cleaned.append(cid)
+        scope = cleaned
     return session_auth.set_member_role(
-        org_id=org_id, user_id=user_id, role=body.role, actor=user
+        org_id=org_id,
+        user_id=user_id,
+        role=body.role,
+        actor=user,
+        company_scope=scope,
     )
 
 

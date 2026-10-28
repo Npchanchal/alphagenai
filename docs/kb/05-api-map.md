@@ -7,7 +7,7 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/health` | Liveness |
-| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median) |
+| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median); `published_gci_count` / `published_ranked_count` from `repository.list_published_companies()` (the one count every public page states) |
 
 **Score policy:** only `hand_labeled` companies carry a public `gci_score`. Listings and demo companies return `score: null` with status `not_yet_scored` (see `services/score_policy.py`). Outcome rows may include `revisions[]`, `revision_direction` (raised/cut/unchanged), `final_guided_low/high` and a context-only `final_label`; the score always uses the opening band.
 | GET | `/api/ops/pending-depth` | Depth backlog + optional `?bootstrap=true` |
@@ -28,7 +28,7 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | GET | `/api/alerts` | Misses / dropped |
 | GET | `/api/products` | Portfolio SKU catalog (Score / Cite / Radar / Ledger / Data / Sights / Holdings) |
 | POST | `/api/holdings/lookthrough` | Dated holdings file → covered published GCI, gaps, residual, delivery tilt, and scheme change from values in the file. Feature `holdings`: paid desk, or an admin-approved pilot inside 30/45/60 days. An approved term that has ended closes the pilot desk. |
-| GET | `/api/holdings/latest` | Last holdings file for the caller's org |
+| GET | `/api/holdings/latest` | Last holdings file for the caller's org, plus `last_opened_at` and `since_last_open` (accepted filings ingested since that time, open guidance, published misses; three filings per name) |
 | POST | `/api/ninja/worksheets/{template}` | Valuation worksheet from numbers the desk enters. Saved on the organisation when `company_id` is set. Feature `ninja`. Not a published GCI. |
 | GET | `/api/ninja/worksheets` | Latest saved worksheet and recent history for `company_id` and optional `template` |
 | POST | `/api/ninja/observations` | Cited note on accounting, causality, conduct, or execution |
@@ -79,13 +79,13 @@ Writes are gated by **plan × role intersection**. Guest Bearer cannot piggyback
 |---|---|
 | POST | `/api/extract`, `/api/extract/commit`, `/api/extract/pending` |
 | POST | `/api/match` |
-| POST | `/api/review` · GET `/api/reviews` |
+| POST | `/api/review` · GET `/api/reviews` | Accept, edit, reject: `reviewer`, `admin`, `owner` only (`403` otherwise, row unchanged). Each decision writes `review_accept` / `review_edit` / `review_reject` to `/api/audit` with the person; a bare key is recorded as `api_key:<hash>` |
 | POST | `/api/labeling/drafts` · submit/accept/reject · `/api/labeling/import` |
 | GET | `/api/labeling/companies` · `/api/labeling/drafts` |
 | POST | `/api/companies/{id}/audit-flags` · DELETE `…/audit-flags/{flag}` (analyst-set; labeling) |
 | POST | `/api/feedback` · GET `/api/feedback` (does not mutate GCI; quality kinds enqueue labeling-queue) |
 | POST | `/api/activity/cite-copy` | Habit ping (no quote text); guests allowed |
-| POST | `/api/orgs/{id}/partner-invite` · `/members/{user_id}/role` |
+| POST | `/api/orgs/{id}/partner-invite` · `/members/{user_id}/role` | Body `role`, optional `company_scope` (IR only; ids must be covered companies, else `400`). Writes `seat_change` to `/api/audit`. `/api/audit` reads with feature `org_audit` (oversight, reviewer, admin, owner) |
 | POST | `/api/import/alphahunter` |
 | POST | `/api/ingest/paste`, `/text`, `/url`, `/bootstrap`, `/media` |
 | POST | `/api/ingest/crawl` · GET `/api/ingest/crawl/status` |
@@ -170,7 +170,7 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | GET | `/api/analyst/skills` | Skill specs (`backend/app/skills/*.json`) + tool list. Feature `analyst_agent` |
 | POST | `/api/analyst/run` | `{skill_id, company_id, include_unreviewed?, project_id?}` → cited sections, `not_found`, `citations`, `verifier`, `evidence_receipt`, `markdown`. Run saved per org |
 | GET | `/api/analyst/runs` · `/runs/{run_id}` | Org-scoped history; another org gets `404` |
-| GET | `/api/analyst/runs/{run_id}/export?format=` | `xlsx` (comment + `/c/{id}` link on every sourced cell) · `pptx` (source footers) · `pdf` · `md`; each ends with the Evidence Receipt. Own org only (`404`); bad format `422` |
+| GET | `/api/analyst/runs/{run_id}/export?format=` | `xlsx` (comment + `/c/{id}` link on every sourced cell) · `pptx` (source footers) · `pdf` · `md`; each ends with the Evidence Receipt. Own org only (`404`); bad format `422`. An `ir` seat exports the board pack (`pack_export`) for companies in its `company_scope` only; empty scope `403` with a sentence; each export writes `pack_export` to `/api/audit` |
 | GET | `/api/analyst/feed` | Org's Monitor-triggered runs only, each with `trigger` (new filing title/date) |
 | GET · POST | `/api/analyst/monitors` | List / create `{skill_id, scope: company\|watchlist\|project, company_id?, project_id?, email?}`; 25 per org (`409` over); same target+Skill returns the existing Monitor. Watchlist needs a signed-in user |
 | GET · PUT | `/api/analyst/digest` | Weekly digest settings `{enabled, emails}` (≤ 10) + this week's preview text |

@@ -29,6 +29,8 @@ Canonical project memory for humans and Cursor agents. Prefer these pages over r
 | Topic | Doc |
 |---|---|
 | **Current programme (Round-3 remediation)** | `docs/PLAN_WORLDCLASS_GCI.md` |
+| Role UX research log | `docs/PLAN_ROLE_UX.md` |
+| **Seats BRD / PRD / TRD (next cycle)** | `docs/BRD_ROLES.md` · `docs/PRD_ROLES.md` · `docs/TRD_ROLES.md` |
 | India whitespace (extract → match → index) | `docs/PLAN_WHITESPACE.md` |
 | CiteAlpha Analyst agent + Commitment Record (draft) | `docs/PLAN_CITEALPHA_ANALYST.md` |
 | MVP scope | `docs/PRODUCT_DEFINITION.md` |

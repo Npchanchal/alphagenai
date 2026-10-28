@@ -12,6 +12,7 @@ import { fetchProductMeta, type ProductMeta } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME } from "../lib/legal";
 import { SEO_STRUCTURED } from "../lib/seoJsonLd";
+import { seatLanding } from "../lib/seatLanding";
 const PERSONAS = [
   { labelKey: "landing.persona.buy", to: "/products#desk-buy-side" },
   { labelKey: "landing.persona.sell", to: "/products#desk-sell-side" },
@@ -33,7 +34,7 @@ const SURFACES = [
   { id: "rankings", to: "/rankings", beta: false },
   { id: "research", to: "/research", beta: false },
   { id: "desk", to: "/desk", beta: false },
-  { id: "sights", to: "/sights", beta: true },
+  { id: "sights", to: "/sights", beta: false },
 ] as const;
 
 /** Public marketing home — citealpha.com apex. */
@@ -45,7 +46,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (!loading && user && user.kind !== "guest") {
-      navigate("/tracker", { replace: true });
+      navigate(seatLanding(user.role, user.company_scope), { replace: true });
     }
   }, [loading, user, navigate]);
 

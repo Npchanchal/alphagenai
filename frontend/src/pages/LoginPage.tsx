@@ -8,6 +8,7 @@ import { fetchSsoLogin, fetchSsoStatus } from "../lib/api";
 import { useAbuseChallenge } from "../lib/useAbuseChallenge";
 import { useI18n } from "../i18n";
 import { LEGAL_ENTITY } from "../lib/legal";
+import { seatLanding } from "../lib/seatLanding";
 
 export default function LoginPage() {
   const { login, continueAsGuest } = useAuth();
@@ -57,8 +58,14 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(email, password, totp || undefined);
-      navigate(redirectTo);
+      const signedIn = await login(email, password, totp || undefined);
+      const from = (location.state as { from?: string } | null)?.from;
+      const bookmark = Boolean(from && from !== "/" && from !== "/login" && from !== "/tracker");
+      navigate(
+        bookmark && from
+          ? from
+          : seatLanding(signedIn?.role, signedIn?.company_scope),
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("common.error");
       if (msg === "mfa_required") {

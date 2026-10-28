@@ -32,7 +32,7 @@ export default function AccountSettingsPage() {
   const market = preferences?.default_market ?? "IN";
   const index = preferences?.default_index ?? "SENSEX";
   const watchlist = preferences?.watchlist ?? [];
-  const density = preferences?.density ?? "comfortable";
+  const density = preferences?.density ?? "compact";
   const showDemoTape = preferences?.show_demo_tape ?? true;
   const analyticsConsent = preferences?.analytics_consent;
 

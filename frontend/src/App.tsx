@@ -15,7 +15,8 @@ import SeoHead from "./components/SeoHead";
 import { useAuth } from "./lib/auth";
 import { useI18n } from "./i18n";
 import AdminMenuBar from "./components/AdminMenuBar";
-import NavMenu from "./components/NavMenu";
+import NavMenu, { isWorkingRoute } from "./components/NavMenu";
+import CommandPalette from "./components/CommandPalette";
 import SightsLayout from "./pages/sights/SightsLayout";
 import SightsHubPage from "./pages/sights/SightsHubPage";
 
@@ -97,13 +98,19 @@ const OrgSettingsPage = lazy(() => import("./pages/OrgSettingsPage"));
 
 export default function App() {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { user, preferences } = useAuth();
   const location = useLocation();
   const [navOpen, setNavOpen] = useState(false);
+  const working = isWorkingRoute(location.pathname);
+  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "");
 
   useEffect(() => {
     setNavOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    document.documentElement.dataset.density = preferences?.density || "compact";
+  }, [preferences?.density]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -120,7 +127,7 @@ export default function App() {
       <a href="#main" className="skip-link">
         {t("app.skipToContent")}
       </a>
-      <header className="topbar">
+      <header className={working ? "topbar is-short" : "topbar"} data-frame={working ? "short" : "full"}>
         <div className="brand-block">
           <BrandLogo />
         </div>
@@ -140,9 +147,20 @@ export default function App() {
           className={`topnav ${navOpen ? "open" : ""}`}
           aria-label={t("ui.App.primaryNav")}
         >
-          <NavMenu />
+          <NavMenu working={working} />
+          {working && (
+            <button
+              type="button"
+              className="btn-ghost palette-hint"
+              data-testid="palette-hint"
+              title={t("palette.hintTitle")}
+              onClick={() => document.dispatchEvent(new Event("citealpha:palette"))}
+            >
+              {t("palette.hint")} <kbd>{isMac ? "⌘K" : "Ctrl K"}</kbd>
+            </button>
+          )}
           <SessionMenu />
-          <span className="compliance-micro">{t("compliance.micro")}</span>
+          {!working && <span className="compliance-micro">{t("compliance.micro")}</span>}
         </nav>
       </header>
       <AdminMenuBar />
@@ -221,6 +239,7 @@ export default function App() {
       <SiteFooter />
       <TourWelcome />
       <SiteTour />
+      <CommandPalette enabled={working} />
     </div>
   );
 }

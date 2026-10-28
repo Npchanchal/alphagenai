@@ -1275,9 +1275,17 @@ export function postAnalystRun(body: {
   include_unreviewed?: boolean;
   project_id?: string;
 }): Promise<AnalystRun> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  try {
+    const tkn = localStorage.getItem("intellens.auth.token");
+    if (tkn) headers.Authorization = `Bearer ${tkn}`;
+    else headers["X-API-Key"] = API_KEY;
+  } catch {
+    headers["X-API-Key"] = API_KEY;
+  }
   return getJson("/api/analyst/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -1699,10 +1707,16 @@ export async function downloadOutcomesExport(
   format: "json" | "csv" | "parquet" = "csv",
   limit = 200,
 ): Promise<Blob> {
-  const res = await fetch(
-    `/api/data/export/outcomes?format=${format}&limit=${limit}`,
-    { headers: { "X-API-Key": API_KEY } },
-  );
+  const headers: Record<string, string> = { "X-API-Key": API_KEY };
+  try {
+    const tkn = localStorage.getItem("intellens.auth.token");
+    if (tkn) headers.Authorization = `Bearer ${tkn}`;
+  } catch {
+    /* ignore */
+  }
+  const res = await fetch(`${API_BASE}/api/data/export/outcomes?format=${format}&limit=${limit}`, {
+    headers,
+  });
   if (!res.ok) {
     const err = await res.text();
     throw new Error(err || `Export failed (${res.status})`);
@@ -1755,6 +1769,8 @@ export type FilingToScoreSla = {
 
 export type ProductMeta = {
   version: string;
+  published_gci_count?: number;
+  published_ranked_count?: number;
   company_count: number;
   hand_labeled_count: number;
   demo_structured_count: number;
@@ -3052,6 +3068,17 @@ export type HoldingsReport = {
     exited?: HoldingsLine[];
     weight_changes?: { name?: string; prior_weight?: number; weight?: number; prior_gci?: number | null; gci_score?: number | null }[];
   } | null;
+  last_opened_at?: string | null;
+  since_last_open?: {
+    company_id: string;
+    name: string;
+    kind: "filing" | "open_guidance" | "missed";
+    title?: string | null;
+    at?: string | null;
+    count?: number;
+    period?: string;
+    metric?: string;
+  }[];
 };
 
 export function postHoldingsLookthrough(
@@ -3415,6 +3442,7 @@ export type AuthUser = {
   account_type?: "retail" | "b2b" | "guest";
   org_id?: string | null;
   role?: string;
+  company_scope?: string[];
   platform_admin_role?: string;
   email_verified?: boolean;
   active?: boolean;
@@ -3656,10 +3684,17 @@ export function postMemberRole(
   token: string,
   userId: string,
   role: string,
+  companyScope?: string[],
 ): Promise<{ ok: boolean; user: AuthUser }> {
   return authJson(
     `/api/orgs/${encodeURIComponent(orgId)}/members/${encodeURIComponent(userId)}/role`,
-    { method: "POST", body: JSON.stringify({ role }) },
+    {
+      method: "POST",
+      body: JSON.stringify({
+        role,
+        ...(companyScope ? { company_scope: companyScope } : {}),
+      }),
+    },
     token,
   );
 }
@@ -3705,6 +3740,7 @@ export type OrgAuditEvent = {
   org?: string;
   actor?: string;
   role?: string;
+  detail?: Record<string, unknown>;
 };
 
 export function fetchOrgAudit(token: string): Promise<{ count: number; events: OrgAuditEvent[] }> {

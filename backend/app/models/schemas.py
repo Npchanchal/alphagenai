@@ -150,6 +150,7 @@ class PreferencesUpdate(BaseModel):
 
 class MemberRoleRequest(BaseModel):
     role: str
+    company_scope: Optional[List[str]] = None
 
 
 class FeedbackCreate(BaseModel):
