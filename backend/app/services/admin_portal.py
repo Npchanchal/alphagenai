@@ -810,6 +810,7 @@ def create_msa(body: Dict[str, Any]) -> Dict[str, Any]:
         seats=seats_n,
         amount_inr=amount_n,
         po_number=(str(body["po_number"]).strip() if body.get("po_number") else None),
+        coverage=body.get("coverage"),
     )
     signer = str(body.get("signer_email") or "").strip()
     if signer:

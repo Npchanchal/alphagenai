@@ -5,6 +5,8 @@
 - Deep GCI: **IN + SENSEX** (and labeled Sensex names).
 - Other markets/indexes may be **scaffold** — show honest banner; do not fake GCI depth.
 - Preferences: default market/index via session prefs.
+- **Site-wide market picker** (2026-10-28): topbar `MarketSelect` and the Screener market select both write `default_market` + `default_index` through `useMarketChoice` (`frontend/src/lib/markets.ts`); Screener, Filing Search, Workbench and Account read it. Pickers offer only markets and indexes flagged `listed` by `/api/markets` (`markets.market_is_listed` / `index_is_listed`): since 2026-10-29 all twelve markets: **IN** (all India indexes), **US** (S&P 500), **GB** (FTSE 100), **JP** (Nikkei 225), **HK** (Hang Seng), **CN** (CSI 300), **EU** (Euro Stoxx 50, DAX, CAC 40), **SG** (STI), **AU** (S&P/ASX 200), **KR** (KOSPI 200), **BR** (Ibovespa), **CA** (S&P/TSX 60). DJI, NDX, TOPIX and SSEC hold anchor tags only and stay unlisted. A market without a listing file falls back to constituent pads and never reaches a picker. Companies outside India show as listed, not scored, until both quotes check out in their own filings.
+- **Market scope per plan** (2026-10-28): choosing a market in the picker never changes access. A seat whose plan does not cover the market sees it marked "outside plan" ("part in plan" for one Indian exchange); scores stay readable and seat tools show `PlanScopeNotice`. Rules and matrix: `docs/kb/13-commercial.md` and `docs/prd/PRD_COMMERCIAL.md` §3.2.
 
 ## i18n
 

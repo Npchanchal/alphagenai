@@ -84,6 +84,37 @@ Retail stays closed until counsel attests. The retail feature set, if the plan i
 **CM-R5.** A reviewer on Desk has `labeling`. A reviewer on a pilot has `labeling` only when `labeling_granted` is set.  
 **CM-R6.** Paying an invoice does not add a feature by itself and does not change a published GCI.
 
+## 3.2 Markets and exchanges
+
+Each market is priced on its own, and a desk buys the markets its coverage needs. Market scope is a third dimension next to plan and role: effective access is plan ∩ role, applied only to companies whose listing is on the desk's order form.
+
+| Unit | Grant | Covers |
+|---|---|---|
+| All markets | `*` | Every listed market, and markets added later |
+| India | `IN` | NSE and BSE |
+| India · NSE only | `IN:NSE` | Companies with any NSE listing |
+| India · BSE only | `IN:BSE` | Companies with any BSE listing |
+| United States | `US` | Sold as one market for now. NYSE and Nasdaq can be split later |
+
+A company is in scope when any of its listings is on a purchased exchange, so an NSE+BSE dual listing counts under either. Granting both Indian exchanges collapses to `IN`.
+
+| Surface | Outside the desk's markets |
+|---|---|
+| GCI Screener, dossier read, Public Snapshot, Methodology | Open. The published score is the same for everyone; payment never moves it |
+| Filing Search, cited chat, Analyst Workbench, CiteAlpha Analyst, Financial Ninja, notes, alerts, exports, API seat routes | 403 `market_not_in_plan` with a plain sentence naming the company's market and the desk's plan. Corpus search and chat without a company keep only in-scope documents |
+| Holdings look-through | The line is a gap with reason `not_in_plan` and its weight is reported as `not_in_plan_weight_pct`, outside the covered figure |
+| Pickers on Filing Search, Workbench, Analyst | List in-scope companies only and say how many were left out |
+| Market picker (header and Screener) | Every market stays selectable for a seat. Markets outside the plan are marked "outside plan", partial ones "part in plan" |
+
+Defaults, applied when an org has no `coverage` field: guest → none; Desk, Enterprise and One-Stop → `*` (existing paid desks keep every market); every other plan, including Pilot → `IN`. A pilot approval may name other markets. A platform `super` reads all markets.
+
+Only platform billing (`billing.write`) sets an org's markets, through `PUT /api/admin/portal/orgs/{id}/coverage`; each change appends `{at, by, before, after}` to the org's `coverage_history`. An order form records the markets sold, but signing it does not apply them, because an owner can sign their own form and would otherwise grant themselves every market.
+
+**CM-R7.** A pilot seat asking chat about a US company gets 403 `market_not_in_plan`; the same seat on an Indian company is allowed.  
+**CM-R8.** A desk on `IN:NSE` is refused a BSE-only company and allowed an NSE+BSE company.  
+**CM-R9.** The dossier and Screener return the same published score whether or not the market is on the plan.  
+**CM-R10.** Only `billing.write` changes coverage; an empty or unknown grant list returns 400.
+
 ## 4. Decisions
 
 | # | Decision |

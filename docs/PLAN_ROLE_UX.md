@@ -147,6 +147,8 @@ No new application. A role changes the order and the default of a page that alre
 
 **Done when.** A guest landing on `/tracker` sees the Sensex (or the India index the page names), the coverage sentence, and no US constituents. The title matches the table.
 
+**Revised 2026-10-28 (owner).** Markets other than India return to the public control, and the choice is site-wide (topbar picker). A guest still opens on India. Only markets backed by a published listing are offered (India, US S&P 500); the US view states that no GCI shows until both quotes are checked in the company's filings. See kb 09.
+
 ### RX-2 Portfolio manager — the book is the morning, the screener is discovery
 
 **Job.** What changed in the names they hold. A single blended number that treats cash as scored will be ignored. Gaps have to be named. ([PRD_HOLDINGS](prd/PRD_HOLDINGS.md) already requires covered weight, the weighted GCI of that weight, and a gap list.)

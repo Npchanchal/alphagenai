@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CompanyPicker from "../components/CompanyPicker";
+import { useEntitlements } from "../lib/entitlements";
 import PlanAccessGate from "../components/PlanAccessGate";
 import {
   deleteAnalystMemory,
@@ -652,7 +653,10 @@ export default function AnalystPage() {
   const { user } = useAuth();
   const canAdmin = user?.role === "owner" || user?.role === "admin";
   const [params, setParams] = useSearchParams();
-  const [companies, setCompanies] = useState<CompanySummary[]>([]);
+  const { inPlan } = useEntitlements();
+  const [listed, setCompanies] = useState<CompanySummary[]>([]);
+  const companies = useMemo(() => listed.filter(inPlan), [listed, inPlan]);
+  const outsidePlan = listed.length - companies.length;
   const [companyId, setCompanyId] = useState("");
   const [skills, setSkills] = useState<AnalystSkill[]>([]);
   const [run, setRun] = useState<AnalystRun | null>(null);
@@ -685,12 +689,16 @@ export default function AnalystPage() {
   }
 
   useEffect(() => {
+    if (!companies.find((r) => r.id === companyId)) setCompanyId(companies[0]?.id ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companies]);
+
+  useEffect(() => {
     let cancelled = false;
     Promise.all([fetchCompanies({ limit: 50 }), fetchAnalystSkills(), fetchAnalystRuns(), fetchAnalystFeed()])
       .then(([rows, sk, runs, fd]) => {
         if (cancelled) return;
         setCompanies(rows);
-        if (rows[0]) setCompanyId(rows[0].id);
         setSkills(sk.skills);
         setHistory(runs.runs);
         setFeed(fd.runs);
@@ -768,6 +776,11 @@ export default function AnalystPage() {
         <p className="muted lede">{t("analyst.lede")}</p>
 
         <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} testId="analyst-company" />
+        {outsidePlan > 0 && (
+          <p className="muted" data-testid="analyst-outside-plan">
+            {t("scope.hiddenCount", { n: outsidePlan })}
+          </p>
+        )}
         {error && <p className="error">{error}</p>}
 
         <ProjectsPanel

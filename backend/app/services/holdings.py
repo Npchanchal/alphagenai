@@ -64,8 +64,13 @@ def build_lookthrough(
     commitment_counts: Optional[Callable[[str], int]] = None,
     universe_gci: Optional[float] = None,
     scheme: Optional[List[Dict[str, Any]]] = None,
+    in_scope: Optional[Callable[[str], bool]] = None,
 ) -> Dict[str, Any]:
-    """Pure given the two readers. Missing scores are omitted from the weighted figure."""
+    """Pure given the two readers. Missing scores are omitted from the weighted figure.
+
+    A company outside the desk's markets (``in_scope`` false) is a gap with reason
+    ``not_in_plan``; its published GCI does not enter the weighted figure.
+    """
     if not lines:
         raise HTTPException(status_code=400, detail="Add at least one holdings line")
     if len(lines) > MAX_LINES:
@@ -111,6 +116,18 @@ def build_lookthrough(
             )
             continue
         cid = str(company.get("id") or "")
+        if in_scope is not None and not in_scope(cid):
+            gaps.append(
+                {
+                    "isin": isin,
+                    "company_id": cid,
+                    "name": name or company.get("name") or cid,
+                    "ticker": company.get("ticker"),
+                    "weight": weight,
+                    "reason": "not_in_plan",
+                }
+            )
+            continue
         published = published_score(cid) or {}
         gci = published.get("gci_score")
         row = {
@@ -136,12 +153,18 @@ def build_lookthrough(
         raise HTTPException(status_code=400, detail="Weights must sum to more than zero")
 
     covered_gci = round(weighted / covered_weight, 1) if covered_weight else None
-    gap_weight = sum(float(g["weight"]) for g in gaps)
+    out_of_plan_weight = sum(float(g["weight"]) for g in gaps if g.get("reason") == "not_in_plan")
+    gap_weight = sum(float(g["weight"]) for g in gaps) - out_of_plan_weight
     residual_weight = sum(float(r["weight"]) for r in residual)
 
     def _pct(part: float) -> float:
         return round(100.0 * part / weight_sum, 1)
 
+    statement = _statement(covered_gci, _pct(covered_weight), _pct(gap_weight), _pct(residual_weight))
+    if out_of_plan_weight:
+        statement += (
+            f" {_pct(out_of_plan_weight)}% is in markets outside this desk's plan and is left out of the figure."
+        )
     return {
         "product": "CiteAlpha Holdings",
         "as_of": as_of,
@@ -149,6 +172,7 @@ def build_lookthrough(
         "covered_weight": round(covered_weight, 4),
         "covered_weight_pct": _pct(covered_weight),
         "unscored_weight_pct": _pct(gap_weight),
+        "not_in_plan_weight_pct": _pct(out_of_plan_weight),
         "residual_weight_pct": _pct(residual_weight),
         "covered_gci": covered_gci,
         "scored": scored,
@@ -156,7 +180,7 @@ def build_lookthrough(
         "residual": residual,
         "manager": _manager(covered_gci, scored, universe_gci),
         "scheme": _scheme(scheme or []),
-        "statement": _statement(covered_gci, _pct(covered_weight), _pct(gap_weight), _pct(residual_weight)),
+        "statement": statement,
         "note": (
             "Weighted published GCI of the holdings that have a score. "
             "Names without a score are listed and left out of the figure. "
@@ -465,7 +489,11 @@ def _open_commitments(company_id: str) -> int:
     )
 
 
-def submit_lookthrough(org_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+def submit_lookthrough(
+    org_id: str,
+    body: Dict[str, Any],
+    in_scope: Optional[Callable[[str], bool]] = None,
+) -> Dict[str, Any]:
     as_of = _as_of(body.get("as_of"))
     lines = body.get("lines")
     if not isinstance(lines, list):
@@ -481,6 +509,7 @@ def submit_lookthrough(org_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
         commitment_counts=_open_commitments,
         universe_gci=_universe_gci(),
         scheme=scheme,
+        in_scope=in_scope,
     )
     with _LOCK:
         stored = _load(org_id)
@@ -512,7 +541,10 @@ def submit_lookthrough(org_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
     return report
 
 
-def latest_lookthrough(org_id: str) -> Dict[str, Any]:
+def latest_lookthrough(
+    org_id: str,
+    in_scope: Optional[Callable[[str], bool]] = None,
+) -> Dict[str, Any]:
     with _LOCK:
         stored = _load(org_id)
         snapshots = list(stored.get("snapshots") or [])
@@ -534,6 +566,7 @@ def latest_lookthrough(org_id: str) -> Dict[str, Any]:
             commitment_counts=_open_commitments,
             universe_gci=_universe_gci(),
             scheme=list((stored_row.get("scheme") or {}).get("points") or []),
+            in_scope=in_scope,
         )
         report["lines"] = stored_lines
         report["saved_at"] = stored_row.get("saved_at")

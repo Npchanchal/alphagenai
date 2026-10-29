@@ -22,6 +22,9 @@ class CompanySummary(BaseModel):
     yoy_pct: Optional[float] = None
     market_id: Optional[str] = None
     index_ids: Optional[List[str]] = None
+    exchange: Optional[str] = Field(
+        default=None, description="Listing venue: NSE, BSE, NSE+BSE, or US. Drives market-scope checks."
+    )
     # Index integrity (W1.3): every published number carries its confidence + provenance.
     confidence_tier: Optional[str] = Field(
         default=None, description="provisional | established | deep; null when not scored"
@@ -180,6 +183,10 @@ class PilotRequestReview(BaseModel):
         default=None,
         description="Required on approve: 30, 45, or 60",
     )
+    coverage: Optional[List[str]] = Field(
+        default=None,
+        description="Markets under evaluation: *, IN, IN:NSE, IN:BSE, US. Default India.",
+    )
 
 
 class SetAuditFlagRequest(BaseModel):
@@ -303,6 +310,8 @@ class CompanyGCIDetail(BaseModel):
     gci_score: Optional[float]
     status: str = Field(description="ok | insufficient_data")
     data_quality: str
+    market_id: Optional[str] = None
+    exchange: Optional[str] = Field(default=None, description="Listing venue: NSE, BSE, NSE+BSE, or US")
     by_metric: Dict[str, float] = Field(description="Metrics in the composite")
     context_metrics: Dict[str, float] = Field(
         default_factory=dict,

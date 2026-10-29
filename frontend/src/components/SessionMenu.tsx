@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import LanguageSelect from "./LanguageSelect";
+import MarketSelect from "./MarketSelect";
 import { useAuth } from "../lib/auth";
 import { useI18n } from "../i18n";
 import type { LangCode } from "../i18n/languages";
@@ -39,6 +40,7 @@ export default function SessionMenu() {
 
   return (
     <div className="session-menu" ref={ref}>
+      <MarketSelect />
       <LanguageSelect
         onChange={(code: LangCode) => {
           void updatePreferences({ language: code });

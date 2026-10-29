@@ -200,9 +200,9 @@ def ensure_company_record(company_id: str) -> Optional[Dict[str, Any]]:
         if c["id"] == company_id:
             return c
     from app.data.india_listings import find_listing
-    from app.data.us_listings import find_us_listing
+    from app.data.us_listings import find_world_listing
 
-    listing = find_listing(company_id) or find_us_listing(company_id)
+    listing = find_listing(company_id) or find_world_listing(company_id)
     if listing is None:
         return None
     row = {

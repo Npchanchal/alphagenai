@@ -23,7 +23,7 @@ The browser does not call those hosts. UI goes through `frontend/src/lib/api.ts`
 | Guidance extract (12k) | `services/extract_pipeline.py` | `llm_extract_ledger.json` `seen` map. Failed calls are retried; successes are not |
 | Match, score | `services/matching.py`, `services/gci_scoring.py` | Pure. No HTTP. Lists read `data/gci_score_cache.py` `load_cache` |
 | Coverage sentence | `services/coverage.py`, `india_coverage.py`, `us_coverage.py` | `coverage_status.json`. One status per scrip |
-| India / US lists | `data/india_listings.py`, `data/us_listings.py`, `jobs/refresh_index_lists.py` | `data/listings/nifty500.json`, `data/listings/us_equity.json`. Refresh refuses a short file |
+| India / world lists | `data/india_listings.py`, `data/us_listings.py` (every market outside India: `world_universe`, `find_world_listing`), `jobs/refresh_index_lists.py` | `data/listings/nifty500.json`, `data/listings/{us,gb,jp,hk,cn,eu,sg,au,kr,br,ca}_equity.json`. Refresh refuses a short file and keeps the previous one |
 | Quote check | `services/source_verify.py` | Reads stored text. At most once per 24h when `INTELLENS_VERIFY_SOURCES=1` |
 | Commitments (not GCI) | `services/commitments.py`, `commitment_store.py`, `commitment_extract.py`, `commitment_monitor.py` | `commitments.json` |
 | Holdings look-through | `services/holdings.py` | Org file under `holdings/`. Reads `gci_score_cache` and the Commitment Record. Does not write a score. The saved file keeps the delivery tilt and the scheme change, and the page reloads that file. |

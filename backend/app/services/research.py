@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import re
 from collections import Counter
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from app.data import consensus_store, doc_store
 from app.data.seed import get_data
@@ -126,7 +126,9 @@ def search_documents(
     doc_type: Optional[str] = None,
     limit: int = 25,
     hybrid: bool = True,
+    in_scope: Optional[Callable[[str], bool]] = None,
 ) -> Dict[str, Any]:
+    """``in_scope`` drops companies outside the desk's markets before ranking."""
     track("research_search", {"q": query, "company_id": company_id})
     q = (query or "").strip().lower()
     docs = build_documents()
@@ -135,6 +137,8 @@ def search_documents(
         if company_id and d["company_id"] != company_id:
             continue
         if doc_type and d["doc_type"] != doc_type:
+            continue
+        if in_scope is not None and not in_scope(str(d["company_id"])):
             continue
         filtered.append(d)
 
@@ -209,7 +213,11 @@ def _numbered_cite_answer(bits: List[str], records: List[Dict[str, Any]], gci_no
     )
 
 
-def research_chat(question: str, company_id: Optional[str] = None) -> Dict[str, Any]:
+def research_chat(
+    question: str,
+    company_id: Optional[str] = None,
+    in_scope: Optional[Callable[[str], bool]] = None,
+) -> Dict[str, Any]:
     """Cite-only: answer only from retrieved chunks; refuse if empty."""
     from app.services.citations import document_to_citation
 
@@ -222,7 +230,7 @@ def research_chat(question: str, company_id: Optional[str] = None) -> Dict[str, 
             "refused": False,
         }
 
-    search = search_documents(q, company_id=company_id, limit=5)
+    search = search_documents(q, company_id=company_id, limit=5, in_scope=in_scope)
     q_toks = set(_tokenize(q))
     citations = []
     for c in search["results"][:5]:

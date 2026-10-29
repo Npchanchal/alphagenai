@@ -1,0 +1,778 @@
+{
+ "market_id": "HK",
+ "source": {
+  "HSI": "https://en.wikipedia.org/wiki/Hang_Seng_Index"
+ },
+ "as_of": "2026-10-29",
+ "count": 85,
+ "indexes": [
+  "HSI"
+ ],
+ "rows": [
+  {
+   "ticker": "1299",
+   "name": "AIA Group Limited",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9988",
+   "name": "Alibaba Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0241",
+   "name": "Alibaba Health",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2020",
+   "name": "Anta Sports",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9888",
+   "name": "Baidu",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "3988",
+   "name": "Bank of China Ltd",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2388",
+   "name": "BOC Hong Kong (Holdings) Ltd",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1876",
+   "name": "Budweiser Brewing Company APAC",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1211",
+   "name": "BYD Company",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0285",
+   "name": "BYD Electronics",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1038",
+   "name": "Cheung Kong Infrastructure Holdings Limited",
+   "sector": "Utilities",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0939",
+   "name": "China Construction Bank",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1378",
+   "name": "China Hongqiao Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2628",
+   "name": "China Life",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "3968",
+   "name": "China Merchants Bank",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0941",
+   "name": "China Mobile Ltd",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0688",
+   "name": "China Overseas Land & Investment Limited",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0291",
+   "name": "China Resources Beer",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1109",
+   "name": "China Resources Land Limited",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1209",
+   "name": "China Resources Mixc Lifestyle",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0836",
+   "name": "China Resources Power",
+   "sector": "Utilities",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1088",
+   "name": "China Shenhua Energy",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0762",
+   "name": "China Unicom",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1929",
+   "name": "Chow Tai Fook",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0267",
+   "name": "CITIC Limited",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1113",
+   "name": "CK Asset Holdings",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0001",
+   "name": "CK Hutchison Holdings Limited",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0002",
+   "name": "CLP Holdings Limited",
+   "sector": "Utilities",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0883",
+   "name": "CNOOC Limited",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1093",
+   "name": "CSPC Pharmaceutical Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2688",
+   "name": "ENN Energy",
+   "sector": "Utilities",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0027",
+   "name": "Galaxy Entertainment Group Ltd.",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0175",
+   "name": "Geely Auto",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "6862",
+   "name": "Haidilao",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "6690",
+   "name": "Haier",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0101",
+   "name": "Hang Lung Properties Limited",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "3692",
+   "name": "Hansoh Pharmaceutical Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0012",
+   "name": "Henderson Land Development Company Limited",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1044",
+   "name": "Hengan International Group Co. Ltd",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0388",
+   "name": "HKEx Limited",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0003",
+   "name": "Hong Kong and China Gas Company Limited",
+   "sector": "Utilities",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0005",
+   "name": "HSBC Holdings plc",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1398",
+   "name": "Industrial and Commercial Bank of China",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "6618",
+   "name": "JD Health",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2618",
+   "name": "JD Logistics",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9618",
+   "name": "JD.com",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1024",
+   "name": "Kuaishou",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0992",
+   "name": "Lenovo",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2015",
+   "name": "Li Auto",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2331",
+   "name": "Li-Ning",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0823",
+   "name": "Link REIT",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0960",
+   "name": "Longfor Properties",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "3690",
+   "name": "Meituan",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2319",
+   "name": "Mengniu Dairy",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0300",
+   "name": "Midea Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0066",
+   "name": "MTR Corporation Ltd",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9999",
+   "name": "NetEase",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9633",
+   "name": "Nongfu Spring",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0316",
+   "name": "Orient Overseas (International) Limited",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0857",
+   "name": "PetroChina Company Limited",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2318",
+   "name": "Ping An Insurance",
+   "sector": "Finance",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9992",
+   "name": "Pop Mart",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0006",
+   "name": "Power Assets Holdings Limited",
+   "sector": "Utilities",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1928",
+   "name": "Sands China",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0981",
+   "name": "Semiconductor Manufacturing International Corporation",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2313",
+   "name": "Shenzhou International",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1177",
+   "name": "Sino Biopharm",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0386",
+   "name": "Sinopec Corp",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1099",
+   "name": "Sinopharm Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0016",
+   "name": "Sun Hung Kai Properties Limited",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2382",
+   "name": "Sunny Optical",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0669",
+   "name": "Techtronic Industries",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0700",
+   "name": "Tencent Holdings Limited",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0322",
+   "name": "Tingyi",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "9961",
+   "name": "Trip.com Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0288",
+   "name": "WH Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1997",
+   "name": "Wharf Real Estate Investment Company Limited",
+   "sector": "Properties",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2359",
+   "name": "WuXi AppTec",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2269",
+   "name": "WuXi Biologics",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "1810",
+   "name": "Xiaomi",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0868",
+   "name": "Xinyi Glass",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0968",
+   "name": "Xinyi Solar",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "0881",
+   "name": "Zhongsheng Group",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2899",
+   "name": "Zijin Mining",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  },
+  {
+   "ticker": "2057",
+   "name": "ZTO Express",
+   "sector": "Commerce & Industry",
+   "exchange": "HKEX",
+   "index_ids": [
+    "HSI"
+   ]
+  }
+ ]
+}

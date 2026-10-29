@@ -1,0 +1,923 @@
+{
+ "market_id": "EU",
+ "source": {
+  "STOXX50": "https://en.wikipedia.org/wiki/EURO_STOXX_50",
+  "DAX": "https://en.wikipedia.org/wiki/DAX",
+  "CAC40": "https://en.wikipedia.org/wiki/CAC_40"
+ },
+ "as_of": "2026-10-29",
+ "count": 97,
+ "indexes": [
+  "STOXX50",
+  "DAX",
+  "CAC40"
+ ],
+ "rows": [
+  {
+   "ticker": "AC",
+   "name": "Accor",
+   "sector": "Consumer Services",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ADS",
+   "name": "Adidas",
+   "sector": "Consumer Discretionary",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "ADYEN",
+   "name": "Adyen",
+   "sector": "Financials",
+   "exchange": "EURONEXT AMSTERDAM",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "AD",
+   "name": "Ahold Delhaize",
+   "sector": "Consumer Staples",
+   "exchange": "EURONEXT AMSTERDAM",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "AI",
+   "name": "Air Liquide",
+   "sector": "Materials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "AIR",
+   "name": "Airbus",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "DAX",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ALV",
+   "name": "Allianz",
+   "sector": "Financials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "ABI",
+   "name": "Anheuser-Busch InBev",
+   "sector": "Consumer Staples",
+   "exchange": "EURONEXT BRUSSELS",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "MT",
+   "name": "ArcelorMittal",
+   "sector": "Basic Materials",
+   "exchange": "EURONEXT AMSTERDAM",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ARGX",
+   "name": "Argenx",
+   "sector": "Health Care",
+   "exchange": "EURONEXT BRUSSELS",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "ASML",
+   "name": "ASML Holding",
+   "sector": "Information Technology",
+   "exchange": "EURONEXT AMSTERDAM",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "CS",
+   "name": "Axa",
+   "sector": "Financials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "SAN.MC",
+   "name": "Banco Santander",
+   "sector": "Financials",
+   "exchange": "BME",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "BAS",
+   "name": "BASF",
+   "sector": "Materials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "BAYN",
+   "name": "Bayer",
+   "sector": "Health Care",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "BBVA",
+   "name": "BBVA",
+   "sector": "Financials",
+   "exchange": "BME",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "BEI",
+   "name": "Beiersdorf",
+   "sector": "Consumer goods",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "BMW",
+   "name": "BMW",
+   "sector": "Consumer Discretionary",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "BNP",
+   "name": "BNP Paribas",
+   "sector": "Financials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "EN",
+   "name": "Bouygues",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "BNR",
+   "name": "Brenntag",
+   "sector": "Distribution",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "BVI",
+   "name": "Bureau Veritas",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "CAP",
+   "name": "Capgemini",
+   "sector": "Technology",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "CA",
+   "name": "Carrefour",
+   "sector": "Consumer Defensive",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "CBK",
+   "name": "Commerzbank",
+   "sector": "Financial Services",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "CON",
+   "name": "Continental",
+   "sector": "Automotive",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "ACA",
+   "name": "Crédit Agricole",
+   "sector": "Financial Services",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "DTG",
+   "name": "Daimler Truck",
+   "sector": "Automotive",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "BN",
+   "name": "Danone",
+   "sector": "Consumer Staples",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "DSY",
+   "name": "Dassault Systèmes",
+   "sector": "Technology",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "DBK",
+   "name": "Deutsche Bank",
+   "sector": "Financials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "DB1",
+   "name": "Deutsche Börse",
+   "sector": "Financials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "DHL",
+   "name": "Deutsche Post",
+   "sector": "Industrials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "DTE",
+   "name": "Deutsche Telekom",
+   "sector": "Communication",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "EOAN",
+   "name": "E.ON",
+   "sector": "Utilities",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "FGR",
+   "name": "Eiffage",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ENEL",
+   "name": "Enel",
+   "sector": "Utilities",
+   "exchange": "BORSA ITALIANA",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "ENGI",
+   "name": "Engie",
+   "sector": "Utilities",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ENI",
+   "name": "Eni",
+   "sector": "Energy",
+   "exchange": "BORSA ITALIANA",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "EL",
+   "name": "EssilorLuxottica",
+   "sector": "Health Care",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ERF",
+   "name": "Eurofins Scientific",
+   "sector": "Healthcare",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "ENX",
+   "name": "Euronext",
+   "sector": "Financial Services",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "RACE",
+   "name": "Ferrari",
+   "sector": "Consumer Discretionary",
+   "exchange": "BORSA ITALIANA",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "FRE",
+   "name": "Fresenius",
+   "sector": "Healthcare",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "FME",
+   "name": "Fresenius Medical Care",
+   "sector": "Healthcare",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "G1A",
+   "name": "GEA Group",
+   "sector": "Mechanical Engineering",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "HNR1",
+   "name": "Hannover Re",
+   "sector": "Insurance",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "HEI",
+   "name": "Heidelberg Materials",
+   "sector": "Construction Materials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "HEN3",
+   "name": "Henkel",
+   "sector": "Consumer Goods",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "RMS",
+   "name": "Hermès",
+   "sector": "Consumer Discretionary",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "IBE",
+   "name": "Iberdrola",
+   "sector": "Utilities",
+   "exchange": "BME",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "ITX",
+   "name": "Inditex",
+   "sector": "Consumer Discretionary",
+   "exchange": "BME",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "IFX",
+   "name": "Infineon Technologies",
+   "sector": "Information Technology",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "INGA",
+   "name": "ING Group",
+   "sector": "Financials",
+   "exchange": "EURONEXT AMSTERDAM",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "ISP",
+   "name": "Intesa Sanpaolo",
+   "sector": "Financials",
+   "exchange": "BORSA ITALIANA",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "KER",
+   "name": "Kering",
+   "sector": "Consumer Cyclical",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "OR",
+   "name": "L'Oréal",
+   "sector": "Consumer Staples",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "LR",
+   "name": "Legrand",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "MC",
+   "name": "LVMH Moët Hennessy Louis Vuitton",
+   "sector": "Consumer Discretionary",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "MBG",
+   "name": "Mercedes-Benz Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "MRK",
+   "name": "Merck",
+   "sector": "Pharmaceuticals",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "ML",
+   "name": "Michelin",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "MTX",
+   "name": "MTU Aero Engines",
+   "sector": "Aerospace & Defence",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "MUV2",
+   "name": "Munich Re",
+   "sector": "Financials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "NOKIA",
+   "name": "Nokia",
+   "sector": "Information Technology",
+   "exchange": "NASDAQ HELSINKI",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "NDA-FI",
+   "name": "Nordea",
+   "sector": "Financials",
+   "exchange": "NASDAQ HELSINKI",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "ORA",
+   "name": "Orange",
+   "sector": "Communication Services",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "RI",
+   "name": "Pernod Ricard",
+   "sector": "Consumer Defensive",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "PAH3",
+   "name": "Porsche SE",
+   "sector": "Automotive",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "PRX",
+   "name": "Prosus",
+   "sector": "Consumer Discretionary",
+   "exchange": "EURONEXT AMSTERDAM",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "PUB",
+   "name": "Publicis",
+   "sector": "Communication Services",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "QIA",
+   "name": "Qiagen",
+   "sector": "Biotech",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "RNO",
+   "name": "Renault",
+   "sector": "Consumer Cyclical",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "RHM",
+   "name": "Rheinmetall",
+   "sector": "Industrials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "RWE",
+   "name": "RWE",
+   "sector": "Utilities",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "SAF",
+   "name": "Safran",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "SGO",
+   "name": "Saint-Gobain",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "SAN.PA",
+   "name": "Sanofi",
+   "sector": "Health Care",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "SAP",
+   "name": "SAP",
+   "sector": "Information Technology",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "SU",
+   "name": "Schneider Electric",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "G24",
+   "name": "Scout24",
+   "sector": "E-Commerce",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "SIE",
+   "name": "Siemens",
+   "sector": "Industrials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "ENR",
+   "name": "Siemens Energy",
+   "sector": "Industrials",
+   "exchange": "XETRA",
+   "index_ids": [
+    "STOXX50",
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "SHL",
+   "name": "Siemens Healthineers",
+   "sector": "Medical Equipment",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "GLE",
+   "name": "Société Générale",
+   "sector": "Financial Services",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "STLAP",
+   "name": "Stellantis",
+   "sector": "Consumer Cyclical",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "STMPA",
+   "name": "STMicroelectronics",
+   "sector": "Technology",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "SY1",
+   "name": "Symrise",
+   "sector": "Chemicals",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "HO",
+   "name": "Thales",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "TTE",
+   "name": "TotalEnergies",
+   "sector": "Energy",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "URW",
+   "name": "Unibail-Rodamco-Westfield",
+   "sector": "Real Estate",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "UCG",
+   "name": "UniCredit",
+   "sector": "Financials",
+   "exchange": "BORSA ITALIANA",
+   "index_ids": [
+    "STOXX50"
+   ]
+  },
+  {
+   "ticker": "VIE",
+   "name": "Veolia",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "DG",
+   "name": "Vinci SA",
+   "sector": "Industrials",
+   "exchange": "EURONEXT PARIS",
+   "index_ids": [
+    "STOXX50",
+    "CAC40"
+   ]
+  },
+  {
+   "ticker": "VOW3",
+   "name": "Volkswagen Group",
+   "sector": "Automotive",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "VNA",
+   "name": "Vonovia",
+   "sector": "Real Estate",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  },
+  {
+   "ticker": "ZAL",
+   "name": "Zalando",
+   "sector": "E-Commerce",
+   "exchange": "XETRA",
+   "index_ids": [
+    "DAX"
+   ]
+  }
+ ]
+}

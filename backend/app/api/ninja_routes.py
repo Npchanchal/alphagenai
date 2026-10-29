@@ -4,15 +4,16 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from app.services import market_scope
 from app.services.entitlements import has_feature, resolve_actor
 from app.services.pilot_checklist import pilot_evaluation_ended
 
 router = APIRouter()
 
 
-def _require_ninja(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+async def _require_ninja(request: Request, ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
     if ent.get("kind") == "guest" or ent.get("source") == "guest":
         if ent.get("user_id"):
             raise HTTPException(status_code=403, detail="Sign in with a desk seat to open Financial Ninja")
@@ -35,6 +36,7 @@ def _require_ninja(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, An
             status_code=403,
             detail=f"Plan {ent.get('plan')} / role {ent.get('role')} lacks ninja",
         )
+    await market_scope.check_request(ent, request)
     return ent
 
 

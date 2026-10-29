@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import CoverageEditor from "../components/CoverageEditor";
 import Skeleton from "../components/Skeleton";
 import { PLATFORM_SUPER_EMAILS } from "../lib/platformRole";
 import {
@@ -12,6 +13,9 @@ import {
   fetchAdminPortalLegal,
   fetchAdminPortalMe,
   fetchAdminPortalOrgs,
+  fetchMarkets,
+  putAdminPortalOrgCoverage,
+  type CoverageUnit,
   fetchAdminPortalPilotRequests,
   fetchAdminPortalReport,
   fetchAdminPortalReportCatalog,
@@ -44,6 +48,16 @@ import { useAuth } from "../lib/auth";
 import { LEGAL_ENTITY } from "../lib/legal";
 
 const PLATFORM_ROLES = ["super", "ops", "compliance", "billing", "support"] as const;
+
+/** Grant lists sent with a pilot approval; comma-joined so a select can hold them. */
+const PILOT_COVERAGE = [
+  { id: "IN", label: "India" },
+  { id: "IN:NSE", label: "India · NSE only" },
+  { id: "IN:BSE", label: "India · BSE only" },
+  { id: "US", label: "United States" },
+  { id: "IN,US", label: "India and United States" },
+  { id: "*", label: "All markets" },
+];
 
 function approvePilotMessage(result: {
   request: PilotRequestItem;
@@ -146,6 +160,8 @@ export default function AdminPortalPage() {
   const [err, setErr] = useState<string | null>(null);
   const [pilotName, setPilotName] = useState("New Pilot Desk");
   const [pilotTerm, setPilotTerm] = useState<30 | 45 | 60>(45);
+  const [pilotCoverage, setPilotCoverage] = useState(PILOT_COVERAGE[0].id);
+  const [coverageUnits, setCoverageUnits] = useState<CoverageUnit[]>([]);
   const [attestBy, setAttestBy] = useState("counsel@firm.com");
   const [attestKind, setAttestKind] = useState("terms_privacy");
 
@@ -186,6 +202,11 @@ export default function AdminPortalPage() {
       if (section === "orgs" && can("orgs.read")) {
         const res = await fetchAdminPortalOrgs(token);
         setOrgs(res.orgs || []);
+        if (can("billing.write")) {
+          fetchMarkets()
+            .then((m) => setCoverageUnits(m.coverage_units || []))
+            .catch(() => undefined);
+        }
       }
       if (section === "users" && can("users.read")) {
         const res = await fetchAdminPortalUsers(token);
@@ -463,6 +484,7 @@ export default function AdminPortalPage() {
                     <tr>
                       <th>Organisation</th>
                       <th>Plan</th>
+                      <th>Markets</th>
                       <th>Seats</th>
                       <th>Seat holders</th>
                       <th>Actions</th>
@@ -482,6 +504,24 @@ export default function AdminPortalPage() {
                             <code>{String(o.id)}</code>
                           </td>
                           <td>{o.plan}</td>
+                          <td data-testid={`admin-org-coverage-${o.id}`}>
+                            <div>{o.coverage?.label ?? "—"}</div>
+                            {can("billing.write") && token && coverageUnits.length > 0 ? (
+                              <CoverageEditor
+                                units={coverageUnits}
+                                grants={o.coverage?.grants ?? []}
+                                testId={`admin-org-coverage-edit-${o.id}`}
+                                onSave={(grants) =>
+                                  putAdminPortalOrgCoverage(String(o.id), grants, token)
+                                    .then((updated) => {
+                                      setOrgs((prev) => prev.map((x) => (x.id === o.id ? { ...x, ...updated } : x)));
+                                      setMsg(`Markets for ${o.name || o.id}: ${updated.coverage?.label ?? "saved"}`);
+                                    })
+                                    .catch((ex) => setErr((ex as Error).message))
+                                }
+                              />
+                            ) : null}
+                          </td>
                           <td>
                             {o.seats_used ?? 0}/{o.seats ?? "—"}
                           </td>
@@ -771,6 +811,21 @@ export default function AdminPortalPage() {
               <p className="muted">
                 Inbound evaluation requests from the public form. Approve opens a pilot desk and emails the requester a link to set a password as desk admin. The seat stays until you delete the user. Reject closes the request. Delete removes the request. The organisation stays until you delete it under Organizations.
               </p>
+              <label className="muted" style={{ fontSize: 13 }}>
+                Markets for the next approval{" "}
+                <select
+                  value={pilotCoverage}
+                  onChange={(e) => setPilotCoverage(e.target.value)}
+                  aria-label="Markets for approved pilot"
+                  data-testid="pilot-coverage"
+                >
+                  {PILOT_COVERAGE.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {pilotRequests.length === 0 ? (
                 <p className="muted">No pilot requests yet.</p>
               ) : (
@@ -834,7 +889,11 @@ export default function AdminPortalPage() {
                                   onClick={() => {
                                     void patchAdminPortalPilotRequest(
                                       req.id,
-                                      { action: "approve", term_days: pilotTerm },
+                                      {
+                                        action: "approve",
+                                        term_days: pilotTerm,
+                                        coverage: pilotCoverage.split(","),
+                                      },
                                       token,
                                     )
                                       .then((r) => {

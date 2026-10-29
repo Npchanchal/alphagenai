@@ -491,6 +491,12 @@ export default function OrgSettingsPage() {
               {String(org?.plan ?? "—")}
             </div>
           </div>
+          <div className="metric" data-testid="org-coverage">
+            <div className="label">Markets on this plan</div>
+            <div className="value" style={{ fontSize: 20 }}>
+              {org?.coverage?.label ?? entitlements.coverage?.label ?? "—"}
+            </div>
+          </div>
           <div className="metric">
             <div className="label">Seats</div>
             <div className="value" style={{ fontSize: 20 }}>
@@ -510,6 +516,11 @@ export default function OrgSettingsPage() {
             </div>
           </div>
         </div>
+        <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
+          Published scores are open for every market. Filing Search, chat, the Workbench, Analyst,
+          Holdings, alerts and exports work on companies listed in the markets above.{" "}
+          <Link to="/products#coverage">Markets and exchanges</Link>
+        </p>
         <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
           Org id <code>{orgId}</code>
           {!canAdmin && " · read-only — ask an owner or admin to change seats"}

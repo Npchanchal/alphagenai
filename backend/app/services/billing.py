@@ -38,9 +38,18 @@ def create_msa_invoice(
     seats: int,
     amount_inr: Optional[float] = None,
     po_number: Optional[str] = None,
+    coverage: Optional[Any] = None,
 ) -> Dict[str, Any]:
+    """``coverage`` records the markets and exchanges sold (``*``, ``IN``, ``IN:NSE``, ``US``).
+    Signing does not open them: an owner can sign their own form, so platform billing
+    applies the scope (``orgs.set_coverage``), as it does the plan."""
+    from app.services import market_scope
+
     plan_n = (plan or "desk").lower()
     seats_n = max(1, int(seats))
+    grants = market_scope.normalize_grants(coverage) if coverage else None
+    if coverage and not grants:
+        raise HTTPException(status_code=400, detail="coverage names no market or exchange")
     if amount_inr is None:
         amount_inr = DESK_SEAT_INR * seats_n if plan_n in ("desk", "pilot") else DESK_SEAT_INR * seats_n
     inv = {
@@ -49,6 +58,7 @@ def create_msa_invoice(
         "kind": "msa",
         "plan": plan_n,
         "seats": seats_n,
+        "coverage": grants,
         "amount_inr": float(amount_inr),
         "currency": "INR",
         "status": "issued",
@@ -95,6 +105,7 @@ def sign_msa(invoice_id: str, *, signer_email: str, org_id: str) -> Dict[str, An
             store["subscriptions"][inv["org_id"]] = {
                 "plan": inv["plan"],
                 "seats": inv["seats"],
+                "coverage": inv.get("coverage"),
                 "invoice_id": inv["id"],
                 "status": "active",
             }

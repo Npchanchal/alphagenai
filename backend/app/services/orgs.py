@@ -164,6 +164,9 @@ def org_snapshot(org_id: str) -> Dict[str, Any]:
 
     if plan == "pilot" and pilot_evaluation_ended(org_id):
         features = ["tracker"]
+    from app.services import market_scope
+
+    coverage = market_scope.describe(market_scope.org_grants(row, plan))
     return {
         "id": org_id,
         **row,
@@ -172,14 +175,42 @@ def org_snapshot(org_id: str) -> Dict[str, Any]:
         "seats_used": used,
         "seats_available": max(0, seats - used),
         "features": features,
+        "coverage": coverage,
         "labeling_granted": bool(row.get("labeling_granted")),
         "design_partner": bool(row.get("design_partner") or plan == "pilot"),
         "entitlements": {
             "plan": plan,
             "seat_cap": seats,
             "features": features,
+            "coverage": coverage,
         },
     }
+
+
+def set_coverage(org_id: str, grants: Any, *, by: Optional[str] = None) -> Dict[str, Any]:
+    """Record the markets and exchanges on the desk's order form. Never touches a score."""
+    from app.services import market_scope
+
+    orgs_ = get_data().get("orgs", {})
+    if org_id not in orgs_:
+        raise HTTPException(status_code=404, detail="Org not found")
+    clean = market_scope.normalize_grants(grants)
+    if not clean:
+        raise HTTPException(status_code=400, detail="Name at least one market or exchange, or * for all")
+    row = orgs_[org_id]
+    history = list(row.get("coverage_history") or [])
+    history.append(
+        {
+            "at": datetime.now(timezone.utc).isoformat(),
+            "by": by,
+            "before": market_scope.org_grants(row, normalize_plan(row.get("plan"))),
+            "after": clean,
+        }
+    )
+    row["coverage"] = clean
+    row["coverage_history"] = history[-50:]
+    save_data()
+    return org_snapshot(org_id)
 
 
 def consume_seat(org_id: str = "demo") -> Dict[str, Any]:

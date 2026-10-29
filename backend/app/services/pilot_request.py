@@ -136,6 +136,7 @@ def review_request(
     actor: Dict[str, Any],
     note: str = "",
     term_days: Optional[int] = None,
+    coverage: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     row = _find_request(request_id)
     if not row:
@@ -164,6 +165,8 @@ def review_request(
         name=str(org_name),
         owner_email=row.get("email") or None,
         term_days=days,
+        coverage=coverage,
+        approved_by=str(reviewer),
     )
     row["status"] = "approved"
     row["term_days"] = days

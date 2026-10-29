@@ -161,8 +161,13 @@ def provision_pilot_org(
     owner_email: Optional[str] = None,
     seats: int = 5,
     term_days: object = None,
+    coverage: Optional[object] = None,
+    approved_by: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Create a B2B pilot tenant with conversion checklist initialized."""
+    """Create a B2B pilot tenant with conversion checklist initialized.
+
+    ``coverage`` sets the markets under evaluation; without it the pilot evaluates India.
+    """
     snap = orgs.create_org(
         name=name,
         plan="pilot",
@@ -192,6 +197,8 @@ def provision_pilot_org(
     orgs_row["pilot_term_days"] = days
     data["orgs"][oid] = orgs_row
     save_data()
+    if coverage:
+        snap = orgs.set_coverage(oid, coverage, by=approved_by)
     return {
         "org": snap,
         "checklist": get_pilot_checklist(oid),

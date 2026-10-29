@@ -1,0 +1,2038 @@
+{
+ "market_id": "JP",
+ "source": {
+  "N225": "https://indexes.nikkei.co.jp/en/nkave/archives/file/nikkei_stock_average_weight_en.csv"
+ },
+ "as_of": "2026-10-29",
+ "count": 225,
+ "indexes": [
+  "N225"
+ ],
+ "rows": [
+  {
+   "ticker": "6857",
+   "name": "ADVANTEST CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8267",
+   "name": "AEON CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5201",
+   "name": "AGC INC.",
+   "sector": "Glass & Ceramics",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2802",
+   "name": "AJINOMOTO CO., INC.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6770",
+   "name": "ALPS ALPINE CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6113",
+   "name": "AMADA CO., LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9202",
+   "name": "ANA HOLDINGS INC.",
+   "sector": "Air Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8304",
+   "name": "AOZORA BANK, LTD.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "543A",
+   "name": "ARCHION CORP.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2502",
+   "name": "ASAHI GROUP HOLDINGS, LTD.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3407",
+   "name": "ASAHI KASEI CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4503",
+   "name": "ASTELLAS PHARMA INC.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7832",
+   "name": "BANDAI NAMCO HOLDINGS INC.",
+   "sector": "Other Manufacturing",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6532",
+   "name": "BAYCURRENT, INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5108",
+   "name": "BRIDGESTONE CORP.",
+   "sector": "Rubber",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7751",
+   "name": "CANON INC.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9022",
+   "name": "CENTRAL JAPAN RAILWAY CO., LTD.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9502",
+   "name": "CHUBU ELECTRIC POWER CO., INC.",
+   "sector": "Electric Power",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4519",
+   "name": "CHUGAI PHARMACEUTICAL CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1721",
+   "name": "COMSYS HOLDINGS CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8253",
+   "name": "CREDIT SAISON CO., LTD.",
+   "sector": "Other Financial Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4751",
+   "name": "CYBERAGENT, INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7912",
+   "name": "DAI NIPPON PRINTING CO., LTD.",
+   "sector": "Other Manufacturing",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8750",
+   "name": "DAIICHI LIFE GROUP, INC.",
+   "sector": "Insurance",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4568",
+   "name": "DAIICHI SANKYO CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6367",
+   "name": "DAIKIN INDUSTRIES, LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1925",
+   "name": "DAIWA HOUSE IND. CO., LTD.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8601",
+   "name": "DAIWA SECURITIES GROUP INC.",
+   "sector": "Securities",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2432",
+   "name": "DENA CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4061",
+   "name": "DENKA CO., LTD.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6902",
+   "name": "DENSO CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4324",
+   "name": "DENTSU GROUP INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6146",
+   "name": "DISCO CORP.",
+   "sector": "Precision Instruments",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5714",
+   "name": "DOWA HOLDINGS CO., LTD.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9020",
+   "name": "EAST JAPAN RAILWAY CO.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6361",
+   "name": "EBARA CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4523",
+   "name": "EISAI CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5020",
+   "name": "ENEOS HOLDINGS, INC.",
+   "sector": "Petroleum",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6954",
+   "name": "FANUC CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9983",
+   "name": "FAST RETAILING CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6504",
+   "name": "FUJI ELECTRIC CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4901",
+   "name": "FUJIFILM HOLDINGS CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5803",
+   "name": "FUJIKURA LTD.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6702",
+   "name": "FUJITSU LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8354",
+   "name": "FUKUOKA FINANCIAL GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5801",
+   "name": "FURUKAWA ELECTRIC CO., LTD.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1808",
+   "name": "HASEKO CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6305",
+   "name": "HITACHI CONST. MACH. CO., LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6501",
+   "name": "HITACHI, LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7267",
+   "name": "HONDA MOTOR CO., LTD.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7741",
+   "name": "HOYA CORP.",
+   "sector": "Precision Instruments",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4062",
+   "name": "IBIDEN CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5019",
+   "name": "IDEMITSU KOSAN CO., LTD.",
+   "sector": "Petroleum",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7013",
+   "name": "IHI CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1605",
+   "name": "INPEX CORP.",
+   "sector": "Mining",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3099",
+   "name": "ISETAN MITSUKOSHI HOLDINGS LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7202",
+   "name": "ISUZU MOTORS LTD.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8001",
+   "name": "ITOCHU CORP.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3086",
+   "name": "J.FRONT RETAILING CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9201",
+   "name": "JAPAN AIRLINES CO., LTD.",
+   "sector": "Air Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8697",
+   "name": "JAPAN EXCHANGE GROUP, INC.",
+   "sector": "Other Financial Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6178",
+   "name": "JAPAN POST HOLDINGS CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2914",
+   "name": "JAPAN TOBACCO INC.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5411",
+   "name": "JFE HOLDINGS, INC.",
+   "sector": "Steel",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1963",
+   "name": "JGC HOLDINGS CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6473",
+   "name": "JTEKT CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1812",
+   "name": "KAJIMA CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7004",
+   "name": "KANADEVIA CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4452",
+   "name": "KAO CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7012",
+   "name": "KAWASAKI HEAVY IND., LTD.",
+   "sector": "Shipbuilding",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9107",
+   "name": "KAWASAKI KISEN KAISHA, LTD.",
+   "sector": "Marine Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9433",
+   "name": "KDDI CORP.",
+   "sector": "Information and Communications",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9008",
+   "name": "KEIO CORP.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9009",
+   "name": "KEISEI ELECTRIC RAILWAY CO., LTD.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6861",
+   "name": "KEYENCE CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2801",
+   "name": "KIKKOMAN CORP.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "285A",
+   "name": "KIOXIA HOLDINGS CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2503",
+   "name": "KIRIN HOLDINGS CO., LTD.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5406",
+   "name": "KOBE STEEL, LTD.",
+   "sector": "Steel",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6301",
+   "name": "KOMATSU LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9766",
+   "name": "KONAMI GROUP CORP.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4902",
+   "name": "KONICA MINOLTA, INC.",
+   "sector": "Precision Instruments",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6326",
+   "name": "KUBOTA CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3405",
+   "name": "KURARAY CO., LTD.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6971",
+   "name": "KYOCERA CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4151",
+   "name": "KYOWA KIRIN CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6920",
+   "name": "LASERTEC CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4689",
+   "name": "LY CORP.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2413",
+   "name": "M3, INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8002",
+   "name": "MARUBENI CORP.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8252",
+   "name": "MARUI GROUP CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7261",
+   "name": "MAZDA MOTOR CORP.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2269",
+   "name": "MEIJI HOLDINGS CO., LTD.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4385",
+   "name": "MERCARI, INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6479",
+   "name": "MINEBEA MITSUMI INC.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4188",
+   "name": "MITSUBISHI CHEMICAL GROUP CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8058",
+   "name": "MITSUBISHI CORP.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6503",
+   "name": "MITSUBISHI ELECTRIC CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8802",
+   "name": "MITSUBISHI ESTATE CO., LTD.",
+   "sector": "Real Estate",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7011",
+   "name": "MITSUBISHI HEAVY IND., LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5711",
+   "name": "MITSUBISHI MATERIALS CORP.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7211",
+   "name": "MITSUBISHI MOTORS CORP.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8306",
+   "name": "MITSUBISHI UFJ FINANCIAL GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8031",
+   "name": "MITSUI & CO., LTD.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4183",
+   "name": "MITSUI CHEMICALS, INC.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8801",
+   "name": "MITSUI FUDOSAN CO., LTD.",
+   "sector": "Real Estate",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5706",
+   "name": "MITSUI KINZOKU CO., LTD.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9104",
+   "name": "MITSUI O.S.K.LINES, LTD.",
+   "sector": "Marine Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8411",
+   "name": "MIZUHO FINANCIAL GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8725",
+   "name": "MS&AD INSURANCE GROUP HOLDINGS, INC.",
+   "sector": "Insurance",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6981",
+   "name": "MURATA MANUFACTURING CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6701",
+   "name": "NEC CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3659",
+   "name": "NEXON CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5333",
+   "name": "NGK CORP.",
+   "sector": "Glass & Ceramics",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2282",
+   "name": "NH FOODS LTD.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2871",
+   "name": "NICHIREI CORP.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7731",
+   "name": "NIKON CORP.",
+   "sector": "Precision Instruments",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7974",
+   "name": "NINTENDO CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5214",
+   "name": "NIPPON ELECTRIC GLASS CO., LTD.",
+   "sector": "Glass & Ceramics",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9147",
+   "name": "NIPPON EXPRESS HOLDINGS, INC.",
+   "sector": "Land Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5401",
+   "name": "NIPPON STEEL CORP.",
+   "sector": "Steel",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9101",
+   "name": "NIPPON YUSEN K.K.",
+   "sector": "Marine Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4021",
+   "name": "NISSAN CHEMICAL CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7201",
+   "name": "NISSAN MOTOR CO., LTD.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2002",
+   "name": "NISSHIN SEIFUN GROUP INC.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1332",
+   "name": "NISSUI CORP.",
+   "sector": "Fishery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9843",
+   "name": "NITORI HOLDINGS CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6988",
+   "name": "NITTO DENKO CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8604",
+   "name": "NOMURA HOLDINGS, INC.",
+   "sector": "Securities",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4307",
+   "name": "NOMURA RESEARCH INSTITUTE, LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6471",
+   "name": "NSK LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6472",
+   "name": "NTN CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9432",
+   "name": "NTT, INC.",
+   "sector": "Information and Communications",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1802",
+   "name": "OBAYASHI CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9007",
+   "name": "ODAKYU ELECTRIC RAILWAY CO., LTD.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3861",
+   "name": "OJI HOLDINGS CORP.",
+   "sector": "Pulp & Paper",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6103",
+   "name": "OKUMA CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7733",
+   "name": "OLYMPUS CORP.",
+   "sector": "Precision Instruments",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6645",
+   "name": "OMRON CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4661",
+   "name": "ORIENTAL LAND CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8591",
+   "name": "ORIX CORP.",
+   "sector": "Other Financial Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9532",
+   "name": "OSAKA GAS CO., LTD.",
+   "sector": "Gas",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4578",
+   "name": "OTSUKA HOLDINGS CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7532",
+   "name": "PAN PACIFIC INTERNATIONAL HOLDINGS CORP.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6752",
+   "name": "PANASONIC HOLDINGS CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4755",
+   "name": "RAKUTEN GROUP, INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6098",
+   "name": "RECRUIT HOLDINGS CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6723",
+   "name": "RENESAS ELECTRONICS CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8308",
+   "name": "RESONA HOLDINGS, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4004",
+   "name": "RESONAC HOLDINGS CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7752",
+   "name": "RICOH CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6963",
+   "name": "ROHM CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7453",
+   "name": "RYOHIN KEIKAKU CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2501",
+   "name": "SAPPORO BREWERIES LTD.",
+   "sector": "Foods",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7735",
+   "name": "SCREEN HOLDINGS CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9735",
+   "name": "SECOM CO., LTD.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6724",
+   "name": "SEIKO EPSON CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1928",
+   "name": "SEKISUI HOUSE, LTD.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3382",
+   "name": "SEVEN & I HOLDINGS CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6753",
+   "name": "SHARP CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3697",
+   "name": "SHIFT INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1803",
+   "name": "SHIMIZU CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4063",
+   "name": "SHIN-ETSU CHEMICAL CO., LTD.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4507",
+   "name": "SHIONOGI & CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4911",
+   "name": "SHISEIDO CO., LTD.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5831",
+   "name": "SHIZUOKA FINANCIAL GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6273",
+   "name": "SMC CORP.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6526",
+   "name": "SOCIONEXT INC.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9434",
+   "name": "SOFTBANK CORP.",
+   "sector": "Information and Communications",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9984",
+   "name": "SOFTBANK GROUP CORP.",
+   "sector": "Information and Communications",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "2768",
+   "name": "SOJITZ CORP.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8630",
+   "name": "SOMPO HOLDINGS, INC.",
+   "sector": "Insurance",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6758",
+   "name": "SONY GROUP CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7270",
+   "name": "SUBARU CORP.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3436",
+   "name": "SUMCO CORP.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4005",
+   "name": "SUMITOMO CHEMICAL CO., LTD.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8053",
+   "name": "SUMITOMO CORP.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5802",
+   "name": "SUMITOMO ELECTRIC IND., LTD.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6302",
+   "name": "SUMITOMO HEAVY IND., LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5713",
+   "name": "SUMITOMO METAL MINING CO., LTD.",
+   "sector": "Nonferrous Metals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8316",
+   "name": "SUMITOMO MITSUI FINANCIAL GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8309",
+   "name": "SUMITOMO MITSUI TRUST GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4506",
+   "name": "SUMITOMO PHARMA CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8830",
+   "name": "SUMITOMO REALTY & DEVELOPMENT CO., LTD.",
+   "sector": "Real Estate",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7269",
+   "name": "SUZUKI MOTOR CORP.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8795",
+   "name": "T&D HOLDINGS, INC.",
+   "sector": "Insurance",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5233",
+   "name": "TAIHEIYO CEMENT CORP.",
+   "sector": "Glass & Ceramics",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "1801",
+   "name": "TAISEI CORP.",
+   "sector": "Construction",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6976",
+   "name": "TAIYO YUDEN CO., LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8233",
+   "name": "TAKASHIMAYA CO., LTD.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4502",
+   "name": "TAKEDA PHARMACEUTICAL CO., LTD.",
+   "sector": "Pharmaceuticals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6762",
+   "name": "TDK CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3401",
+   "name": "TEIJIN LTD.",
+   "sector": "Textiles & Apparel",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4543",
+   "name": "TERUMO CORP.",
+   "sector": "Precision Instruments",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8331",
+   "name": "THE CHIBA BANK, LTD.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5631",
+   "name": "THE JAPAN STEEL WORKS, LTD.",
+   "sector": "Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9503",
+   "name": "THE KANSAI ELECTRIC POWER CO., INC.",
+   "sector": "Electric Power",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5101",
+   "name": "THE YOKOHAMA RUBBER CO., LTD.",
+   "sector": "Rubber",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9001",
+   "name": "TOBU RAILWAY CO., LTD.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9602",
+   "name": "TOHO CO., LTD",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5301",
+   "name": "TOKAI CARBON CO., LTD.",
+   "sector": "Glass & Ceramics",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8766",
+   "name": "TOKIO MARINE HOLDINGS, INC.",
+   "sector": "Insurance",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4043",
+   "name": "TOKUYAMA CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9501",
+   "name": "TOKYO ELECTRIC POWER COMPANY HOLDINGS, I",
+   "sector": "Electric Power",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8035",
+   "name": "TOKYO ELECTRON LTD.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9531",
+   "name": "TOKYO GAS CO., LTD.",
+   "sector": "Gas",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8804",
+   "name": "TOKYO TATEMONO CO., LTD.",
+   "sector": "Real Estate",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9005",
+   "name": "TOKYU CORP.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3289",
+   "name": "TOKYU FUDOSAN HOLDINGS CORP.",
+   "sector": "Real Estate",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7911",
+   "name": "TOPPAN HOLDINGS INC.",
+   "sector": "Other Manufacturing",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3402",
+   "name": "TORAY INDUSTRIES, INC.",
+   "sector": "Textiles & Apparel",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4042",
+   "name": "TOSOH CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "5332",
+   "name": "TOTO LTD.",
+   "sector": "Glass & Ceramics",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7203",
+   "name": "TOYOTA MOTOR CORP.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "8015",
+   "name": "TOYOTA TSUSHO CORP.",
+   "sector": "Trading Companies",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4704",
+   "name": "TREND MICRO INC.",
+   "sector": "Services",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "4208",
+   "name": "UBE CORP.",
+   "sector": "Chemicals",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9021",
+   "name": "WEST JAPAN RAILWAY CO.",
+   "sector": "Railway & Bus",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7951",
+   "name": "YAMAHA CORP.",
+   "sector": "Other Manufacturing",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7272",
+   "name": "YAMAHA MOTOR CO., LTD.",
+   "sector": "Automobiles & Auto parts",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "9064",
+   "name": "YAMATO HOLDINGS CO., LTD.",
+   "sector": "Land Transport",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6506",
+   "name": "YASKAWA ELECTRIC CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "6841",
+   "name": "YOKOGAWA ELECTRIC CORP.",
+   "sector": "Electric Machinery",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "7186",
+   "name": "YOKOHAMA FINANCIAL GROUP, INC.",
+   "sector": "Banking",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  },
+  {
+   "ticker": "3092",
+   "name": "ZOZO, INC.",
+   "sector": "Retail",
+   "exchange": "TSE",
+   "index_ids": [
+    "N225"
+   ]
+  }
+ ]
+}

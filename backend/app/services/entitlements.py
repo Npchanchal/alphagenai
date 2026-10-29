@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, Set
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Request
 
-from app.services import orgs
+from app.services import market_scope, orgs
 from app.services.session_auth import extract_bearer, resolve_token
 
 # Role may use these features (still intersected with the org plan).
@@ -108,6 +108,13 @@ def _with_platform_super(feats: list, actor: Dict[str, Any]) -> list:
     return sorted(set(feats) | set(orgs.PLAN_FEATURES["desk"]))
 
 
+def _coverage_for(snap: Dict[str, Any], platform_role: Optional[str]) -> Dict[str, Any]:
+    """The desk's market scope. A platform super operates every market."""
+    if str(platform_role or "") == "super":
+        return market_scope.describe([market_scope.ALL])
+    return snap.get("coverage") or market_scope.describe(market_scope.default_grants(snap.get("plan")))
+
+
 def guest_entitlements() -> Dict[str, Any]:
     return {
         "plan": "guest",
@@ -115,6 +122,7 @@ def guest_entitlements() -> Dict[str, Any]:
         "kind": "guest",
         "org_id": None,
         "features": sorted(GUEST_FEATURES),
+        "coverage": market_scope.describe([]),
         "skus": ["score"],
         "limits": dict(GUEST_LIMITS),
         "labeling_granted": False,
@@ -158,6 +166,7 @@ def resolve_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "user_id": user.get("id"),
         "email": user.get("email"),
         "features": feats,
+        "coverage": _coverage_for(snap, platform_role),
         "skus": _skus_for(plan_feats),
         "limits": {},
         "labeling_granted": bool(snap.get("labeling_granted") or "labeling" in plan_feats),
@@ -194,6 +203,7 @@ def resolve_from_key(key_row: Dict[str, Any]) -> Dict[str, Any]:
         "org_id": str(oid),
         "user_id": None,
         "features": feats,
+        "coverage": _coverage_for(snap, platform_role),
         "skus": _skus_for(plan_feats),
         "limits": {},
         "labeling_granted": "labeling" in plan_feats,
@@ -293,25 +303,28 @@ def _deny_guest(ent: Dict[str, Any]) -> None:
 
 
 def require_feature(feature: str, *, allow_guest: bool = False):
-    def _dep(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+    """Plan ∩ role has the feature, and every company the request names is in the desk's markets."""
+
+    async def _dep(request: Request, ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
         if ent.get("kind") == "guest" and not allow_guest:
             _deny_guest(ent)
         if not has_feature(ent, feature):
             _deny_feature(ent, feature)
+        await market_scope.check_request(ent, request)
         return ent
 
     return _dep
 
 
 def require_any_feature(*features: str):
-    """Pass when the seat has at least one of these features."""
+    """Pass when the seat has at least one of these features, inside the desk's markets."""
 
-    def _dep(ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
+    async def _dep(request: Request, ent: Dict[str, Any] = Depends(resolve_actor)) -> Dict[str, Any]:
         if ent.get("kind") == "guest":
             _deny_guest(ent)
-        if any(has_feature(ent, feature) for feature in features):
-            return ent
-        _deny_feature(ent, " or ".join(features))
+        if not any(has_feature(ent, feature) for feature in features):
+            _deny_feature(ent, " or ".join(features))
+        await market_scope.check_request(ent, request)
         return ent
 
     return _dep

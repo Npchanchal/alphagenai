@@ -1,0 +1,697 @@
+{
+ "market_id": "BR",
+ "source": {
+  "IBOV": "https://sistemaswebb3-listados.b3.com.br/indexProxy/indexCall/GetPortfolioDay/eyJsYW5ndWFnZSI6ICJlbi11cyIsICJwYWdlTnVtYmVyIjogMSwgInBhZ2VTaXplIjogMjAwLCAiaW5kZXgiOiAiSUJPViIsICJzZWdtZW50IjogIjEifQ=="
+ },
+ "as_of": "2026-10-29",
+ "count": 76,
+ "indexes": [
+  "IBOV"
+ ],
+ "rows": [
+  {
+   "ticker": "ALOS3",
+   "name": "ALLOS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ABEV3",
+   "name": "AMBEV S/A",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ASAI3",
+   "name": "ASSAI",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "AURE3",
+   "name": "AUREN",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "AXIA3",
+   "name": "AXIA ENERGIA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "AZZA3",
+   "name": "AZZAS 2154",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "B3SA3",
+   "name": "B3",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BBSE3",
+   "name": "BBSEGURIDADE",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BBDC3",
+   "name": "BRADESCO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BBDC4",
+   "name": "BRADESCO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BRAP4",
+   "name": "BRADESPAR",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BBAS3",
+   "name": "BRASIL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BRAV3",
+   "name": "BRAVA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BPAC11",
+   "name": "BTGP BANCO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CXSE3",
+   "name": "CAIXA SEGURI",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CEAB3",
+   "name": "CEA MODAS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CMIG4",
+   "name": "CEMIG",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "COGN3",
+   "name": "COGNA ON",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CSMG3",
+   "name": "COPASA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CPLE3",
+   "name": "COPEL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CSAN3",
+   "name": "COSAN",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CPFE3",
+   "name": "CPFL ENERGIA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CMIN3",
+   "name": "CSNMINERACAO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CURY3",
+   "name": "CURY S/A",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CYRE3",
+   "name": "CYRELA REALT",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "DIRR3",
+   "name": "DIRECIONAL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "EMBJ3",
+   "name": "EMBRAER",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ENGI11",
+   "name": "ENERGISA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ENEV3",
+   "name": "ENEVA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "EGIE3",
+   "name": "ENGIE BRASIL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "EQTL3",
+   "name": "EQUATORIAL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "FLRY3",
+   "name": "FLEURY",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "GGBR4",
+   "name": "GERDAU",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "GOAU4",
+   "name": "GERDAU MET",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "HAPV3",
+   "name": "HAPVIDA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "HYPE3",
+   "name": "HYPERA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "IGTI11",
+   "name": "IGUATEMI S.A",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ISAE4",
+   "name": "ISA ENERGIA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ITSA4",
+   "name": "ITAUSA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "ITUB4",
+   "name": "ITAUUNIBANCO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "KLBN11",
+   "name": "KLABIN S/A",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "RENT3",
+   "name": "LOCALIZA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "LREN3",
+   "name": "LOJAS RENNER",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "MGLU3",
+   "name": "MAGAZ LUIZA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "POMO4",
+   "name": "MARCOPOLO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "MBRF3",
+   "name": "MARFRIG",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "BEEF3",
+   "name": "MINERVA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "MOTV3",
+   "name": "MOTIVA SA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "MRVE3",
+   "name": "MRV",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "MULT3",
+   "name": "MULTIPLAN",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "NATU3",
+   "name": "NATURA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "PETR3",
+   "name": "PETROBRAS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "PETR4",
+   "name": "PETROBRAS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "PSSA3",
+   "name": "PORTO SEGURO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "PRIO3",
+   "name": "PRIO",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "RADL3",
+   "name": "RAIADROGASIL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "RDOR3",
+   "name": "REDE D OR",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "RAIL3",
+   "name": "RUMO S.A.",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "SBSP3",
+   "name": "SABESP",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "SANB11",
+   "name": "SANTANDER BR",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "CSNA3",
+   "name": "SID NACIONAL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "SMFT3",
+   "name": "SMART FIT",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "SUZB3",
+   "name": "SUZANO S.A.",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "TAEE11",
+   "name": "TAESA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "VIVT3",
+   "name": "TELEF BRASIL",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "TEND3",
+   "name": "TENDA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "TIMS3",
+   "name": "TIM",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "TOTS3",
+   "name": "TOTVS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "UGPA3",
+   "name": "ULTRAPAR",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "USIM5",
+   "name": "USIMINAS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "VALE3",
+   "name": "VALE",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "VAMO3",
+   "name": "VAMOS",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "VBBR3",
+   "name": "VIBRA",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "VIVA3",
+   "name": "VIVARA S.A.",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "WEGE3",
+   "name": "WEG",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  },
+  {
+   "ticker": "YDUQ3",
+   "name": "YDUQS PART",
+   "sector": "Equity",
+   "exchange": "B3",
+   "index_ids": [
+    "IBOV"
+   ]
+  }
+ ]
+}

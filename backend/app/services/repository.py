@@ -232,7 +232,7 @@ def list_published_companies() -> List[CompanySummary]:
     """Companies that carry a published GCI. The reading room searches this list."""
     from app.data.gci_score_cache import load_cache
     from app.data.india_listings import find_listing
-    from app.data.us_listings import find_us_listing
+    from app.data.us_listings import find_world_listing
 
     seed = {c["id"]: c for c in list_companies()}
     rows: List[CompanySummary] = []
@@ -240,7 +240,7 @@ def list_published_companies() -> List[CompanySummary]:
         if not isinstance(cached, dict) or cached.get("gci_score") is None:
             continue
         seeded = seed.get(cid) or {}
-        listing = find_listing(cid) or find_us_listing(cid) or {}
+        listing = find_listing(cid) or find_world_listing(cid) or {}
         ticker = seeded.get("ticker") or listing.get("ticker") or cached.get("ticker") or cid
         rows.append(
             CompanySummary(
@@ -258,6 +258,7 @@ def list_published_companies() -> List[CompanySummary]:
                 coverage_status=cached.get("coverage_status"),
                 market_id=(listing.get("market_id") or seeded.get("market_id") or "IN"),
                 index_ids=listing.get("index_ids"),
+                exchange=listing.get("exchange"),
             )
         )
     rows.sort(key=lambda row: (-(row.gci_score or 0), row.ticker))
@@ -286,7 +287,7 @@ def list_company_summaries(
     if not mid and not iid:
         from app.data.gci_score_cache import load_cache
         from app.data.india_listings import find_listing
-        from app.data.us_listings import find_us_listing
+        from app.data.us_listings import find_world_listing
 
         cache_scores = load_cache().get("scores") or {}
         stats = _sector_stats()
@@ -341,7 +342,8 @@ def list_company_summaries(
                     gci_change_pct=ch_pct,
                     gci_change_horizon=ch_h,
                     market_id=c.get("market_id") or "IN",
-                    index_ids=(find_listing(c["id"]) or find_us_listing(c["id"]) or {}).get("index_ids"),
+                    index_ids=(find_listing(c["id"]) or find_world_listing(c["id"]) or {}).get("index_ids"),
+                    exchange=(find_listing(c["id"]) or find_world_listing(c["id"]) or {}).get("exchange"),
                     confidence_tier=meta["confidence_tier"],
                     closed_periods=meta["closed_periods"],
                     metrics_scored=meta["metrics_scored"],
@@ -433,6 +435,7 @@ def list_company_summaries(
                         yoy_pct=(cached or {}).get("yoy_pct"),
                         market_id=s.get("market_id", "IN"),
                         index_ids=s.get("index_ids"),
+                        exchange=s.get("exchange"),
                         confidence_tier=meta["confidence_tier"],
                         closed_periods=meta["closed_periods"],
                         metrics_scored=meta["metrics_scored"],
@@ -471,6 +474,7 @@ def list_company_summaries(
                 yoy_pct=(cached or {}).get("yoy_pct"),
                 market_id=s.get("market_id"),
                 index_ids=s.get("index_ids"),
+                exchange=s.get("exchange"),
                 confidence_tier=(cached or {}).get("confidence_tier"),
                 closed_periods=int((cached or {}).get("closed_periods") or 0),
                 metrics_scored=int((cached or {}).get("metrics_scored") or 0),
@@ -496,9 +500,9 @@ def get_company_gci(company_id: str) -> CompanyGCIDetail:
         from app.data.india_listings import find_listing
         from app.services.provisional_gci import QUALITY
 
-        from app.data.us_listings import find_us_listing
+        from app.data.us_listings import find_world_listing
 
-        listing = find_listing(company_id) or find_us_listing(company_id)
+        listing = find_listing(company_id) or find_world_listing(company_id)
         if listing is None:
             raise HTTPException(status_code=404, detail="Company not found")
 

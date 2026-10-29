@@ -1,0 +1,283 @@
+{
+ "market_id": "SG",
+ "source": {
+  "STI": "https://en.wikipedia.org/wiki/Straits_Times_Index"
+ },
+ "as_of": "2026-10-29",
+ "count": 30,
+ "indexes": [
+  "STI"
+ ],
+ "rows": [
+  {
+   "ticker": "A17U",
+   "name": "CapitaLand Ascendas REIT",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "C38U",
+   "name": "CapitaLand Integrated Commercial Trust",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "9CI",
+   "name": "CapitaLand Investment",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "C09",
+   "name": "City Developments Limited",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "D05",
+   "name": "DBS Group Holdings",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "D01",
+   "name": "DFI Retail Group Holdings Limited",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "J69U",
+   "name": "Frasers Centrepoint Trust",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "BUOU",
+   "name": "Frasers Logistics & Commercial Trust",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "G13",
+   "name": "Genting Singapore PLC",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "H78",
+   "name": "Hongkong Land Holdings",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "J36",
+   "name": "Jardine Matheson Holdings Limited",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "BN4",
+   "name": "Keppel Corporation",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "AJBU",
+   "name": "Keppel DC Reit",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "ME8U",
+   "name": "Mapletree Industrial Trust",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "M44U",
+   "name": "Mapletree Logistics Trust",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "N2IU",
+   "name": "Mapletree Pan Asia Commercial Trust",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "O39",
+   "name": "OCBC Bank",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "S58",
+   "name": "SATS",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "5E2",
+   "name": "Seatrium Limited",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "U96",
+   "name": "Sembcorp Industries",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "C6L",
+   "name": "Singapore Airlines",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "S68",
+   "name": "Singapore Exchange",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "S63",
+   "name": "Singapore Technologies Engineering",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "Z74",
+   "name": "Singtel",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "Y92",
+   "name": "Thai Beverages",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "U11",
+   "name": "United Overseas Bank",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "U14",
+   "name": "UOL Group",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "V03",
+   "name": "Venture Corporation",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "F34",
+   "name": "Wilmar International",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  },
+  {
+   "ticker": "BS6",
+   "name": "Yangzijiang Shipbuilding Holdings",
+   "sector": "Equity",
+   "exchange": "SGX",
+   "index_ids": [
+    "STI"
+   ]
+  }
+ ]
+}

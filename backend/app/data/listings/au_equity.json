@@ -1,0 +1,1813 @@
+{
+ "market_id": "AU",
+ "source": {
+  "ASX200": "https://en.wikipedia.org/wiki/S%26P/ASX_200"
+ },
+ "as_of": "2026-10-29",
+ "count": 200,
+ "indexes": [
+  "ASX200"
+ ],
+ "rows": [
+  {
+   "ticker": "4DX",
+   "name": "4DMedical",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "A2M",
+   "name": "a2 Milk Company",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ASK",
+   "name": "Abacus Storage King",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AGL",
+   "name": "AGL Energy",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AAI",
+   "name": "Alcoa",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ALK",
+   "name": "Alkane Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ALQ",
+   "name": "ALS",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AMC",
+   "name": "Amcor",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AMP",
+   "name": "AMP",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ALD",
+   "name": "Ampol",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ANN",
+   "name": "Ansell",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "APA",
+   "name": "APA Group",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ARB",
+   "name": "ARB Corporation",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ARG",
+   "name": "Argo Investments",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ALL",
+   "name": "Aristocrat Leisure",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ASX",
+   "name": "ASX",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ALX",
+   "name": "Atlas Arteria",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AUB",
+   "name": "AUB Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AIA",
+   "name": "Auckland International Airport Limited",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AZJ",
+   "name": "Aurizon",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ASB",
+   "name": "Austal",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ANZ",
+   "name": "Australia & New Zealand Banking Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "AFI",
+   "name": "Australian Foundation Investment Company",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BOQ",
+   "name": "Bank of Queensland",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BPT",
+   "name": "Beach Energy",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BGA",
+   "name": "Bega Cheese",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BGL",
+   "name": "Bellevue Gold",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BEN",
+   "name": "Bendigo & Adelaide Bank",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BHP",
+   "name": "BHP",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "XYX",
+   "name": "Block, Inc.",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BSL",
+   "name": "BlueScope",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BXB",
+   "name": "Brambles",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BRG",
+   "name": "Breville Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BFL",
+   "name": "BSP Financial Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "BWP",
+   "name": "BWP Trust",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CMM",
+   "name": "Capricorn Metals",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CSC",
+   "name": "Capstone Copper",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CAR",
+   "name": "CAR Group",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CYL",
+   "name": "Catalyst Metals",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CIP",
+   "name": "Centuria Industrial REIT",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CGF",
+   "name": "Challenger",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CIA",
+   "name": "Champion Iron",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CHC",
+   "name": "Charter Hall",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CLW",
+   "name": "Charter Hall Long WALE REIT",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CQR",
+   "name": "Charter Hall Retail REIT",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CNU",
+   "name": "Chorus",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CWY",
+   "name": "Cleanaway",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "COH",
+   "name": "Cochlear",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CDA",
+   "name": "Codan",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "COL",
+   "name": "Coles Group",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CBA",
+   "name": "Commonwealth Bank",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CPU",
+   "name": "Computershare",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CEN",
+   "name": "Contact Energy",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CTD",
+   "name": "Corporate Travel Management",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "CSL",
+   "name": "CSL",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DBI",
+   "name": "Dalrymple Bay Infrastructure",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DYL",
+   "name": "Deep Yellow",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DRR",
+   "name": "Deterra Royalties",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DXS",
+   "name": "Dexus",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DOW",
+   "name": "Downer Group",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DRO",
+   "name": "Droneshield",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "DNL",
+   "name": "Dyno Nobel",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "APE",
+   "name": "Eagers Automotive",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "EBO",
+   "name": "EBOS Group",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "EOS",
+   "name": "Electro Optic Systems Holdings",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "EMR",
+   "name": "Emerald Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "EDV",
+   "name": "Endeavour Group",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "EVN",
+   "name": "Evolution Mining",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "EVT",
+   "name": "EVT",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "FPH",
+   "name": "Fisher & Paykel Healthcare",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "FBU",
+   "name": "Fletcher Building",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "FLT",
+   "name": "Flight Centre Travel Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "FMG",
+   "name": "Fortescue",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "FRW",
+   "name": "Freightways Group",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GDG",
+   "name": "Generation Development Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GNE",
+   "name": "Genesis Energy",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GMD",
+   "name": "Genesis Minerals",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GMG",
+   "name": "Goodman Group",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GPT",
+   "name": "GPT Group",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GQG",
+   "name": "GQG Partners",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "GGP",
+   "name": "Greatland Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "HVN",
+   "name": "Harvey Norman",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "HDN",
+   "name": "HomeCo Daily Needs REIT",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "HUB",
+   "name": "HUB24",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "IGO",
+   "name": "IGO",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ILU",
+   "name": "Iluka Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "IMD",
+   "name": "IMDEX",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "IFT",
+   "name": "Infratil",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "IFL",
+   "name": "Insignia Financial",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "IAG",
+   "name": "Insurance Australia Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "JHX",
+   "name": "James Hardie",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "JBH",
+   "name": "JB Hi-Fi",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "L1G",
+   "name": "L1 Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "LSF",
+   "name": "L1 Long Short Fund",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "LLC",
+   "name": "Lendlease",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "360",
+   "name": "Life360",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "LNW",
+   "name": "Light & Wonder",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "LTR",
+   "name": "Liontown Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "LOV",
+   "name": "Lovisa",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "LYC",
+   "name": "Lynas Rare Earths",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MQG",
+   "name": "Macquarie Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MFG",
+   "name": "Magellan Financial Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MPL",
+   "name": "Medibank",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MCY",
+   "name": "Mercury NZ",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MEZ",
+   "name": "Meridian Energy",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MSB",
+   "name": "Mesoblast",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MTS",
+   "name": "Metcash",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MXT",
+   "name": "Metrics Master Income Trust",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MFF",
+   "name": "MFF Capital Investments",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MIN",
+   "name": "Mineral Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MGR",
+   "name": "Mirvac",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "MND",
+   "name": "Monadelphous Group",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NAB",
+   "name": "National Australia Bank",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NSR",
+   "name": "National Storage",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NWL",
+   "name": "Netwealth Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NHC",
+   "name": "New Hope",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NEM",
+   "name": "Newmont",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NWS",
+   "name": "News Corp Class B",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NXG",
+   "name": "Nexgen Energy",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NXT",
+   "name": "NextDC",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NHF",
+   "name": "Nib",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NIC",
+   "name": "Nickel Industries",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NST",
+   "name": "Northern Star Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "NWH",
+   "name": "NRW Holdings",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "OBM",
+   "name": "Ora Banda Mining",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ORI",
+   "name": "Orica",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ORG",
+   "name": "Origin Energy",
+   "sector": "Utilities",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ORA",
+   "name": "Orora",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PDN",
+   "name": "Paladin Energy",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PRN",
+   "name": "Perenti",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PPT",
+   "name": "Perpetual",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PRU",
+   "name": "Perseus Mining",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PXA",
+   "name": "Pexa Group",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PNI",
+   "name": "Pinnacle Investment Management",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PLS",
+   "name": "PLS Group",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PDI",
+   "name": "Predictive Discovery",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PMV",
+   "name": "Premier Investments",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "PME",
+   "name": "Pro Medicus",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "QAN",
+   "name": "Qantas",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "QBE",
+   "name": "QBE Insurance",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "QUB",
+   "name": "Qube Holdings",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RMS",
+   "name": "Ramelius Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RHC",
+   "name": "Ramsay Health Care",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "REA",
+   "name": "REA Group",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RDX",
+   "name": "Redox",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "REH",
+   "name": "Reece Group",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RGN",
+   "name": "Region Group",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "REG",
+   "name": "Regis Healthcare",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RRL",
+   "name": "Regis Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RWC",
+   "name": "Reliance Worldwide Corporation",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RMD",
+   "name": "ResMed",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RSG",
+   "name": "Resolute Mining",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RIO",
+   "name": "Rio Tinto",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "RYM",
+   "name": "Ryman Healthcare",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SFR",
+   "name": "Sandfire Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "STO",
+   "name": "Santos",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SCG",
+   "name": "Scentre Group",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SEK",
+   "name": "Seek",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SGH",
+   "name": "SGH",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SIG",
+   "name": "Sigma Healthcare",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SGM",
+   "name": "Sims Metal",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SHL",
+   "name": "Sonic Healthcare",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SOL",
+   "name": "Soul Patts",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "S32",
+   "name": "South32",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SPK",
+   "name": "Spark New Zealand",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SMR",
+   "name": "Stanmore Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SDF",
+   "name": "Steadfast Group",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SGP",
+   "name": "Stockland",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SNZ",
+   "name": "Summerset Group Holdings",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SUN",
+   "name": "Suncorp",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "SUL",
+   "name": "Super Retail Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TAH",
+   "name": "Tabcorp",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TNE",
+   "name": "TechnologyOne",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TLX",
+   "name": "Telix Pharmaceuticals",
+   "sector": "Healthcare",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TLS",
+   "name": "Telstra",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TLC",
+   "name": "The Lottery Corporation",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TPG",
+   "name": "TPG Telecom",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TCL",
+   "name": "Transurban",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TWE",
+   "name": "Treasury Wine Estates",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "TUA",
+   "name": "Tuas",
+   "sector": "Communication Services",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "VAU",
+   "name": "Vault Minerals",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "VNT",
+   "name": "Ventia Services Group",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "VCX",
+   "name": "Vicinity Centres",
+   "sector": "Real Estate",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "VGN",
+   "name": "Virgin Australia Holdings",
+   "sector": "Industrials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "VEA",
+   "name": "Viva Energy",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WAM",
+   "name": "WAM Capital",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WLE",
+   "name": "WAM Leaders",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WES",
+   "name": "Wesfarmers",
+   "sector": "Consumer Discretionary",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WAF",
+   "name": "West African Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WGX",
+   "name": "Westgold Resources",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WBC",
+   "name": "Westpac",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WHC",
+   "name": "Whitehaven Coal",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WTC",
+   "name": "Wisetech Global",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WDS",
+   "name": "Woodside Energy Group",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WOW",
+   "name": "Woolworths Group",
+   "sector": "Consumer Staples",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "WOR",
+   "name": "Worley",
+   "sector": "Energy",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "XRO",
+   "name": "Xero",
+   "sector": "Information Technology",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "YAL",
+   "name": "Yancoal Australia",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ZIM",
+   "name": "Zimplats Holdings",
+   "sector": "Materials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  },
+  {
+   "ticker": "ZIP",
+   "name": "Zip",
+   "sector": "Financials",
+   "exchange": "ASX",
+   "index_ids": [
+    "ASX200"
+   ]
+  }
+ ]
+}

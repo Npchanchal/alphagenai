@@ -14,7 +14,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   tracker: {
     id: "tracker",
     term: "GCI Screener",
-    tip: "Screen Indian listings by GCI, confidence tier, and delivery record. Tick Scored only to hide names without a published score. A change in GCI appears only when the series can be cited. Open a company for the evidence.",
+    tip: "Screen listed companies by GCI, confidence tier, and delivery record. Tick Scored only to hide names without a published score. A change in GCI appears only when the series can be cited. Open a company for the evidence.",
   },
   desk_sku: {
     id: "desk_sku",
@@ -234,7 +234,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
   market: {
     id: "market",
     term: "Market",
-    tip: "Exchange region. India is the scored market. Other lists are constituents, not a Guidance Credibility Index.",
+    tip: "Exchange region, chosen once for the whole site. India has the deepest scored record. Other markets list the published index membership; a company there shows a GCI only after both quotes are checked in its filings.",
   },
   index: {
     id: "index",

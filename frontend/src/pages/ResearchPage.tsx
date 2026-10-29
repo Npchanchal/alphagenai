@@ -3,6 +3,7 @@ import { Link, Navigate, useSearchParams } from "react-router-dom";
 import ChangeChip, { ChangeTriple } from "../components/ChangeChip";
 import { LineChart, Sparkline } from "../components/Charts";
 import CompanyPicker from "../components/CompanyPicker";
+import PlanScopeNotice from "../components/PlanScopeNotice";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
 import PublishedCountLine from "../components/PublishedCountLine";
@@ -35,6 +36,7 @@ import {
 import { formatCompanyScore, publicDocTitle, scoreClass } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
+import { useMarketChoice } from "../lib/markets";
 import { isPlatformSuper } from "../lib/platformRole";
 import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
@@ -86,7 +88,8 @@ function loadSaved(fromPrefs?: string[]): string[] {
 
 export default function ResearchPage() {
   const { preferences, token, updatePreferences, user } = useAuth();
-  const { has, loading: entitlementsLoading, entitlements, refresh } = useEntitlements();
+  const { has, loading: entitlementsLoading, entitlements, refresh, inPlan } = useEntitlements();
+  const [outsidePlan, setOutsidePlan] = useState(0);
   const { t } = useI18n();
   const readingRoom =
     !entitlementsLoading && !has("research") && !isPlatformSuper(user);
@@ -139,19 +142,22 @@ export default function ResearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const market = preferences?.default_market ?? "IN";
+  const { market, markets } = useMarketChoice();
+  const marketName = markets.find((m) => m.id === market)?.name || market;
   const index = preferences?.default_index ?? "SENSEX";
 
   useEffect(() => {
     if (readingRoom) return;
     fetchCompanies({ market, index, limit: 200 })
       .then((c) => {
-        setCompanies(c);
-        if (companyId && !c.find((r) => r.id === companyId) && c[0]) setCompanyId(c[0].id);
+        const rows = c.filter(inPlan);
+        setOutsidePlan(c.length - rows.length);
+        setCompanies(rows);
+        if (companyId && !rows.find((r) => r.id === companyId)) setCompanyId(rows[0]?.id ?? "");
       })
       .catch((e: Error) => setError(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, index, readingRoom]);
+  }, [market, index, readingRoom, inPlan]);
 
   useEffect(() => {
     if (!readingRoom) return;
@@ -311,7 +317,11 @@ export default function ResearchPage() {
       ) : (
         <p className="muted published-count" data-testid="research-list-scope">
           {t("research.listScope", { index })}
+          {outsidePlan > 0 && companies.length > 0 && <> {t("scope.hiddenCount", { n: outsidePlan })}</>}
         </p>
+      )}
+      {!readingRoom && outsidePlan > 0 && companies.length === 0 && (
+        <PlanScopeNotice subject={marketName} />
       )}
 
       <div className="panel research-toolbar research-sticky">

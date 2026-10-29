@@ -32,6 +32,26 @@ def test_markets_list_and_indexes():
     assert us["gci_deep"] is False
 
 
+def test_only_listed_markets_and_indexes_are_pickable():
+    body = client.get("/api/markets").json()
+    listed = {m["id"] for m in body["markets"] if m["listed"]}
+    assert set(body["listed_markets"]) == listed
+    # Every market here has a headline-index listing file; none is constituent pads.
+    assert listed == {"IN", "US", "GB", "JP", "HK", "CN", "EU", "SG", "AU", "KR", "BR", "CA"}
+
+    india = client.get("/api/markets/IN/indexes").json()["indexes"]
+    assert all(ix["listed"] for ix in india)
+
+    def index_flags(mid):
+        return {ix["id"]: ix["listed"] for ix in client.get(f"/api/markets/{mid}/indexes").json()["indexes"]}
+
+    # Full membership on file is listed; indexes that hold only hand-tagged anchors are not.
+    assert index_flags("US") == {"SPX": True, "DJI": False, "NDX": False}
+    assert index_flags("JP") == {"N225": True, "TOPIX": False}
+    assert index_flags("CN") == {"CSI300": True, "SSEC": False}
+    assert index_flags("EU") == {"STOXX50": True, "DAX": True, "CAC40": True}
+
+
 def test_index_constituents_and_companies_filter():
     sensex = client.get("/api/indexes/SENSEX/constituents").json()
     assert sensex["count"] == 30
@@ -53,12 +73,18 @@ def test_index_constituents_and_companies_filter():
     full = client.get("/api/companies/count?market=US&index=SPX").json()
     assert full["count"] == spx["count"]
 
-    # US: the S&P 500 listing master (SEC CIKs). Other markets: deterministic top-1000 scaffold.
+    # US: the S&P 500 listing master (SEC CIKs). Other markets: their headline index lists.
     us = client.get("/api/companies/count?market=US").json()["count"]
     assert us == spx["count"]
-    for mid in ["GB", "JP", "HK", "CN", "EU", "SG", "AU", "KR", "BR", "CA"]:
-        n = client.get(f"/api/companies/count?market={mid}").json()["count"]
-        assert n == 1000, mid
+    for mid, ix, least in [
+        ("GB", "FTSE100", 95), ("JP", "N225", 220), ("HK", "HSI", 70), ("CN", "CSI300", 290),
+        ("EU", "STOXX50", 48), ("SG", "STI", 28), ("AU", "ASX200", 190), ("KR", "KOSPI200", 190),
+        ("BR", "IBOV", 60), ("CA", "TSX60", 58),
+    ]:
+        n = client.get(f"/api/companies/count?market={mid}&index={ix}").json()["count"]
+        assert n >= least, mid
+        rows = client.get(f"/api/companies?market={mid}&index={ix}&limit=20").json()
+        assert rows and all(r["gci_score"] is None and "Constituent" not in r["name"] for r in rows), mid
 
     # India: full NSE + BSE equity masters (not the scaffold cap)
     in_all = client.get("/api/companies/count?market=IN").json()["count"]

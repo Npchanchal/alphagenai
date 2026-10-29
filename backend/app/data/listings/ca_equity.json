@@ -1,0 +1,553 @@
+{
+ "market_id": "CA",
+ "source": {
+  "TSX60": "https://en.wikipedia.org/wiki/S%26P/TSX_60"
+ },
+ "as_of": "2026-10-29",
+ "count": 60,
+ "indexes": [
+  "TSX60"
+ ],
+ "rows": [
+  {
+   "ticker": "AEM",
+   "name": "Agnico Eagle Mines Limited",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "ATD",
+   "name": "Alimentation Couche-Tard Inc.",
+   "sector": "Consumer Cyclical",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "BMO",
+   "name": "Bank of Montreal",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "BNS",
+   "name": "Bank of Nova Scotia",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "ABX",
+   "name": "Barrick Mining Corporation",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "BCE",
+   "name": "BCE Inc.",
+   "sector": "Communication Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "BAM",
+   "name": "Brookfield Asset Management Ltd.",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "BN",
+   "name": "Brookfield Corporation",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "BIP.UN",
+   "name": "Brookfield Infrastructure Partners L.P.",
+   "sector": "Utilities",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CAE",
+   "name": "CAE Inc.",
+   "sector": "Industrials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CCO",
+   "name": "Cameco Corporation",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CM",
+   "name": "Canadian Imperial Bank of Commerce",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CNR",
+   "name": "Canadian National Railway Company",
+   "sector": "Industrials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CNQ",
+   "name": "Canadian Natural Resources Limited",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CP",
+   "name": "Canadian Pacific Kansas City Limited",
+   "sector": "Industrials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CTC.A",
+   "name": "Canadian Tire Corporation Limited",
+   "sector": "Consumer Cyclical",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CCL.B",
+   "name": "CCL Industries Inc.",
+   "sector": "Consumer Cyclical",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CLS",
+   "name": "Celestica Inc.",
+   "sector": "Information Technology",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CVE",
+   "name": "Cenovus Energy Inc.",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "GIB.A",
+   "name": "CGI Inc.",
+   "sector": "Information Technology",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "CSU",
+   "name": "Constellation Software Inc.",
+   "sector": "Information Technology",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "DOL",
+   "name": "Dollarama Inc.",
+   "sector": "Consumer Staples",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "EMA",
+   "name": "Emera Incorporated",
+   "sector": "Utilities",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "ENB",
+   "name": "Enbridge Inc.",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "FFH",
+   "name": "Fairfax Financial Holdings Limited",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "FM",
+   "name": "First Quantum Minerals Ltd.",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "FSV",
+   "name": "FirstService Corporation",
+   "sector": "Real Estate",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "FTS",
+   "name": "Fortis Inc.",
+   "sector": "Utilities",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "FNV",
+   "name": "Franco-Nevada Corporation",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "WN",
+   "name": "George Weston Limited",
+   "sector": "Consumer Staples",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "GIL",
+   "name": "Gildan Activewear Inc.",
+   "sector": "Consumer Cyclical",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "H",
+   "name": "Hydro One Limited",
+   "sector": "Utilities",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "IMO",
+   "name": "Imperial Oil Limited",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "IFC",
+   "name": "Intact Financial Corporation",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "K",
+   "name": "Kinross Gold Corporation",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "L",
+   "name": "Loblaw Companies Limited",
+   "sector": "Consumer Staples",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "MG",
+   "name": "Magna International Inc.",
+   "sector": "Consumer Cyclical",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "MFC",
+   "name": "Manulife Financial Corporation",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "MRU",
+   "name": "Metro Inc.",
+   "sector": "Consumer Staples",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "NA",
+   "name": "National Bank of Canada",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "NTR",
+   "name": "Nutrien Ltd.",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "OTEX",
+   "name": "Open Text Corporation",
+   "sector": "Information Technology",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "PPL",
+   "name": "Pembina Pipeline Corporation",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "POW",
+   "name": "Power Corporation of Canada",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "QSR",
+   "name": "Restaurant Brands International Inc.",
+   "sector": "Consumer Cyclical",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "RCI.B",
+   "name": "Rogers Communications Inc.",
+   "sector": "Communication Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "RY",
+   "name": "Royal Bank of Canada",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "SAP",
+   "name": "Saputo Inc.",
+   "sector": "Consumer Staples",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "SHOP",
+   "name": "Shopify Inc.",
+   "sector": "Information Technology",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "SLF",
+   "name": "Sun Life Financial Inc.",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "SU",
+   "name": "Suncor Energy Inc.",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "TRP",
+   "name": "TC Energy Corporation",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "TECK.B",
+   "name": "Teck Resources Limited",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "T",
+   "name": "Telus Corporation",
+   "sector": "Communication Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "TRI",
+   "name": "Thomson Reuters Corporation",
+   "sector": "Industrials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "TD",
+   "name": "Toronto-Dominion Bank",
+   "sector": "Financial Services",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "TOU",
+   "name": "Tourmaline Oil Corp.",
+   "sector": "Energy",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "WCN",
+   "name": "Waste Connections Inc.",
+   "sector": "Industrials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "WPM",
+   "name": "Wheaton Precious Metals Corp.",
+   "sector": "Basic Materials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  },
+  {
+   "ticker": "WSP",
+   "name": "WSP Global Inc.",
+   "sector": "Industrials",
+   "exchange": "TSX",
+   "index_ids": [
+    "TSX60"
+   ]
+  }
+ ]
+}

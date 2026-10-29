@@ -9,6 +9,7 @@ import {
   LineChart,
 } from "../components/Charts";
 import CompanyPicker from "../components/CompanyPicker";
+import PlanScopeNotice from "../components/PlanScopeNotice";
 import DeskConsole from "../components/DeskConsole";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
@@ -80,6 +81,7 @@ import { deskTabVisible } from "../lib/deskTabs";
 import { formatScore, formatCompanyScore, metricDisplayName } from "../lib/score";
 import { tipText } from "../lib/glossary";
 import { useAuth } from "../lib/auth";
+import { useMarketChoice } from "../lib/markets";
 import { useEntitlements } from "../lib/entitlements";
 import { useI18n } from "../i18n";
 
@@ -127,7 +129,7 @@ type StatementDecision = {
 
 export default function DeskPage() {
   const { preferences, user } = useAuth();
-  const { has } = useEntitlements();
+  const { has, inPlan } = useEntitlements();
   const { t, lang: uiLang } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -154,7 +156,9 @@ export default function DeskPage() {
     [setSearchParams]
   );
   const dismissToast = useCallback(() => setMsg(null), []);
-  const [companies, setCompanies] = useState<CompanySummary[]>([]);
+  const [listed, setCompanies] = useState<CompanySummary[]>([]);
+  const companies = useMemo(() => listed.filter(inPlan), [listed, inPlan]);
+  const outsidePlan = listed.length - companies.length;
   const [companyId, setCompanyId] = useState("infy");
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
   const [history, setHistory] = useState<
@@ -237,7 +241,7 @@ export default function DeskPage() {
   } | null>(null);
   const [labelNiftyOnly, setLabelNiftyOnly] = useState(false);
 
-  const market = preferences?.default_market ?? "IN";
+  const { market, markets } = useMarketChoice();
   const index = preferences?.default_index ?? "SENSEX";
 
   const selected = useMemo(
@@ -246,13 +250,13 @@ export default function DeskPage() {
   );
 
   useEffect(() => {
+    if (companies[0] && !companies.find((r) => r.id === companyId)) setCompanyId(companies[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companies]);
+
+  useEffect(() => {
     fetchCompanies({ market, index, limit: 200 })
-      .then((rows) => {
-        setCompanies(rows);
-        if (!rows.find((r) => r.id === companyId) && rows[0]) {
-          setCompanyId(rows[0].id);
-        }
-      })
+      .then((rows) => setCompanies(rows))
       .catch((e: Error) => setError(e.message));
     fetchOrg("demo")
       .then(setOrg)
@@ -479,6 +483,14 @@ export default function DeskPage() {
         {t("desk.title")} <InfoTip termId="desk_sku" />
       </h1>
       <p className="muted lede">{t("desk.lede")}</p>
+      {outsidePlan > 0 &&
+        (companies.length === 0 ? (
+          <PlanScopeNotice subject={markets.find((m) => m.id === market)?.name || market} />
+        ) : (
+          <p className="muted" data-testid="desk-outside-plan">
+            {t("scope.hiddenCount", { n: outsidePlan })}
+          </p>
+        ))}
 
       <div className="desk-sticky">
         {picker}

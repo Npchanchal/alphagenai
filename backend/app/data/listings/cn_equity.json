@@ -1,0 +1,2713 @@
+{
+ "market_id": "CN",
+ "source": {
+  "CSI300": "https://en.wikipedia.org/wiki/CSI_300_Index"
+ },
+ "as_of": "2026-10-29",
+ "count": 300,
+ "indexes": [
+  "CSI300"
+ ],
+ "rows": [
+  {
+   "ticker": "601360",
+   "name": "360 Security Technology",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002555",
+   "name": "37 Interactive Entertainment Network Technology Group",
+   "sector": "Communication",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688012",
+   "name": "Advanced Micro-Fabrication Equipment",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601288",
+   "name": "Agricultural Bank of China",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300015",
+   "name": "Aier Eye Hospital",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601111",
+   "name": "Air China",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601600",
+   "name": "Aluminum Corporation of China Limited",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600585",
+   "name": "Anhui Conch Cement",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000596",
+   "name": "Anhui Gujing Distillery",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002821",
+   "name": "Asymchem Laboratories (Tianjin)",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002938",
+   "name": "Avary Holding (Shenzhen) Co",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000768",
+   "name": "AVIC Aircraft",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600893",
+   "name": "AVIC Aviation Engine Corporation",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002179",
+   "name": "AVIC Jonhon Optronic Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600760",
+   "name": "AVIC SHENYANG AIRCRAFT COMPANY",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601169",
+   "name": "Bank of Beijing",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601838",
+   "name": "BANK OF CHENGDU",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601988",
+   "name": "Bank of China",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601328",
+   "name": "Bank of Communications",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600926",
+   "name": "Bank of Hangzhou",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600919",
+   "name": "Bank of Jiangsu",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601009",
+   "name": "Bank of Nanjing",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002142",
+   "name": "Bank of Ningbo",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601229",
+   "name": "Bank of Shanghai",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600019",
+   "name": "Baoshan Iron and Steel",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600845",
+   "name": "Baosight Software",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688111",
+   "name": "Beijing Kingsoft Office Software",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000786",
+   "name": "Beijing New Building Materials Public",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002271",
+   "name": "Beijing Oriental Yuhong Waterproof Technology",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600085",
+   "name": "Beijing Tongrentang",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603392",
+   "name": "BEIJING WANTAI BIOLOGICAL PHARMACY ENTERPRISE",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601816",
+   "name": "Beijing-Shanghai High Speed Railway",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688363",
+   "name": "Bloomage Biotechnology Corporation",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000725",
+   "name": "BOE Technology Group",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002594",
+   "name": "BYD",
+   "sector": "Consumer Discretionary",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688256",
+   "name": "Cambricon Technologies",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688065",
+   "name": "Cathay Biotech",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300750",
+   "name": "CATL",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "003816",
+   "name": "CGN Power",
+   "sector": "Utilities",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000661",
+   "name": "Chang Chun High and New Technology Industry (Group)",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601799",
+   "name": "Changzhou Xingyu Automotive Lighting Systems",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300408",
+   "name": "Chaozhou Three-Circle",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600372",
+   "name": "China Avionics Systems",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601998",
+   "name": "China Citic Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601898",
+   "name": "China Coal Energy",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601800",
+   "name": "China Communications Construction Company",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601939",
+   "name": "China Construction Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601919",
+   "name": "China Cosco Holdings",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600150",
+   "name": "China CSSC Holdings",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600606",
+   "name": "China Development Holdings",
+   "sector": "Real Estate",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600115",
+   "name": "China Eastern Airlines Corp",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601868",
+   "name": "China Energy Engineering Corporation",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601818",
+   "name": "China Everbright Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601881",
+   "name": "China Galaxy Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601995",
+   "name": "China International Capital Corporation",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601888",
+   "name": "China International Travel Service",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600176",
+   "name": "CHINA JUSHI",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601628",
+   "name": "China Life Insurance Company",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "001289",
+   "name": "China Longyuan Power Group Limited",
+   "sector": "Utilities",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600036",
+   "name": "China Merchants Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601872",
+   "name": "China Merchants Energy Shipping",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600999",
+   "name": "China Merchants Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "001979",
+   "name": "China Merchants Shekou Industrial Zone Holdings",
+   "sector": "Real Estate",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600016",
+   "name": "China Minsheng Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600941",
+   "name": "China Mobile",
+   "sector": "Communication",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603993",
+   "name": "China Molybdenum",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601117",
+   "name": "China National Chemical Engineering",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601985",
+   "name": "China National Nuclear Power",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600111",
+   "name": "China Northern Rare Earth Group",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601808",
+   "name": "China Oilfield Services",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601601",
+   "name": "China Pacific Insurance",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600028",
+   "name": "China Petroleum & Chemical Corporation",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601186",
+   "name": "China Railway Construction",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601390",
+   "name": "China Railway Group Limited",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688396",
+   "name": "China Resources Microelectronics",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000999",
+   "name": "China Resources Sanjiu Medical & Pharmaceutical",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601698",
+   "name": "China Satellite Communications",
+   "sector": "Communication",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601066",
+   "name": "China Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601088",
+   "name": "China Shenhua Energy",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601989",
+   "name": "China Shipbuilding Industry Company",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600029",
+   "name": "China Southern Airlines",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601668",
+   "name": "China State Construction Engineering",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601728",
+   "name": "China Telecom Corporation",
+   "sector": "Communication",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600905",
+   "name": "China Three Gorges Renewables (Group)",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600050",
+   "name": "China United Network Communications",
+   "sector": "Communication",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000002",
+   "name": "China Vanke",
+   "sector": "Real Estate",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600900",
+   "name": "China Yangtze Power",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000733",
+   "name": "China Zhenhua (Group) Science & Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601916",
+   "name": "China Zheshang Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600132",
+   "name": "Chongqing Brewery",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000625",
+   "name": "Chongqing Changan Automobile",
+   "sector": "Consumer Discretionary",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300122",
+   "name": "Chongqing Zhifei Biological Products",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601059",
+   "name": "CINDA SECURITIES",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000708",
+   "name": "CITIC Pacific Special Steel Group",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600030",
+   "name": "CITIC Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300919",
+   "name": "CNGR Advanced Material",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600938",
+   "name": "CNOOC Limited",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000617",
+   "name": "CNPC Capital Company",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601766",
+   "name": "CRRC Corporation",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601006",
+   "name": "Daqin Railway",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603019",
+   "name": "Dawning Information Industry",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600875",
+   "name": "Dongfang Electric Corporation",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300059",
+   "name": "East Money",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "605499",
+   "name": "Eastroc Beverage (Group)",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603486",
+   "name": "Ecovacs Robotics",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "301269",
+   "name": "Empyrean Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600803",
+   "name": "ENN Ecological Holdings",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300014",
+   "name": "Eve Energy",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601788",
+   "name": "Everbright Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000800",
+   "name": "FAW Car",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601865",
+   "name": "Flat Glass Group",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002027",
+   "name": "Focus Media Information Technology",
+   "sector": "Communication",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603288",
+   "name": "Foshan Haitian Flavouring & Food Co",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600196",
+   "name": "Fosun Pharmaceutical",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601901",
+   "name": "Founder Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601138",
+   "name": "Foxconn Industrial Internet",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601155",
+   "name": "Future Land Holdings",
+   "sector": "Real Estate",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600660",
+   "name": "Fuyao Glass Industry Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002460",
+   "name": "Ganfeng Lithium",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600795",
+   "name": "GD Power Development",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000776",
+   "name": "GF Securities",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603986",
+   "name": "GigaDevice",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300763",
+   "name": "Ginlong Technologies",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002410",
+   "name": "Glodon Software",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002241",
+   "name": "GoerTek",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603195",
+   "name": "GONGNIU GROUP",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601633",
+   "name": "Great Wall Motor",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000651",
+   "name": "Gree Electric",
+   "sector": "Consumer Discretionary",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002311",
+   "name": "Guangdong Haid Group",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601238",
+   "name": "Guangzhou Automobile Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600332",
+   "name": "Guangzhou Baiyunshan Pharmaceutical Holdings",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002841",
+   "name": "Guangzhou Shiyuan Electronic Technology Company",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002709",
+   "name": "Guangzhou Tinci Materials Technology",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002736",
+   "name": "Guosen Securities",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601211",
+   "name": "Guotai Junan Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002074",
+   "name": "GUOXUAN HIGH-TECH",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600515",
+   "name": "Hainan Airport Infrastructure",
+   "sector": "Real Estate",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600837",
+   "name": "Haitong Securities Company",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603806",
+   "name": "HANGZHOU FIRST PV MATERIAL",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002415",
+   "name": "Hangzhou Hikvision Digital Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600460",
+   "name": "Hangzhou Silan Microelectronics",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300347",
+   "name": "Hangzhou Tigermed Consulting",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000895",
+   "name": "Henan Shuanghui Investment & Development",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600346",
+   "name": "Hengli Petrochemical",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300033",
+   "name": "Hithink RoyalFlush Information Network",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601236",
+   "name": "HONGTA SECURITIES",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603260",
+   "name": "Hoshine Silicon Industry",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600015",
+   "name": "Hua Xia Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000963",
+   "name": "Huadong Medicine",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002007",
+   "name": "Hualan Biological Engineering",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300979",
+   "name": "Huali Industrial Group Company",
+   "sector": "Consumer Discretionary",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600011",
+   "name": "Huaneng Power International",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600025",
+   "name": "HuanengLancang River Hydropower",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601688",
+   "name": "Huatai Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600741",
+   "name": "HUAYU Automotive Systems Company",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002920",
+   "name": "Huizhou Desay SV Automotive",
+   "sector": "Consumer Discretionary",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600570",
+   "name": "Hundsun Technologies",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688041",
+   "name": "Hygon Information Technology",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002230",
+   "name": "Iflytek",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300896",
+   "name": "IMEIK TECHNOLOGY DEVELOPMENT",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601398",
+   "name": "Industrial and Commercial Bank of China",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601166",
+   "name": "Industrial Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601377",
+   "name": "Industrial Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300223",
+   "name": "Ingenic Semiconductor",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600010",
+   "name": "Inner Mongolia Baotou Steel Union",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600887",
+   "name": "Inner Mongolia Yili Industrial Group",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000977",
+   "name": "Inspur Electronic Information Industry",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002459",
+   "name": "JA Solar Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600584",
+   "name": "JCET",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000301",
+   "name": "Jiangsu Eastern Shenghong",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601100",
+   "name": "Jiangsu Hengli Hydraulic",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600276",
+   "name": "Jiangsu Hengrui Medicine",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603369",
+   "name": "Jiangsu King's Luck Brewery Joint-Stock",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002304",
+   "name": "Jiangsu Yanghe Brewery Joint-Stock",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600362",
+   "name": "Jiangxi Copper",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688223",
+   "name": "Jinko Solar",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600519",
+   "name": "Kweichow Moutai",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002601",
+   "name": "LB Group",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300433",
+   "name": "Lens Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601012",
+   "name": "Longi Green Energy Technology",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002475",
+   "name": "Luxshare Precision Industry",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000568",
+   "name": "Luzhou Lao Jiao",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300413",
+   "name": "Mango Excellent Media",
+   "sector": "Communication",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300782",
+   "name": "Maxscend Microelectronics",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601618",
+   "name": "Metallurgical Corporation of China",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000333",
+   "name": "Midea Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300760",
+   "name": "Mindray",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601615",
+   "name": "MingYangSmartEnergyGroup",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688008",
+   "name": "Montage Technology",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002714",
+   "name": "Muyuan Foodstuff",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600406",
+   "name": "NARI Technology",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688126",
+   "name": "National Silicon Industry Group",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002371",
+   "name": "NAURA Technology Group",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601336",
+   "name": "New China Life Insurance",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000876",
+   "name": "New Hope Liuhe",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002180",
+   "name": "Ninestar Corporation",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "605117",
+   "name": "Ningbo Deye Technology",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601689",
+   "name": "Ningbo Tuopu Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600989",
+   "name": "Ningxia Baofeng Energy Group",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603833",
+   "name": "Oppein Home Group",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600958",
+   "name": "Orient Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601319",
+   "name": "People's Insurance Company of China",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601857",
+   "name": "PetroChina",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300759",
+   "name": "Pharmaron Beijing",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000001",
+   "name": "Ping An Bank",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601318",
+   "name": "Ping An Insurance",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600048",
+   "name": "Poly Real Estate Group",
+   "sector": "Real Estate",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601658",
+   "name": "Postal Savings Bank of China",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601669",
+   "name": "Power Construction Corporation of China",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688561",
+   "name": "Qi An Xin Technology Group",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600690",
+   "name": "Qingdao Haier",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000792",
+   "name": "Qinghai Salt Lake Potash",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002493",
+   "name": "Rongsheng Petro Chemical",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002352",
+   "name": "S.F. Holding",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600104",
+   "name": "SAIC Motor",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300454",
+   "name": "Sangfor Technologies",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600031",
+   "name": "Sany Heavy Industry",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002648",
+   "name": "SATELLITE CHEMICAL",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600061",
+   "name": "SDIC Essence",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600886",
+   "name": "SDIC Power Holdings",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688981",
+   "name": "Semiconductor Manufacturing International Corporation",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300661",
+   "name": "SG Micro",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601225",
+   "name": "Shaanxi Coal Industry Company",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600547",
+   "name": "Shandong Gold-Mining",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600426",
+   "name": "Shandong Hualu-Hengsheng Chemical",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600219",
+   "name": "Shandong Nanshan Aluminium",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600732",
+   "name": "Shanghai Aiko Solar Energy",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600009",
+   "name": "Shanghai International Airport",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600018",
+   "name": "Shanghai International Port Group",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600754",
+   "name": "Shanghai Jin Jiang International Hotels",
+   "sector": "Consumer Discretionary",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603899",
+   "name": "SHANGHAI M&G STATIONERY",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601607",
+   "name": "Shanghai Pharmaceuticals Holding",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600000",
+   "name": "Shanghai Pudong Development Bank",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603659",
+   "name": "Shanghai Putailai New Energy Technology",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002252",
+   "name": "Shanghai RAAS Blood Products",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000983",
+   "name": "Shanxi Coking Coal Energy Group",
+   "sector": "Energy",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601699",
+   "name": "Shanxi Lu'an Environmental Energy Development",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600809",
+   "name": "Shanxi Xinghuacun Fen Wine Factory",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600183",
+   "name": "Shengyi Technology",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002916",
+   "name": "Shennan Circuits",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000166",
+   "name": "Shenwan Hongyuan",
+   "sector": "Financials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300124",
+   "name": "Shenzhen Inovance Technology",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000069",
+   "name": "Shenzhen Overseas Chinese Town Company",
+   "sector": "Real Estate",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002603",
+   "name": "Shijiazhuang Yiling Pharmaceutical",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600674",
+   "name": "Sichuan Chuantou Energy",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600039",
+   "name": "Sichuan Road&Bridge",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601021",
+   "name": "Spring Airlines",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603290",
+   "name": "StarPower Semiconductor",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300274",
+   "name": "Sungrow Power Supply",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300751",
+   "name": "Suzhou Maxwell Technologies",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600089",
+   "name": "TBEA",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000100",
+   "name": "TCL Corporation",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300496",
+   "name": "Thunder Software Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002129",
+   "name": "Tianjin Zhonghuan Semiconductor",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002466",
+   "name": "Tianqi Lithium Industries",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600438",
+   "name": "Tongwei Company",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688036",
+   "name": "Transsion",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688599",
+   "name": "Trina Solar",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600600",
+   "name": "Tsingtao Brewery",
+   "sector": "Consumer Staples",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002049",
+   "name": "Unigroup Guoxin Microelectronics",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000938",
+   "name": "Unisplendour",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688271",
+   "name": "United Imaging",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300142",
+   "name": "Walvax Biotechnology",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600309",
+   "name": "Wanhua Chemical Group",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000338",
+   "name": "Weichai Power",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300498",
+   "name": "Wens Foodstuff Group",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603501",
+   "name": "Will Semiconductor",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600745",
+   "name": "Wingtech",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000858",
+   "name": "Wuliangye Yibin",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603259",
+   "name": "WuXi AppTec",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300450",
+   "name": "WUXI LEAD INTELLIGENT EQUIPMENT",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000425",
+   "name": "XCMG Construction Machinery",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688303",
+   "name": "XinJiang Daqo New Energy",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002202",
+   "name": "Xinjiang Goldwind Science & Technology",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000877",
+   "name": "Xinjiang Tianshan Cement",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600188",
+   "name": "Yanzhou Coal Mining",
+   "sector": "Energy",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300628",
+   "name": "Yealink Network Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300999",
+   "name": "Yihai Kerry",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600588",
+   "name": "Yonyou Network Technology",
+   "sector": "Information Technology",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600233",
+   "name": "YTO Express Group",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000538",
+   "name": "Yunnan Baiyao Group",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300957",
+   "name": "Yunnan Botanee Bio-Technology Group",
+   "sector": "Consumer Staples",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002812",
+   "name": "Yunnan Energy New Material",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000408",
+   "name": "ZANGGE MINING COMPANY",
+   "sector": "Materials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600436",
+   "name": "Zhangzhou Pientzehuang Pharmaceutical",
+   "sector": "Health Care",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601877",
+   "name": "Zhejiang Chint Electrics",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002236",
+   "name": "Zhejiang Dahua Technology",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "603799",
+   "name": "ZHEJIANG HUAYOU COBALT",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300316",
+   "name": "Zhejiang Jingsheng Mechanical & Electrical",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002001",
+   "name": "Zhejiang NHU",
+   "sector": "Health Care",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "002050",
+   "name": "ZHEJIANG SANHUA INTELLIGENT CONTROLS",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600023",
+   "name": "Zhejiang Zheneng Electric Power",
+   "sector": "Utilities",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601878",
+   "name": "ZHESHANG SECURITIES",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "300308",
+   "name": "Zhongji Innolight",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600489",
+   "name": "Zhongjin Gold",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "600918",
+   "name": "Zhongtai Securities",
+   "sector": "Financials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "688187",
+   "name": "Zhuzhou CRRC Times Electric",
+   "sector": "Industrials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "601899",
+   "name": "Zijin Mining Group",
+   "sector": "Materials",
+   "exchange": "SSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000157",
+   "name": "Zoomlion Heavy Industry Science & Technology",
+   "sector": "Industrials",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  },
+  {
+   "ticker": "000063",
+   "name": "ZTE",
+   "sector": "Information Technology",
+   "exchange": "SZSE",
+   "index_ids": [
+    "CSI300"
+   ]
+  }
+ ]
+}

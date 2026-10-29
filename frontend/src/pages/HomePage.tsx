@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChangeTriple } from "../components/ChangeChip";
 import Disclaimer from "../components/Disclaimer";
 import InfoTip from "../components/InfoTip";
+import PlanScopeNotice from "../components/PlanScopeNotice";
 import PublishedCountLine from "../components/PublishedCountLine";
 import QualityBadge from "../components/QualityBadge";
 import TierBadge from "../components/TierBadge";
@@ -17,15 +18,15 @@ import {
   fetchCompanies,
   fetchCompaniesCount,
   fetchMarketIndexes,
-  fetchMarkets,
   rateLimitRetrySeconds,
   searchCompanies,
   withRateLimitRetry,
   type AlertItem,
   type CompanySummary,
-  type Market,
   type MarketIndex,
 } from "../lib/api";
+import { useEntitlements } from "../lib/entitlements";
+import { listedIndexes, marketOptionLabel, useMarketChoice } from "../lib/markets";
 import { formatScore, scoreClass, formatCompanyScore, formatDossierDate } from "../lib/score";
 import { severityLabel } from "../lib/severity";
 import { setSeoOverride } from "../lib/seoOverride";
@@ -42,6 +43,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { preferences, updatePreferences } = useAuth();
+  const { entitlements, scoped, inPlan, marketAccess } = useEntitlements();
   const homeTabs = useMemo(
     () =>
       [
@@ -78,9 +80,9 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [markets, setMarkets] = useState<Market[]>([]);
+  const { markets, market, setMarket, ready: marketsReady } = useMarketChoice();
+  const marketName = markets.find((m) => m.id === market)?.name || market;
   const [indexes, setIndexes] = useState<MarketIndex[]>([]);
-  const [market, setMarket] = useState("IN");
   const [index, setIndex] = useState(preferences?.default_index ?? "SENSEX");
   const [query, setQuery] = useState("");
   const entityQuery = query;
@@ -189,28 +191,19 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    setMarket("IN");
     if (preferences?.default_index) setIndex(preferences.default_index);
   }, [preferences?.default_index]);
 
   useEffect(() => {
-    let cancelled = false;
-    withRateLimitRetry(fetchMarkets)
-      .then((r) => !cancelled && setMarkets(r.markets))
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
+    if (!marketsReady) return;
     let cancelled = false;
     withRateLimitRetry(() => fetchMarketIndexes(market))
       .then((r) => {
         if (cancelled) return;
-        setIndexes(r.indexes);
-        if (!r.indexes.some((i) => i.id === index) && r.indexes[0]) {
-          setIndex(r.indexes[0].id);
+        const rows = listedIndexes(r.indexes);
+        setIndexes(rows);
+        if (!rows.some((i) => i.id === index) && rows[0]) {
+          setIndex(rows[0].id);
         }
       })
       .catch(() => undefined);
@@ -219,9 +212,14 @@ export default function HomePage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market]);
+  }, [market, marketsReady]);
+
+  // Hold the table until the index belongs to the market on screen, so a market
+  // switch never paints one market's list under another's name.
+  const indexReady = indexes.some((ix) => ix.id === index && ix.market_id === market);
 
   useEffect(() => {
+    if (!indexReady) return;
     let cancelled = false;
     let retryTimer: number | undefined;
     setError(null);
@@ -258,7 +256,7 @@ export default function HomePage() {
       cancelled = true;
       if (retryTimer) window.clearTimeout(retryTimer);
     };
-  }, [market, index, page, reloadTick]);
+  }, [market, index, indexReady, page, reloadTick]);
 
   useEffect(() => {
     const q = entityQuery.trim();
@@ -268,7 +266,7 @@ export default function HomePage() {
     }
     const handle = window.setTimeout(() => {
       searchCompanies(q, 12, {
-        exchange: entityExchange || undefined,
+        exchange: (market === "IN" && entityExchange) || undefined,
         data_quality: entityQuality || undefined,
         corpus_status: entityCorpus || undefined,
       })
@@ -276,7 +274,7 @@ export default function HomePage() {
         .catch(() => setEntityHits([]));
     }, 220);
     return () => window.clearTimeout(handle);
-  }, [entityQuery, entityExchange, entityQuality, entityCorpus]);
+  }, [entityQuery, entityExchange, entityQuality, entityCorpus, market]);
 
   function setScored(next: boolean) {
     setScoredOnly(next);
@@ -291,10 +289,8 @@ export default function HomePage() {
   }
 
   function onMarketChange(m: string) {
-    if (m !== "IN") return;
-    setMarket("IN");
     setPage(0);
-    void updatePreferences({ default_market: "IN" });
+    void setMarket(m);
   }
 
   function onIndexChange(ix: string) {
@@ -343,12 +339,9 @@ export default function HomePage() {
             onChange={(e) => onMarketChange(e.target.value)}
             data-testid="market-select"
           >
-            {(markets.filter((m) => m.id === "IN").length
-              ? markets.filter((m) => m.id === "IN")
-              : [{ id: "IN", name: "India" }]
-            ).map((m) => (
+            {markets.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.name}
+                {marketOptionLabel(m.name, marketAccess(m.id), t)}
               </option>
             ))}
           </select>
@@ -377,15 +370,17 @@ export default function HomePage() {
             autoComplete="off"
           />
           <div className="entity-facets" data-testid="entity-facets">
-            <select
-              value={entityExchange}
-              onChange={(e) => setEntityExchange(e.target.value)}
-              aria-label={t("ui.HomePage.exchangeFacet")}
-            >
-              <option value="">{t("ui.HomePage.allExchanges")}</option>
-              <option value="NSE">NSE</option>
-              <option value="BSE">BSE</option>
-            </select>
+            {market === "IN" && (
+              <select
+                value={entityExchange}
+                onChange={(e) => setEntityExchange(e.target.value)}
+                aria-label={t("ui.HomePage.exchangeFacet")}
+              >
+                <option value="">{t("ui.HomePage.allExchanges")}</option>
+                <option value="NSE">NSE</option>
+                <option value="BSE">BSE</option>
+              </select>
+            )}
             <select
               value={entityQuality}
               onChange={(e) => setEntityQuality(e.target.value)}
@@ -439,9 +434,24 @@ export default function HomePage() {
         </label>
       </div>
 
+      {scoped && marketAccess(market) !== "all" && (
+        <PlanScopeNotice
+          subject={
+            marketAccess(market) === "none"
+              ? marketName
+              : t("scope.partSubject", {
+                  market: marketName,
+                  held: (entitlements.coverage?.exchanges[market] || []).join(" and "),
+                })
+          }
+        />
+      )}
+
       {!deep && (
         <p className="scaffold-banner" data-testid="scaffold-banner">
-          {index === "NSE_ALL" || index === "BSE_ALL" || index === "IN1000" ? (
+          {market !== "IN" ? (
+            t("home.marketListed", { index: indexName })
+          ) : index === "NSE_ALL" || index === "BSE_ALL" || index === "IN1000" ? (
             <>
               {t("ui.HomePage.fullMasters")} <InfoTip termId="nse_bse" />
             </>
@@ -602,7 +612,15 @@ export default function HomePage() {
                               {c.name}
                             </Link>
                           </td>
-                          <td className="mono">{c.ticker}</td>
+                          <td className="mono">
+                            {c.ticker}
+                            {scoped && !inPlan(c) && (
+                              <span className="muted" data-testid={`outside-plan-${c.id}`}>
+                                {" "}
+                                · {t("scope.outsidePlan")}
+                              </span>
+                            )}
+                          </td>
                           <td>{c.sector}</td>
                           <td
                             className={`score ${scoreClass(c.gci_score)}${

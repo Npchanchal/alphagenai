@@ -3,17 +3,16 @@ import { Link } from "react-router-dom";
 import LanguageSelect from "../components/LanguageSelect";
 import {
   fetchCompanies,
-  fetchMarkets,
   fetchMarketIndexes,
   postMfaConfirm,
   postMfaDisable,
   postMfaEnroll,
   type CompanySummary,
-  type Market,
   type MarketIndex,
 } from "../lib/api";
 import { analyticsConfigured, writeAnalyticsConsent, initAnalytics } from "../lib/analytics";
 import { useAuth } from "../lib/auth";
+import { listedIndexes, useMarketChoice } from "../lib/markets";
 import { useI18n } from "../i18n";
 import type { LangCode } from "../i18n/languages";
 
@@ -21,7 +20,7 @@ import type { LangCode } from "../i18n/languages";
 export default function AccountSettingsPage() {
   const { t } = useI18n();
   const { user, preferences, updatePreferences, loading } = useAuth();
-  const [markets, setMarkets] = useState<Market[]>([]);
+  const { markets, market, setMarket } = useMarketChoice();
   const [indexes, setIndexes] = useState<MarketIndex[]>([]);
   const [companies, setCompanies] = useState<CompanySummary[]>([]);
   const [addId, setAddId] = useState("");
@@ -29,7 +28,6 @@ export default function AccountSettingsPage() {
   const [mfaSecret, setMfaSecret] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState("");
 
-  const market = preferences?.default_market ?? "IN";
   const index = preferences?.default_index ?? "SENSEX";
   const watchlist = preferences?.watchlist ?? [];
   const density = preferences?.density ?? "compact";
@@ -37,14 +35,8 @@ export default function AccountSettingsPage() {
   const analyticsConsent = preferences?.analytics_consent;
 
   useEffect(() => {
-    fetchMarkets()
-      .then((r) => setMarkets(r.markets))
-      .catch(() => setMarkets([]));
-  }, []);
-
-  useEffect(() => {
     fetchMarketIndexes(market)
-      .then((r) => setIndexes(r.indexes))
+      .then((r) => setIndexes(listedIndexes(r.indexes)))
       .catch(() => setIndexes([]));
   }, [market]);
 
@@ -246,15 +238,12 @@ export default function AccountSettingsPage() {
               <select
                 value={market}
                 onChange={(e) => {
-                  const m = e.target.value;
-                  void fetchMarketIndexes(m).then((r) => {
-                    setIndexes(r.indexes);
-                    const nextIx = r.indexes[0]?.id;
-                    void patch({
-                      default_market: m,
-                      ...(nextIx ? { default_index: nextIx } : {}),
-                    });
-                  });
+                  setMsg(null);
+                  setMarket(e.target.value)
+                    .then(() => setMsg(t("ui.AccountSettingsPage.saved")))
+                    .catch((err: unknown) =>
+                      setMsg(err instanceof Error ? err.message : t("ui.AccountSettingsPage.saveFailed")),
+                    );
                 }}
                 data-testid="account-pref-market"
               >

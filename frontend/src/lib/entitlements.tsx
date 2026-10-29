@@ -7,8 +7,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ApiError, fetchEntitlementsMe, type Entitlements } from "./api";
+import { ApiError, fetchEntitlementsMe, type CompanySummary, type Entitlements } from "./api";
 import { useAuth } from "./auth";
+import { listingInPlan, marketAccess, type MarketAccess } from "./marketScope";
 
 const GUEST: Entitlements = {
   plan: "guest",
@@ -22,6 +23,11 @@ const GUEST: Entitlements = {
 type Ctx = {
   entitlements: Entitlements;
   has: (feature: string) => boolean;
+  /** A seat (not a guest) whose plan covers some markets, not all. */
+  scoped: boolean;
+  /** Seat tools open on this company. Published GCI reads stay open regardless. */
+  inPlan: (row: Pick<CompanySummary, "market_id" | "exchange">) => boolean;
+  marketAccess: (marketId: string) => MarketAccess;
   loading: boolean;
   refresh: () => Promise<void>;
 };
@@ -67,14 +73,26 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
     [entitlements.features],
   );
 
+  const scope = useMemo(() => scopeHelpers(entitlements), [entitlements]);
+
   const value = useMemo(
-    () => ({ entitlements, has, loading, refresh }),
-    [entitlements, has, loading, refresh],
+    () => ({ entitlements, has, ...scope, loading, refresh }),
+    [entitlements, has, scope, loading, refresh],
   );
 
   return (
     <EntitlementsContext.Provider value={value}>{children}</EntitlementsContext.Provider>
   );
+}
+
+function scopeHelpers(ent: Entitlements) {
+  const seat = (ent.source || "guest") !== "guest";
+  const coverage = ent.coverage;
+  return {
+    scoped: seat && !!coverage && !coverage.all,
+    inPlan: (row: Pick<CompanySummary, "market_id" | "exchange">) => !seat || listingInPlan(coverage, row),
+    marketAccess: (marketId: string): MarketAccess => (seat ? marketAccess(coverage, marketId) : "all"),
+  };
 }
 
 export function useEntitlements(): Ctx {
@@ -83,6 +101,7 @@ export function useEntitlements(): Ctx {
     return {
       entitlements: GUEST,
       has: (f) => GUEST.features.includes(f),
+      ...scopeHelpers(GUEST),
       loading: false,
       refresh: async () => {},
     };

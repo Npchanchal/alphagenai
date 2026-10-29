@@ -67,6 +67,7 @@ function SchemeChart({ points }: { points: { as_of: string; value: number }[] })
 }
 
 function WeightTable({ title, rows, testId }: { title: string; rows: HoldingsLine[]; testId: string }) {
+  const { t } = useI18n();
   if (rows.length === 0) return null;
   return (
     <div>
@@ -86,7 +87,9 @@ function WeightTable({ title, rows, testId }: { title: string; rows: HoldingsLin
               <td>
                 {row.name || row.isin || row.kind}
                 {row.ticker ? ` · ${row.ticker}` : ""}
-                {row.reason ? <div className="muted">{row.reason}</div> : null}
+                {row.reason ? (
+                  <div className="muted">{row.reason === "not_in_plan" ? t("scope.gapNotInPlan") : row.reason}</div>
+                ) : null}
               </td>
               <td>{row.weight}</td>
               <td>{row.gci_score ?? "—"}</td>

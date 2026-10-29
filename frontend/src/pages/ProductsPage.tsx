@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Disclaimer from "../components/Disclaimer";
 import { useI18n } from "../i18n";
-import { fetchProductsCatalog, type PortfolioProduct } from "../lib/api";
+import { fetchMarkets, fetchProductsCatalog, type CoverageUnit, type PortfolioProduct } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { useEntitlements } from "../lib/entitlements";
 import { DESK_GUIDES } from "../lib/deskPaths";
 import { CONTACT_EMAIL } from "../lib/legal";
 
@@ -156,12 +157,19 @@ export default function ProductsPage() {
   const { token, user } = useAuth();
   const signedIn = Boolean(token && user?.kind !== "guest");
   const [products, setProducts] = useState<PortfolioProduct[]>([]);
+  const [units, setUnits] = useState<CoverageUnit[]>([]);
+  const { entitlements } = useEntitlements();
 
   useEffect(() => {
     let cancelled = false;
     fetchProductsCatalog()
       .then((catalog) => {
         if (!cancelled) setProducts(catalog.products);
+      })
+      .catch(() => undefined);
+    fetchMarkets()
+      .then((m) => {
+        if (!cancelled) setUnits(m.coverage_units || []);
       })
       .catch(() => undefined);
     return () => {
@@ -186,6 +194,7 @@ export default function ProductsPage() {
       <nav className="about-toc" aria-label={t(`${TF}.tocAria`)}>
         <a href="#surfaces">{t("products.toc.surfaces")}</a>
         <a href="#plans">{t("products.toc.plans")}</a>
+        <a href="#coverage">{t("products.coverage.title")}</a>
         <a href="#by-desk">{t("products.toc.desk")}</a>
         <a href="#features">{t("products.toc.features")}</a>
         <a href="#names">{t("products.toc.names")}</a>
@@ -254,6 +263,30 @@ export default function ProductsPage() {
             </>
           ) : null}
         </p>
+      </section>
+
+      <section id="coverage" className="products-section" data-testid="coverage-section">
+        <h2>{t("products.coverage.title")}</h2>
+        <p className="muted">{t("products.coverage.lede")}</p>
+        <ul className="about-list">
+          {units.map((u) => (
+            <li key={u.id} data-testid={`coverage-unit-${u.id}`}>
+              {u.exchanges.length > 1
+                ? t("products.coverage.byExchange", {
+                    market: u.label,
+                    exchanges: u.exchanges.map((x) => x.exchange).join(" or "),
+                  })
+                : t("products.coverage.whole", { market: u.label })}
+            </li>
+          ))}
+          <li>{t("products.coverage.all")}</li>
+        </ul>
+        <p className="muted">{t("products.coverage.price")}</p>
+        {signedIn && entitlements.coverage ? (
+          <p data-testid="coverage-yours">
+            {t("scope.yourPlan")}: <strong>{entitlements.coverage.label}</strong>
+          </p>
+        ) : null}
       </section>
 
       <section

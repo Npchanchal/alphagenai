@@ -6,6 +6,7 @@ import { BarChart, CompareBars, DualLineChart, LineChart } from "../components/C
 import Disclaimer from "../components/Disclaimer";
 import EvidenceTable from "../components/EvidenceTable";
 import InfoTip from "../components/InfoTip";
+import PlanScopeNotice from "../components/PlanScopeNotice";
 import QualityBadge from "../components/QualityBadge";
 import RecordSentence from "../components/RecordSentence";
 import ScoreCalcPanel from "../components/ScoreCalcPanel";
@@ -93,7 +94,7 @@ const TOC_MORE = [
 export default function CompanyDetailPage() {
   const { id } = useParams();
   const { t, lang: uiLang } = useI18n();
-  const { has, entitlements } = useEntitlements();
+  const { has, entitlements, inPlan } = useEntitlements();
   const { token, user } = useAuth();
   const { openSource } = useSourceViewer();
   const [detail, setDetail] = useState<CompanyGCIDetail | null>(null);
@@ -191,12 +192,15 @@ export default function CompanyDetailPage() {
   // Price tape, correlation / lead–lag, and narrative consistency use synthetic
   // inputs. Those stay on a workbench seat. The GCI trend, citeable deltas, and
   // point-in-time series are the published score and stay on the public dossier.
-  const canAnalytics = has("analytics_experimental");
-  const canWordmap = has("wordmap");
-  const canNinja = has("ninja");
-  const canNotes = canNinja || has("analyst_agent");
-  const canVernacular = has("vernacular");
-  const showWorkbench = has("desk");
+  // Seat tools also need the company's market on the desk's plan; the published score does not.
+  const companyInPlan = !detail || inPlan(detail);
+  const seatHas = (feature: string) => companyInPlan && has(feature);
+  const canAnalytics = seatHas("analytics_experimental");
+  const canWordmap = seatHas("wordmap");
+  const canNinja = seatHas("ninja");
+  const canNotes = canNinja || seatHas("analyst_agent");
+  const canVernacular = seatHas("vernacular");
+  const showWorkbench = seatHas("desk");
   const [layerNotes, setLayerNotes] = useState<Awaited<ReturnType<typeof fetchNinjaProfile>> | null>(null);
   const isGuest = entitlements.plan === "guest" || entitlements.kind === "guest";
   const [citeCopied, setCiteCopied] = useState(false);
@@ -436,7 +440,7 @@ export default function CompanyDetailPage() {
                 {t("dossier.reviewed", { date: formatDossierDate(detail.reviewed_at) })}
               </span>
             )}
-            {!isGuest && (has("pack_export") || has("ic_export")) && (
+            {!isGuest && (seatHas("pack_export") || seatHas("ic_export")) && (
               <span>
                 {" · "}
                 {user?.role === "ir" && (user.company_scope || []).length === 0 ? (
@@ -464,7 +468,7 @@ export default function CompanyDetailPage() {
           </div>
         </div>
         <div className="dossier-score-block">
-          {!isGuest ? (
+          {!isGuest && companyInPlan ? (
             <div className="dossier-watch-row">
               <WatchlistToggle companyId={detail.id} />
             </div>
@@ -502,6 +506,8 @@ export default function CompanyDetailPage() {
           </div>
         </div>
       </div>
+
+      {!companyInPlan && <PlanScopeNotice subject={detail.name} testId="dossier-outside-plan" />}
 
       {(showWorkbench || (commitments?.commitments.length ?? 0) > 0) && commitments ? (
         <section className="panel" id="commitments" data-testid="commitment-record">
@@ -1460,7 +1466,7 @@ export default function CompanyDetailPage() {
       </div>
       )}
 
-      {has("ic_export") && (
+      {seatHas("ic_export") && (
       <div className="panel" id="report" data-testid="report-panel">
         <h2>{t("ui.CompanyDetailPage.report.title")}</h2>
         <p className="muted" style={{ fontSize: 13 }}>

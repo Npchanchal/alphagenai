@@ -8,6 +8,7 @@ Every listed company in the Nifty 500 and S&P 500 is checked for numeric guidanc
 |---|---|---|---|
 | India | Nifty 500 (`NIFTY500` index tag, cohort `nifty500`) | `archives.nseindia.com/content/indices/ind_nifty500list.csv` → `backend/app/data/listings/nifty500.json` | `python -m app.jobs.refresh_index_lists --nifty500` |
 | US | S&P 500 (`SPX`, ids `us_<ticker>`) | Wikipedia constituents table (ticker, GICS sector, CIK) → `backend/app/data/listings/us_equity.json` | `python -m app.jobs.refresh_index_lists --us` |
+| Other markets | Headline index per market (ids `<market>_<ticker>`, e.g. `gb_azn`, `jp_7203`); listing only, no filing walk yet | Nikkei weight CSV (N225), B3 portfolio (IBOV), Wikipedia constituent tables (the rest) → `backend/app/data/listings/<market>_equity.json` | `python -m app.jobs.refresh_index_lists --world [GB JP …]` |
 
 Both refreshes refuse a short list (India < 400, US < 450 rows). Walk order: names whose filings have not been read back to `INTELLENS_FILING_DISCOVERY_SINCE` (default `2022-01-01`) go first.
 

@@ -221,7 +221,7 @@ def company_gci(
     authorization: Optional[str] = Header(default=None),
     user_agent: Optional[str] = Header(default=None),
 ) -> CompanyGCIDetail:
-    from app.services import session_auth
+    from app.services import market_scope, session_auth
     from app.services.indexing_crawler import is_indexing_crawler
 
     # An indexer is here to record the public dossier. The 15-open guest cap
@@ -233,7 +233,14 @@ def company_gci(
             raise
         except Exception:
             pass
-    return repository.get_company_gci(company_id)
+    detail = repository.get_company_gci(company_id)
+    listing = market_scope.listing_of(detail.id)
+    if listing is None:
+        return detail
+    market_id, exchanges = listing
+    return detail.model_copy(
+        update={"market_id": market_id or None, "exchange": "+".join(sorted(exchanges, reverse=True)) or None}
+    )
 
 
 @router.post("/api/companies/{company_id}/audit-flags")
@@ -320,16 +327,18 @@ def holdings_lookthrough(
     body: Dict[str, Any],
     ent: Dict[str, Any] = Depends(_require_holdings),
 ) -> Dict[str, Any]:
+    from app.services import market_scope
     from app.services.holdings import submit_lookthrough
 
-    return submit_lookthrough(str(ent["org_id"]), body)
+    return submit_lookthrough(str(ent["org_id"]), body, in_scope=market_scope.predicate(ent))
 
 
 @router.get("/api/holdings/latest")
 def holdings_latest(ent: Dict[str, Any] = Depends(_require_holdings)) -> Dict[str, Any]:
+    from app.services import market_scope
     from app.services.holdings import latest_lookthrough
 
-    return latest_lookthrough(str(ent["org_id"]))
+    return latest_lookthrough(str(ent["org_id"]), in_scope=market_scope.predicate(ent))
 
 
 @router.get("/api/radar/feed")
@@ -480,7 +489,12 @@ def data_export_outcomes(
             raise HTTPException(status_code=401, detail="X-API-Key required for CSV/Parquet export")
         if not has_feature(auth, "em_export"):
             raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise")
-    result = phases.bulk_outcomes_export(format=fmt, limit=limit)
+    in_scope = None
+    if fmt != "json":
+        from app.services import market_scope
+
+        in_scope = market_scope.predicate(auth)
+    result = phases.bulk_outcomes_export(format=fmt, limit=limit, in_scope=in_scope)
     if fmt == "json":
         return result
     if fmt == "csv":
@@ -1258,6 +1272,9 @@ def em_factor(
             raise HTTPException(status_code=401, detail="X-API-Key required for file export")
         if not has_feature(auth, "em_export"):
             raise HTTPException(status_code=403, detail="EM / Data export requires Enterprise")
+        from app.services import market_scope
+
+        market_scope.require_in_scope(auth, company_id)
     from app.services.pit_contract import series_meta_for
 
     hist = repository.pit_history(company_id)
@@ -1459,8 +1476,17 @@ def research_search(
                 browser_id,
                 request,
             )
+    in_scope = None
+    if has_feature(ent, "research"):
+        from app.services import market_scope
+
+        if company_id:
+            market_scope.require_in_scope(ent, company_id)
+        in_scope = market_scope.predicate(ent)
     query = expand_query_lexicon(q) if expand else q
-    out = research_svc.search_documents(query, company_id=company_id, doc_type=doc_type, limit=limit)
+    out = research_svc.search_documents(
+        query, company_id=company_id, doc_type=doc_type, limit=limit, in_scope=in_scope
+    )
     if expand:
         out.update(original_query=q, expanded_query=query)
     if allowance is not None:
@@ -1470,11 +1496,14 @@ def research_search(
 
 
 @router.post("/api/research/chat")
-def research_chat(body: ResearchChatRequest, _auth=Depends(require_feature("research_chat"))) -> Dict[str, Any]:
+def research_chat(body: ResearchChatRequest, auth=Depends(require_feature("research_chat"))) -> Dict[str, Any]:
+    from app.services import market_scope
     from app.services.sights import expand_query_lexicon
 
     question = expand_query_lexicon(body.question) if body.expand else body.question
-    return research_svc.research_chat(question, company_id=body.company_id)
+    return research_svc.research_chat(
+        question, company_id=body.company_id, in_scope=market_scope.predicate(auth)
+    )
 
 
 @router.get("/api/citations")
@@ -2098,13 +2127,13 @@ def filings_recent(limit: int = 8) -> Dict[str, Any]:
     from app.data import doc_store
     from app.data.india_listings import find_listing
     from app.data.seed import list_companies
-    from app.data.us_listings import find_us_listing
+    from app.data.us_listings import find_world_listing
 
     names = {c["id"]: c for c in list_companies()}
     rows = []
     for doc in doc_store.recent_filings(limit):
         company_id = doc.get("company_id") or ""
-        company = names.get(company_id) or find_listing(company_id) or find_us_listing(company_id) or {}
+        company = names.get(company_id) or find_listing(company_id) or find_world_listing(company_id) or {}
         rows.append(
             {
                 "doc_id": doc.get("doc_id"),
@@ -3048,6 +3077,7 @@ def vpc_posture() -> Dict[str, Any]:
 @router.get("/api/markets")
 def markets_list() -> Dict[str, Any]:
     from app.data import markets as markets_data
+    from app.services import market_scope
 
     rows = markets_data.list_markets()
     return {
@@ -3055,6 +3085,7 @@ def markets_list() -> Dict[str, Any]:
         "markets": rows,
         "gci_deep_markets": markets_data.GCI_DEEP_MARKETS,
         "listed_markets": markets_data.listed_market_ids(),
+        "coverage_units": market_scope.catalog(),
         "note": markets_data.markets_meta()["scaffold_note"],
     }
 
@@ -3693,6 +3724,18 @@ def admin_portal_delete_org(
     return admin_portal_svc.delete_org(org_id)
 
 
+@router.put("/api/admin/portal/orgs/{org_id}/coverage")
+def admin_portal_org_coverage(
+    org_id: str,
+    body: Dict[str, Any],
+    actor=Depends(admin_portal_svc.require_platform_perm("billing.write")),
+) -> Dict[str, Any]:
+    """Set the markets and exchanges on the desk's order form: ``*``, ``IN``, ``IN:NSE``, ``US``."""
+    from app.services import orgs as org_svc
+
+    return org_svc.set_coverage(org_id, body.get("coverage"), by=actor.get("email") or actor.get("key"))
+
+
 @router.post("/api/admin/portal/orgs/{org_id}/owner-invite")
 def admin_portal_owner_invite(
     org_id: str,
@@ -3904,6 +3947,7 @@ def admin_portal_pilot_request_review(
         actor=actor,
         note=body.note,
         term_days=body.term_days,
+        coverage=body.coverage,
     )
 
 

@@ -15,6 +15,8 @@ export type CompanySummary = {
   yoy_pct?: number | null;
   market_id?: string | null;
   index_ids?: string[] | null;
+  /** Listing venue: NSE, BSE, NSE+BSE, or US. */
+  exchange?: string | null;
   /** provisional | established | deep — null when not scored (W1.3). */
   confidence_tier?: ConfidenceTier | null;
   closed_periods?: number;
@@ -99,6 +101,9 @@ export type CompanyGCIDetail = {
   name: string;
   ticker: string;
   sector: string;
+  market_id?: string | null;
+  /** NSE, BSE, NSE+BSE, or US. */
+  exchange?: string | null;
   gci_score: number | null;
   status: string;
   data_quality: string;
@@ -2474,6 +2479,7 @@ export type OrgPayload = {
   owner_email?: string | null;
   owner_invite?: OwnerInviteResult | null;
   protected?: boolean;
+  coverage?: Coverage;
   members?: OrgSeat[];
   deletable?: boolean;
   delete_block?: string | null;
@@ -2737,12 +2743,31 @@ export type UserPreferences = {
   dossier_opens?: number;
 };
 
+/** Markets and exchanges on the desk's order form. Grants: "*", "IN", "IN:NSE", "IN:BSE", "US". */
+export type Coverage = {
+  grants: string[];
+  all: boolean;
+  markets: string[];
+  /** Exchanges held inside a market sold by exchange, e.g. { IN: ["NSE"] }. */
+  exchanges: Record<string, string[]>;
+  /** One plain line, e.g. "India (NSE) · United States". */
+  label: string;
+};
+
+export type CoverageUnit = {
+  id: string;
+  market_id: string;
+  label: string;
+  exchanges: { id: string; exchange: string; label: string }[];
+};
+
 export type Entitlements = {
   plan: string;
   role: string;
   kind?: string;
   org_id?: string | null;
   features: string[];
+  coverage?: Coverage;
   skus?: string[];
   limits?: Record<string, number>;
   labeling_granted?: boolean;
@@ -2790,6 +2815,18 @@ export function fetchAdminPortalOrgs(token?: string | null): Promise<{ orgs: Org
 
 export function fetchAdminPortalUsers(token?: string | null): Promise<{ users: AdminPortalUser[] }> {
   return authJson("/api/admin/portal/users", undefined, token);
+}
+
+export function putAdminPortalOrgCoverage(
+  orgId: string,
+  coverage: string[],
+  token?: string | null,
+): Promise<OrgPayload> {
+  return authJson(
+    `/api/admin/portal/orgs/${encodeURIComponent(orgId)}/coverage`,
+    { method: "PUT", body: JSON.stringify({ coverage }) },
+    token,
+  );
 }
 
 export function deleteAdminPortalOrg(
@@ -3044,6 +3081,8 @@ export type HoldingsReport = {
   covered_gci: number | null;
   covered_weight_pct: number;
   unscored_weight_pct: number;
+  /** Weight in companies whose market is not on the desk's plan. */
+  not_in_plan_weight_pct?: number;
   residual_weight_pct: number;
   statement: string;
   note: string;
@@ -3417,7 +3456,7 @@ export function postAnalystModel(
 
 export function patchAdminPortalPilotRequest(
   requestId: string,
-  body: { action: "approve" | "reject"; note?: string; term_days?: 30 | 45 | 60 },
+  body: { action: "approve" | "reject"; note?: string; term_days?: 30 | 45 | 60; coverage?: string[] },
   token?: string | null,
 ): Promise<{ ok: boolean; request: PilotRequestItem; owner_invite?: OwnerInviteResult }> {
   return authJson(
@@ -3838,6 +3877,7 @@ export function fetchMarkets(): Promise<{
   markets: Market[];
   gci_deep_markets: string[];
   listed_markets?: string[];
+  coverage_units?: CoverageUnit[];
   note: string;
 }> {
   return getJson("/api/markets");

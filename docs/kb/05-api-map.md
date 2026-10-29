@@ -161,7 +161,9 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | POST | `/api/admin/portal/cleanup-test-tenants` | `system.ops`. Drops `e2e-*` orgs, `@ocotillo.test` users, and guests. `dry_run` defaults on. Approved pilot orgs and `@citealpha.com` accounts stay |
 | `/api/orgs/{id}/invites` · `/revoke` · `/members` · `/api-keys` · `/oidc` | B2B seat admin. Owner appoints `admin`; an admin cannot. Another organisation returns `403` Org mismatch |
 | `/api/infra/postgres` | DB readiness |
-| `/api/markets`, indexes, history | Multi-market scaffold |
+| `/api/markets`, indexes, history | Multi-market scaffold. `/api/markets` also returns `listed_markets` and `coverage_units` (the market and exchange units a desk can buy) |
+| PUT | `/api/admin/portal/orgs/{id}/coverage` | `billing.write`. Body `{coverage: ["*" \| "IN" \| "IN:NSE" \| "IN:BSE" \| "US", …]}`. Sets the desk's markets; appends to `coverage_history`. 400 when the list names nothing. Pilot approval (`PATCH …/pilot-requests/{id}`) accepts the same `coverage` |
+| — | Market scope on seat routes | Any `require_feature` route given a `company_id` (path, query, or JSON body) outside the desk's markets returns 403 `{code: "market_not_in_plan", message, market_id, exchanges, coverage}`. Entitlements and org payloads carry `coverage: {grants, all, markets, exchanges, label}`. `/api/companies/{id}/gci` carries `market_id` and `exchange` |
 
 ## CiteAlpha Analyst + Commitment Record (`backend/app/api/analyst_routes.py`)
 

@@ -2,8 +2,9 @@
 
 India: one merged NSE + BSE equity master (`india_listings`). Every India index
 (SENSEX, NIFTY50, NIFTYBANK, NIFTY500, NSE_ALL, BSE_ALL, IN1000) filters that
-single row set by membership tag. US: the S&P 500 master (`us_listings`) when the
-file is present. Other markets stay market_scaffold pads.
+single row set by membership tag. Every other market reads its headline index
+list from `us_listings` (S&P 500; FTSE 100; Nikkei 225; …) when the file is present.
+A market without that file stays market_scaffold pads and is never `listed`.
 """
 
 from __future__ import annotations
@@ -44,20 +45,20 @@ INDEXES: List[Dict[str, Any]] = [
     {"id": "SPX", "market_id": "US", "name": "S&P 500", "ticker": "SPX"},
     {"id": "DJI", "market_id": "US", "name": "Dow Jones Industrial Average", "ticker": "DJI"},
     {"id": "NDX", "market_id": "US", "name": "Nasdaq-100", "ticker": "NDX"},
-    {"id": "FTSE100", "market_id": "GB", "name": "FTSE / UK Top 1000", "ticker": "UKX"},
-    {"id": "N225", "market_id": "JP", "name": "Nikkei 225 / JP Top 1000", "ticker": "N225"},
+    {"id": "FTSE100", "market_id": "GB", "name": "FTSE 100", "ticker": "UKX"},
+    {"id": "N225", "market_id": "JP", "name": "Nikkei 225", "ticker": "N225"},
     {"id": "TOPIX", "market_id": "JP", "name": "TOPIX", "ticker": "TPX"},
-    {"id": "HSI", "market_id": "HK", "name": "Hang Seng / HK Top 1000", "ticker": "HSI"},
-    {"id": "CSI300", "market_id": "CN", "name": "CSI / China Top 1000", "ticker": "CSI300"},
+    {"id": "HSI", "market_id": "HK", "name": "Hang Seng Index", "ticker": "HSI"},
+    {"id": "CSI300", "market_id": "CN", "name": "CSI 300", "ticker": "CSI300"},
     {"id": "SSEC", "market_id": "CN", "name": "Shanghai Composite", "ticker": "SSEC"},
-    {"id": "STOXX50", "market_id": "EU", "name": "Euro Stoxx / EU Top 1000", "ticker": "SX5E"},
+    {"id": "STOXX50", "market_id": "EU", "name": "Euro Stoxx 50", "ticker": "SX5E"},
     {"id": "DAX", "market_id": "EU", "name": "DAX", "ticker": "DAX"},
     {"id": "CAC40", "market_id": "EU", "name": "CAC 40", "ticker": "CAC"},
-    {"id": "STI", "market_id": "SG", "name": "STI / Singapore Top 1000", "ticker": "STI"},
-    {"id": "ASX200", "market_id": "AU", "name": "ASX / Australia Top 1000", "ticker": "AS51"},
-    {"id": "KOSPI200", "market_id": "KR", "name": "KOSPI / Korea Top 1000", "ticker": "KOSPI2"},
-    {"id": "IBOV", "market_id": "BR", "name": "Bovespa / Brazil Top 1000", "ticker": "IBOV"},
-    {"id": "TSX60", "market_id": "CA", "name": "TSX / Canada Top 1000", "ticker": "TX60"},
+    {"id": "STI", "market_id": "SG", "name": "Straits Times Index", "ticker": "STI"},
+    {"id": "ASX200", "market_id": "AU", "name": "S&P/ASX 200", "ticker": "AS51"},
+    {"id": "KOSPI200", "market_id": "KR", "name": "KOSPI 200", "ticker": "KOSPI2"},
+    {"id": "IBOV", "market_id": "BR", "name": "Ibovespa", "ticker": "IBOV"},
+    {"id": "TSX60", "market_id": "CA", "name": "S&P/TSX 60", "ticker": "TX60"},
 ]
 
 # Primary index per market carries the full top-1000 scaffold universe.
@@ -253,12 +254,11 @@ def _market_universe(market_id: str) -> Tuple[Dict[str, Any], ...]:
 
         return india_equity_universe()
 
-    if mid == "US":
-        from app.data.us_listings import us_equity_universe
+    from app.data.us_listings import world_universe
 
-        listed = us_equity_universe()
-        if listed:
-            return _with_anchor_tags(listed)
+    listed = world_universe(mid)
+    if listed:
+        return _with_anchor_tags(listed)
 
     rows: List[StockRow] = []
     seen: set = set()
@@ -317,26 +317,26 @@ def market_is_listed(market_id: str) -> bool:
     mid = market_id.upper()
     if mid == "IN":
         return True
-    if mid == "US":
-        from app.data.us_listings import us_equity_universe
+    from app.data.us_listings import world_universe
 
-        return bool(us_equity_universe())
-    return False
+    return bool(world_universe(mid))
 
 
 def index_is_listed(index_id: str) -> bool:
     """True when every member of the index comes from a published listing.
 
-    Outside India only the primary index carries the listing master; secondary
-    indexes (DJI, NDX) hold just the hand-tagged anchors and would read as a
-    partial index.
+    Outside India an index is listed only when its listing file holds the full
+    membership (S&P 500, FTSE 100, DAX, …). DJI, NDX, TOPIX and SSEC hold just the
+    hand-tagged anchors and would read as a partial index.
     """
+    from app.data.us_listings import world_indexes
+
     ix = get_index_raw(index_id)
     if ix is None or not market_is_listed(ix["market_id"]):
         return False
     if ix["market_id"] == "IN":
         return ix["id"] in INDIA_INDEX_IDS
-    return ix["id"] == _PRIMARY_INDEX.get(ix["market_id"])
+    return ix["id"] in world_indexes(ix["market_id"])
 
 
 def listed_market_ids() -> List[str]:
@@ -418,7 +418,8 @@ def _constituents_cached(index_id: str) -> Tuple[StockRow, ...]:
 
         return india_index_members(iid)
 
-    if iid == _PRIMARY_INDEX.get(mid):
+    # A listed market tags each row with the indexes that named it; only pads take the whole universe.
+    if iid == _PRIMARY_INDEX.get(mid) and not market_is_listed(mid):
         return _market_universe(mid)
 
     cap = _SECONDARY_CAP.get(iid)

@@ -1,0 +1,913 @@
+{
+ "market_id": "GB",
+ "source": {
+  "FTSE100": "https://en.wikipedia.org/wiki/FTSE_100_Index"
+ },
+ "as_of": "2026-10-29",
+ "count": 100,
+ "indexes": [
+  "FTSE100"
+ ],
+ "rows": [
+  {
+   "ticker": "III",
+   "name": "3i",
+   "sector": "Investment Banking and Brokerage Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ABDN",
+   "name": "Aberdeen Group",
+   "sector": "Investment Banking and Brokerage Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ADM",
+   "name": "Admiral Group",
+   "sector": "Non-life Insurance",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "AAF",
+   "name": "Airtel Africa",
+   "sector": "Telecommunications Service Providers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ALW",
+   "name": "Alliance Witan",
+   "sector": "Closed End Investments",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "AAL",
+   "name": "Anglo American plc",
+   "sector": "Industrial Metals and Mining",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ANTO",
+   "name": "Antofagasta plc",
+   "sector": "Industrial Metals and Mining",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ABF",
+   "name": "Associated British Foods",
+   "sector": "Food Producers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "AZN",
+   "name": "AstraZeneca",
+   "sector": "Pharmaceuticals, Biotechnology and Marijuana Producers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "AUTO",
+   "name": "Autotrader Group",
+   "sector": "Software and Computer Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "AV",
+   "name": "Aviva",
+   "sector": "Life Insurance",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BAB",
+   "name": "Babcock International",
+   "sector": "Aerospace and Defense",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BA",
+   "name": "BAE Systems",
+   "sector": "Aerospace and Defense",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BBY",
+   "name": "Balfour Beatty",
+   "sector": "Construction and Materials",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BARC",
+   "name": "Barclays",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BTRW",
+   "name": "Barratt Redrow",
+   "sector": "Household Goods and Home Construction",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BP",
+   "name": "BP",
+   "sector": "Non-Renewable Energy",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BATS",
+   "name": "British American Tobacco",
+   "sector": "Tobacco",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BLND",
+   "name": "British Land",
+   "sector": "Real Estate Investment Trusts",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BT.A",
+   "name": "BT Group",
+   "sector": "Telecommunications Service Providers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BNZL",
+   "name": "Bunzl",
+   "sector": "General Industrials",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BRBY",
+   "name": "Burberry Group",
+   "sector": "Personal Goods",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CNA",
+   "name": "Centrica",
+   "sector": "Gas, Water and Multi-utilities",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CCEP",
+   "name": "Coca-Cola Europacific Partners",
+   "sector": "Beverages",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CCH",
+   "name": "Coca-Cola HBC",
+   "sector": "Beverages",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CPG",
+   "name": "Compass Group",
+   "sector": "Consumer Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CCC",
+   "name": "Computacenter",
+   "sector": "Software and Computer Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CTEC",
+   "name": "Convatec",
+   "sector": "Medical Equipment and Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "CRDA",
+   "name": "Croda International",
+   "sector": "Chemicals",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "DCC",
+   "name": "DCC Energy",
+   "sector": "Industrial Support Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "DGE",
+   "name": "Diageo",
+   "sector": "Beverages",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "DPLM",
+   "name": "Diploma",
+   "sector": "Industrial Support Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "EZJ",
+   "name": "EasyJet",
+   "sector": "Travel and Leisure",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "EDV",
+   "name": "Endeavour Mining",
+   "sector": "Precious Metals and Mining",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "EXPN",
+   "name": "Experian",
+   "sector": "Industrial Support Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "FCIT",
+   "name": "F & C Investment Trust",
+   "sector": "Closed End Investments",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "FRES",
+   "name": "Fresnillo plc",
+   "sector": "Precious Metals and Mining",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "GAW",
+   "name": "Games Workshop",
+   "sector": "Leisure Goods",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "GLEN",
+   "name": "Glencore",
+   "sector": "Industrial Metals and Mining",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "GSK",
+   "name": "GSK plc",
+   "sector": "Pharmaceuticals, Biotechnology and Marijuana Producers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "HLN",
+   "name": "Haleon",
+   "sector": "Pharmaceuticals, Biotechnology and Marijuana Producers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "HLMA",
+   "name": "Halma plc",
+   "sector": "Electronic and Electrical Equipment",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "HSX",
+   "name": "Hiscox",
+   "sector": "Non-life Insurance",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "HWDN",
+   "name": "Howdens Joinery",
+   "sector": "Retailers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "HSBA",
+   "name": "HSBC",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ICG",
+   "name": "ICG",
+   "sector": "Investment Banking and Brokerage Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "IGG",
+   "name": "IG Group",
+   "sector": "Investment Banking and Brokerage Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "IHG",
+   "name": "IHG Hotels & Resorts",
+   "sector": "Travel and Leisure",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "IMI",
+   "name": "IMI",
+   "sector": "Electronic and Electrical Equipment",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "IMB",
+   "name": "Imperial Brands",
+   "sector": "Tobacco",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "INF",
+   "name": "Informa",
+   "sector": "Media",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "IAG",
+   "name": "International Airlines Group",
+   "sector": "Travel and Leisure",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ITRK",
+   "name": "Intertek",
+   "sector": "Industrial Support Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "INVP",
+   "name": "Investec",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ITH",
+   "name": "Ithaca Energy",
+   "sector": "Non-Renewable Energy",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "JD",
+   "name": "JD Sports",
+   "sector": "Retailers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "KGF",
+   "name": "Kingfisher plc",
+   "sector": "Retailers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "LAND",
+   "name": "Land Securities",
+   "sector": "Real Estate Investment Trusts",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "LGEN",
+   "name": "Legal & General",
+   "sector": "Life Insurance",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BGEO",
+   "name": "Lion Finance Group",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "LLOY",
+   "name": "Lloyds Banking Group",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "LSEG",
+   "name": "London Stock Exchange Group",
+   "sector": "Finance and Credit Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "LMP",
+   "name": "LondonMetric Property",
+   "sector": "Real Estate Investment Trusts",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "MNG",
+   "name": "M&G",
+   "sector": "Investment Banking and Brokerage Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "MKS",
+   "name": "Marks & Spencer",
+   "sector": "Personal Care, Drug and Grocery Stores",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "MRO",
+   "name": "Melrose Industries",
+   "sector": "Aerospace and Defense",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "MTLN",
+   "name": "Metlen Energy & Metals",
+   "sector": "Gas, Water and Multi-utilities",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "NG",
+   "name": "National Grid plc",
+   "sector": "Gas, Water and Multi-utilities",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "NWG",
+   "name": "NatWest Group",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "NXT",
+   "name": "Next plc",
+   "sector": "Retailers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "PSON",
+   "name": "Pearson plc",
+   "sector": "Media",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "PSH",
+   "name": "Pershing Square Holdings",
+   "sector": "Closed End Investments",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "PCT",
+   "name": "Polar Capital Technology Trust",
+   "sector": "Closed End Investments",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "PRU",
+   "name": "Prudential plc",
+   "sector": "Life Insurance",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "RKT",
+   "name": "Reckitt",
+   "sector": "Personal Care, Drug and Grocery Stores",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "REL",
+   "name": "RELX",
+   "sector": "Software and Computer Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "RTO",
+   "name": "Rentokil Initial",
+   "sector": "Industrial Support Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "RIO",
+   "name": "Rio Tinto",
+   "sector": "Industrial Metals and Mining",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "RR",
+   "name": "Rolls-Royce Holdings",
+   "sector": "Aerospace and Defense",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SGE",
+   "name": "Sage Group",
+   "sector": "Software and Computer Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SBRY",
+   "name": "Sainsbury's",
+   "sector": "Personal Care, Drug and Grocery Stores",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SMT",
+   "name": "Scottish Mortgage Investment Trust",
+   "sector": "Closed End Investments",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SGRO",
+   "name": "Segro",
+   "sector": "Real Estate Investment Trusts",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SVT",
+   "name": "Severn Trent",
+   "sector": "Gas, Water and Multi-utilities",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SHEL",
+   "name": "Shell plc",
+   "sector": "Non-Renewable Energy",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SN",
+   "name": "Smith & Nephew",
+   "sector": "Medical Equipment and Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SMIN",
+   "name": "Smiths Group",
+   "sector": "General Industrials",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SPX",
+   "name": "Spirax Group",
+   "sector": "Industrial Engineering",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SSE",
+   "name": "SSE plc",
+   "sector": "Electricity",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "STJ",
+   "name": "St. James's Place",
+   "sector": "Investment Banking and Brokerage Services",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "STAN",
+   "name": "Standard Chartered",
+   "sector": "Banks",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "SDLF",
+   "name": "Standard Life",
+   "sector": "Life Insurance",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "TSCO",
+   "name": "Tesco",
+   "sector": "Personal Care, Drug and Grocery Stores",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "BBOX",
+   "name": "Tritax Big Box REIT",
+   "sector": "Real Estate Investment Trusts",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "ULVR",
+   "name": "Unilever",
+   "sector": "Personal Care, Drug and Grocery Stores",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "UU",
+   "name": "United Utilities",
+   "sector": "Gas, Water and Multi-utilities",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "VOD",
+   "name": "Vodafone Group",
+   "sector": "Telecommunications Service Providers",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "WEIR",
+   "name": "Weir",
+   "sector": "Industrial Engineering",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "WTB",
+   "name": "Whitbread",
+   "sector": "Travel and Leisure",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  },
+  {
+   "ticker": "WPP",
+   "name": "WPP",
+   "sector": "Media",
+   "exchange": "LSE",
+   "index_ids": [
+    "FTSE100"
+   ]
+  }
+ ]
+}

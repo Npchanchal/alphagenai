@@ -10,7 +10,7 @@ import io
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from app.services import repository
 from app.services.pdf_minimal import text_to_pdf
@@ -290,13 +290,16 @@ def bulk_outcomes_export(
     format: str = "json",
     market: Optional[str] = None,
     limit: int = 500,
+    in_scope: Optional[Callable[[str], bool]] = None,
 ) -> Any:
-    """PIT outcomes bulk export — JSON or CSV."""
+    """PIT outcomes bulk export — JSON or CSV. ``in_scope`` keeps the desk's markets only."""
     fmt = (format or "json").lower()
     limit = max(1, min(int(limit), 5000))
     rows: List[Dict[str, Any]] = []
 
     for c in repository.list_company_summaries():
+        if in_scope is not None and not in_scope(c.id):
+            continue
         try:
             detail = repository.get_company_gci(c.id)
         except Exception:
