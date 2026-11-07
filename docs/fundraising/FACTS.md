@@ -61,6 +61,24 @@ Year-1 plan in the business plan: 15–20 design-partner desks, convert some to 
 - Retail signup and retail checkout stay off until a written SEBI Research Analyst memo says otherwise.
 - Do not write “SEBI registered,” “SEBI cleared,” or “compliant with RA regulations.” Write: counsel review is in the use of funds; the product is sold to desks.
 
+## Lines from the 29 October 2026 slides
+
+The data-lake, trust-layer, and defensibility slides are corrected before they leave the company. Reasons and figures: [`docs/prd/PRD_SCALE_AND_MOAT.md`](../prd/PRD_SCALE_AND_MOAT.md) sections 3 and 7.
+
+| Do not say | Say |
+|---|---|
+| 12 million filings, 65–80 TB data lake | We store each filing the index reads, once, with its hash and the date we read it. Then the production count from the coverage progress page. |
+| 25,000 hand-labeled evidence points | The live count of reviewed rows that cite both filings, and the target: Sensex 30 and Nifty 50 at established depth by 31 March 2027. |
+| 5,000 companies × 20 years | Nifty 500 and S&P 500 filings from January 2024. Sensex is the scored universe. |
+| $600K cloud credits, built on GCP (Document AI, BigQuery, AlloyDB) | Hosted on AWS in Mumbai. Credits only once granted, and only for the extraction evaluation. |
+| Filings kept as a trade secret in Glacier | The defensible asset is the reviewed record: promise, revisions, result, reviewer, and date, in an append-only ledger. |
+| We keep the weighting logic proprietary | The method is published. Every number can be rebuilt from its two filings. |
+| ETF-ready, royalty on AUM, GCI Leaders Index | Daily index files with checksums and a point-in-time ledger. Index licensing follows external verification. |
+| Credibility stamp for earnings risk; Trojan horse distribution | Do not use. The first implies a forecast. The second is internal language. |
+| Guidance Confidence Index | Guidance Credibility Index (GCI) |
+| SEBI filings, earnings calls | NSE and BSE filings, filed call transcripts |
+| Sector-calibrated, region-weighted GCI | Not offered. The GCI has no sector adjustment. It scores each promise against its own stated band. |
+
 ## Category proof you may cite
 
 - The category exists in the US (Marvin, FinCatch).

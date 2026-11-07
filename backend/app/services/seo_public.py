@@ -25,14 +25,16 @@ def format_as_of(iso: Optional[str]) -> str:
 
 
 def record_sentence(outcomes) -> str:
-    closed_rows = []
-    for o in outcomes:
-        if o.actual_value is None:
-            continue
-        lab = classify_outcome(o).value
-        if lab not in CLOSED:
-            continue
-        closed_rows.append((o, lab))
+    return _sentence([(o, classify_outcome(o).value) for o in outcomes if o.actual_value is not None])
+
+
+def record_sentence_from_views(views) -> str:
+    """Same sentence from dossier ``OutcomeView`` rows, whose ``label`` already excludes uncited rows."""
+    return _sentence([(o, o.label) for o in views if o.actual_value is not None])
+
+
+def _sentence(labelled) -> str:
+    closed_rows = [(o, lab) for o, lab in labelled if lab in CLOSED]
     revenue = [r for r in closed_rows if "revenue" in (r[0].metric or "")]
     focus = revenue or closed_rows
     if not focus:

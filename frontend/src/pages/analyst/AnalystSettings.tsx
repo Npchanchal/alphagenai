@@ -421,6 +421,9 @@ export function KeysPanel() {
       <p className="muted analyst-small">
         {t("analyst.keys.docs")} <a href="/developers">{t("products.openDevelopers")}</a>
       </p>
+      <p className="muted analyst-small" data-testid="analyst-keys-excel">
+        {t("analyst.keys.excel")} <a href="/office/manifest.xml" download>{t("analyst.keys.excelManifest")}</a>
+      </p>
     </section>
   );
 }

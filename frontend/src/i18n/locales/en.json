@@ -2317,6 +2317,8 @@
   "analyst.keys.revoke": "Revoke",
   "analyst.keys.confirmRevoke": "Revoke the key “{label}”? Systems using it stop working at once.",
   "analyst.keys.docs": "Endpoints and examples:",
+  "analyst.keys.excel": "Excel: upload the GCI add-in (Insert, Add-ins, Upload My Add-in), save a key in its pane, then type =CITEALPHA.GCI(\"INFY\") in a cell for the published level.",
+  "analyst.keys.excelManifest": "Download the add-in manifest",
   "analyst.keys.err": "Could not update API keys",
   "analyst.dest.title": "Delivery destinations",
   "analyst.dest.lede": "Send Monitor runs and the weekly digest to Slack, Microsoft Teams or your own webhook. Webhook calls are signed; the signing secret is shown once.",

@@ -1,0 +1,57 @@
+{
+  "functions": [
+    {
+      "id": "GCI",
+      "name": "GCI",
+      "description": "Published Guidance Credibility Index (0-100). With a date, the level published on or before that day. #N/A with the reason when no level is published.",
+      "helpUrl": "https://citealpha.com/methodology",
+      "result": { "type": "number", "dimensionality": "scalar" },
+      "parameters": [
+        { "name": "ticker", "description": "Exchange ticker, e.g. INFY", "type": "string", "dimensionality": "scalar" },
+        { "name": "as_of", "description": "Optional date, YYYY-MM-DD", "type": "string", "dimensionality": "scalar", "optional": true }
+      ]
+    },
+    {
+      "id": "TIER",
+      "name": "TIER",
+      "description": "Confidence tier beside the published GCI: Provisional, Established, or Deep.",
+      "helpUrl": "https://citealpha.com/methodology",
+      "result": { "type": "string", "dimensionality": "scalar" },
+      "parameters": [
+        { "name": "ticker", "description": "Exchange ticker, e.g. INFY", "type": "string", "dimensionality": "scalar" },
+        { "name": "as_of", "description": "Optional date, YYYY-MM-DD", "type": "string", "dimensionality": "scalar", "optional": true }
+      ]
+    },
+    {
+      "id": "ASOF",
+      "name": "ASOF",
+      "description": "Data-as-of date of the published GCI (YYYY-MM-DD). With a date argument, the day that level was published.",
+      "helpUrl": "https://citealpha.com/methodology",
+      "result": { "type": "string", "dimensionality": "scalar" },
+      "parameters": [
+        { "name": "ticker", "description": "Exchange ticker, e.g. INFY", "type": "string", "dimensionality": "scalar" },
+        { "name": "as_of", "description": "Optional date, YYYY-MM-DD", "type": "string", "dimensionality": "scalar", "optional": true }
+      ]
+    },
+    {
+      "id": "RECORD",
+      "name": "RECORD",
+      "description": "One-sentence delivery record from the dossier, or the reason the company has no published GCI.",
+      "helpUrl": "https://citealpha.com/methodology",
+      "result": { "type": "string", "dimensionality": "scalar" },
+      "parameters": [
+        { "name": "ticker", "description": "Exchange ticker, e.g. INFY", "type": "string", "dimensionality": "scalar" }
+      ]
+    },
+    {
+      "id": "LINK",
+      "name": "LINK",
+      "description": "Address of the company dossier, where every scored period shows the guidance filing and the result filing.",
+      "helpUrl": "https://citealpha.com/methodology",
+      "result": { "type": "string", "dimensionality": "scalar" },
+      "parameters": [
+        { "name": "ticker", "description": "Exchange ticker, e.g. INFY", "type": "string", "dimensionality": "scalar" }
+      ]
+    }
+  ]
+}

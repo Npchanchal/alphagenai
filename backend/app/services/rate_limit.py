@@ -79,7 +79,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return f"ip:{client_ip(request)}"
 
     def _limit_for(self, path: str, method: str = "GET") -> Tuple[int, str]:
-        if path.startswith("/api/v1/analyst/") or path == "/api/mcp":
+        if path.startswith("/api/v1/analyst/") or path in ("/api/mcp", "/api/v1/sheet"):
             return public_api_rpm(), "public_api"
         if path == "/api/pilot-request":
             return self.auth_rpm, "auth"

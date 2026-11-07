@@ -184,6 +184,7 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | GET | `/api/analyst/house-style/preview` | Sample deck in the org's style, no company data |
 | GET · POST | `/api/v1/analyst/skills` · `/companies/{id}/commitments` · `/companies/{id}/search` · `/runs` · `/runs/{id}` · `/runs/{id}/export` | Org API key (`Authorization: Bearer ca_…`); `PUBLIC_API_RPM` per key |
 | GET · POST | `/api/mcp` | MCP server (JSON-RPC, protocol `2025-06-18`) with an org key |
+| GET | `/api/v1/sheet?tickers=INFY,TCS&as_of=` | Excel add-in (`frontend/public/office/`). Org key with `read_api`; up to 50 tickers; `PUBLIC_API_RPM` bucket. Per row: `found`, `gci`, `confidence_tier`, `as_of`, `record`, `coverage_reason`, `dossier_url`. No `as_of`: the dossier level. With `as_of`: the ledger level on that day (`as_of` is then the publication date) |
 | DELETE | `/api/analyst/monitors/{monitor_id}` | Own org only (`404` otherwise) |
 | GET · POST | `/api/analyst/projects` | List / create `{name, company_ids}`; 50 per org |
 | GET · PATCH · DELETE | `/api/analyst/projects/{project_id}` | Own org only (`404` otherwise); delete removes its files |

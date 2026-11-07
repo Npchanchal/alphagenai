@@ -66,6 +66,16 @@ def v1_skills(_ent=Depends(api_actor)) -> Dict[str, Any]:
     return public_api.list_skills()
 
 
+@router.get("/api/v1/sheet")
+def v1_sheet(tickers: str, as_of: Optional[str] = None, ent=Depends(api_actor)) -> Dict[str, Any]:
+    """Excel add-in: published GCI, tier, as-of, and record sentence for up to 50 comma-separated tickers."""
+    from app.services.entitlements import has_feature
+
+    if not has_feature(ent, "read_api"):
+        raise HTTPException(status_code=403, detail="This key's plan or role does not include API reads")
+    return public_api.sheet_levels(tickers.split(","), as_of)
+
+
 @router.get("/api/v1/analyst/companies/{company_id}/commitments")
 def v1_commitments(company_id: str, _ent=Depends(api_actor)) -> Dict[str, Any]:
     return public_api.company_commitments(company_id)

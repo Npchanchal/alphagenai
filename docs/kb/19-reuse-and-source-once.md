@@ -28,6 +28,7 @@ The browser does not call those hosts. UI goes through `frontend/src/lib/api.ts`
 | Commitments (not GCI) | `services/commitments.py`, `commitment_store.py`, `commitment_extract.py`, `commitment_monitor.py` | `commitments.json` |
 | Holdings look-through | `services/holdings.py` | Org file under `holdings/`. Reads `gci_score_cache` and the Commitment Record. Does not write a score. The saved file keeps the delivery tilt and the scheme change, and the page reloads that file. |
 | Financial Ninja | `services/ninja.py`, `api/ninja_routes.py` | Worksheets from desk inputs, saved on the organisation file. Org-scoped layer notes and a five-question desk sheet per layer. Counts of the published delivery record. The company page shows cited quotes only, with no sheet level. Does not write a GCI. |
+| Excel add-in (`=CITEALPHA.GCI`) | `services/agent/public_api.sheet_levels`, `GET /api/v1/sheet` in `api/connector_routes.py`, `frontend/public/office/` | Reads the dossier payload and `score_ledger.levels_as_of`. Does not compute or cache a GCI on the server |
 | Analyst model on a project | `services/agent/projects.py` | The analyst's figure, assumptions, sources, and what was not found. Does not write a GCI. |
 | Analyst skills, runs, exports | `services/agent/*`, `app/skills/*.json`, `api/analyst_routes.py` | Runs, projects, monitors, uploads, house style, destinations under the data dir |
 | Event filings | `services/event_filings.py` | Flag `ANALYST_EVENT_FILINGS` |
@@ -70,7 +71,6 @@ Filing walk (India Nifty 500, US S&P 500, FY22 extracts kept): `docs/kb/18-filin
 |---|---|
 | Postgres + pgvector for analyst stores | `services/agent/run_store.py` and the JSON stores named in kb 17. Not a second runtime |
 | Commitment panel on the dossier | `commitment_store` readers. The panel does not enter `gci_scoring` |
-| Office add-in | `api/connector_routes.py` and `services/agent/public_api.py` |
 | Sensex commitment review (A1 exit) | Reviewer actions on `api/analyst_routes.py`. Not a new extractor |
 | W2 labeling depth | `citealpha-guidance-review` on stored filings. Do not refetch a `url_key` hit |
 

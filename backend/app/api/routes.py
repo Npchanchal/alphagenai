@@ -3564,10 +3564,7 @@ def index_levels(as_of: Optional[str] = None) -> Dict[str, Any]:
     from app.services import score_ledger
 
     cutoff = _as_of_param(as_of) or _date.today().isoformat()
-    latest: Dict[str, Dict[str, Any]] = {}
-    for row in score_ledger.read_all():
-        if str(row.get("as_of") or "") <= cutoff:
-            latest[str(row.get("company_id"))] = row
+    latest = score_ledger.levels_as_of(cutoff)
     levels = [
         {k: r.get(k) for k in ("company_id", "gci", "confidence_tier", "as_of", "algorithm_id", "dataset_version", "reason")}
         for r in latest.values()

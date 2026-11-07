@@ -7,11 +7,13 @@ row), reviewed commitments only, cited filing passages, and org-scoped Skill run
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from datetime import date
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 
 API_VERSION = "1"
+SHEET_MAX_TICKERS = 50
 
 
 def _company(company_id: str) -> None:
@@ -55,6 +57,66 @@ def company_gci(company_id: str) -> Dict[str, Any]:
                          "actual_cite": None if r["actual_ev"] is None else r["actual_ev"] + 1}
                         for r in rec["data"]["rows"]])
     return envelope(data, citations)
+
+
+def _sheet_company_id(query: str) -> Optional[str]:
+    """Exchange ticker (INFY, 20MICRONS) or CiteAlpha id (infy, us_aapl, gb_azn); US tickers also as AAPL."""
+    from app.services import repository
+
+    row = repository.resolve_ticker_summary(query)
+    if row:
+        return str(row["id"])
+    low = query.lower()
+    for cid in (low, f"us_{low}"):
+        try:
+            repository.get_company_gci(cid)
+        except HTTPException:
+            continue
+        return cid
+    return None
+
+
+def sheet_levels(queries: List[str], as_of: Optional[str] = None) -> Dict[str, Any]:
+    """Spreadsheet function payload: the dossier's published level per ticker, or the ledger level on ``as_of``."""
+    from app.services import mailer, repository, score_ledger
+    from app.services.seo_public import record_sentence_from_views
+
+    wanted = [q.strip() for q in queries if q and q.strip()]
+    if not wanted:
+        raise HTTPException(status_code=422, detail="tickers is required")
+    if len(wanted) > SHEET_MAX_TICKERS:
+        raise HTTPException(status_code=422, detail=f"At most {SHEET_MAX_TICKERS} tickers per request")
+    cutoff = None
+    if as_of and as_of.strip():
+        try:
+            cutoff = date.fromisoformat(as_of.strip()).isoformat()
+        except ValueError:
+            raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD") from None
+    ledger = score_ledger.levels_as_of(cutoff) if cutoff else {}
+    base = mailer.public_base_url()
+    rows: List[Dict[str, Any]] = []
+    for query in wanted:
+        cid = _sheet_company_id(query)
+        if cid is None:
+            rows.append({"query": query, "found": False, "note": "No listed company with this ticker or id."})
+            continue
+        d = repository.get_company_gci(cid)
+        row: Dict[str, Any] = {"query": query, "found": True, "company_id": d.id, "ticker": d.ticker,
+                               "name": d.name, "dossier_url": f"{base}/companies/{d.id}"}
+        if cutoff:
+            hit = ledger.get(d.id) or {}
+            gci = hit.get("gci")
+            row.update(gci=gci, confidence_tier=hit.get("confidence_tier") if gci is not None else None,
+                       as_of=hit.get("as_of") if gci is not None else None, record=None,
+                       coverage_reason=None if gci is not None else f"No published GCI on or before {cutoff}.")
+        else:
+            gci = d.gci_score
+            row.update(gci=gci, confidence_tier=d.confidence_tier if gci is not None else None,
+                       as_of=d.as_of if gci is not None else None,
+                       record=record_sentence_from_views(d.outcomes) if gci is not None else None,
+                       coverage_reason=None if gci is not None else (d.coverage_reason or "No published GCI yet."))
+        rows.append(row)
+    return envelope({"as_of": cutoff, "rows": rows})
 
 
 def company_commitments(company_id: str) -> Dict[str, Any]:

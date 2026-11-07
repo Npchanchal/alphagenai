@@ -88,6 +88,15 @@ def latest_for(company_id: str) -> Optional[Dict[str, Any]]:
     return rows[-1] if rows else None
 
 
+def levels_as_of(cutoff: str) -> Dict[str, Dict[str, Any]]:
+    """Last ledger row per company dated on or before ``cutoff`` (YYYY-MM-DD). A withdrawal row has ``gci`` None."""
+    latest: Dict[str, Dict[str, Any]] = {}
+    for row in read_all():
+        if str(row.get("as_of") or "") <= cutoff:
+            latest[str(row.get("company_id"))] = row
+    return latest
+
+
 @locked
 def append(row: LedgerRow) -> bool:
     """Append ``row``. Returns False when an identical row already exists.

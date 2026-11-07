@@ -26,6 +26,8 @@ Write the requirements the way you would brief a designer who has sat with a Hea
 
 [PRD_TERMINAL.md](PRD_TERMINAL.md) is the confirmed pass over the screener, the dossier, the source viewer, and the header (25 October 2026). It extends the rows above. It does not replace them, and it is not a description of what already ships.
 
+[PRD_SCALE_AND_MOAT.md](PRD_SCALE_AND_MOAT.md) reviews the 29 October 2026 data-lake, trust-layer, and defensibility slides and the Sector Coefficient Calibration note (30 October 2026, proposed). It keeps the anchor-then-peers labeling order, a sector metric map, a spreadsheet function, and back-calculated levels for licensees. It declines fitted sector weights, secret weighting, and the GCP lake.
+
 ## Rules that apply to every PRD
 
 - A published GCI is a number in the score cache. A row enters that number only when both the guidance quote and the later reported quote are on the cited filings.
