@@ -748,6 +748,11 @@ resource "aws_ecs_task_definition" "app" {
           { name = "INTELLENS_INDEX_S3_PREFIX", value = "index" },
           { name = "INTELLENS_LEDGER_DIGEST", value = "1" }
         ] : [],
+        var.enable_filing_archive ? [
+          { name = "INTELLENS_FILING_S3_NSE", value = aws_s3_bucket.filings["nse"].bucket },
+          { name = "INTELLENS_FILING_S3_BSE", value = aws_s3_bucket.filings["bse"].bucket },
+          { name = "INTELLENS_FILING_S3_INTL", value = aws_s3_bucket.filings["intl"].bucket }
+        ] : [],
         var.ledger_digest_to != "" ? [
           { name = "INTELLENS_LEDGER_DIGEST_TO", value = var.ledger_digest_to }
         ] : []

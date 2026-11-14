@@ -3549,6 +3549,107 @@ export function fetchAdminPortalSystem(token?: string | null): Promise<AdminSyst
   return authJson("/api/admin/portal/system", undefined, token);
 }
 
+export type ArchiveExchange = "nse" | "bse" | "intl";
+
+export type AdminFilingRow = {
+  doc_id: string;
+  company_id: string;
+  name: string;
+  ticker: string;
+  market_id: string;
+  exchange: ArchiveExchange;
+  doc_type: string;
+  title: string;
+  date: string | null;
+  period: string | null;
+  url: string | null;
+  source_type: string | null;
+  review_status: string | null;
+  chars: number;
+  has_original: boolean;
+  archived: boolean;
+  s3_text: string | null;
+  s3_original: string | null;
+};
+
+export type AdminFilingDetail = AdminFilingRow & {
+  text: string;
+  public_available_at: string | null;
+  ingested_at: string | null;
+};
+
+export type FilingArchiveStatus = {
+  configured: boolean;
+  buckets: { exchange: ArchiveExchange; label: string; bucket: string | null }[];
+  archived: number;
+  running: boolean;
+  progress: { started_at?: string; uploaded?: number; failed?: number } | null;
+  last_run: { started_at: string; finished_at: string; uploaded: number; failed: number } | null;
+};
+
+export type AdminFilingQuery = {
+  q?: string;
+  exchange?: ArchiveExchange | "";
+  doc_type?: string;
+  company_id?: string;
+  date_from?: string;
+  date_to?: string;
+  in_s3?: "" | "true" | "false";
+  limit?: number;
+  offset?: number;
+};
+
+export type AdminFilingPage = {
+  total: number;
+  offset: number;
+  limit: number;
+  facets: {
+    exchange: Record<string, number>;
+    doc_type: Record<string, number>;
+    in_s3: { yes: number; no: number };
+  };
+  documents: AdminFilingRow[];
+  archive: FilingArchiveStatus;
+};
+
+export function fetchAdminFilings(query: AdminFilingQuery, token?: string | null): Promise<AdminFilingPage> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && String(value) !== "") params.set(key, String(value));
+  }
+  const qs = params.toString();
+  return authJson(`/api/admin/portal/filings${qs ? `?${qs}` : ""}`, undefined, token);
+}
+
+export function fetchAdminFiling(docId: string, token?: string | null): Promise<AdminFilingDetail> {
+  return authJson(`/api/admin/portal/filings/${encodeURIComponent(docId)}`, undefined, token);
+}
+
+/** The file as served, as a Blob, so a signed-in admin can open it in a new tab. */
+export async function fetchAdminFilingOriginal(docId: string, token?: string | null): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/api/admin/portal/filings/${encodeURIComponent(docId)}/original`, {
+    headers,
+  });
+  if (!res.ok) {
+    let body: unknown = null;
+    try {
+      body = await res.json();
+    } catch {
+      /* ignore */
+    }
+    throwFromResponse(res.status, body);
+  }
+  return res.blob();
+}
+
+export function postAdminFilingArchive(
+  token?: string | null,
+): Promise<{ status: "started" | "already_running" | "off"; reason?: string }> {
+  return authJson("/api/admin/portal/filings/archive", { method: "POST", body: "{}" }, token);
+}
+
 export function postAdminPortalCleanup(
   dryRun: boolean,
   token?: string | null,

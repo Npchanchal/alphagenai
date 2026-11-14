@@ -30,6 +30,7 @@ const PLATFORM_LAYOUT: PlatformRow[] = [
   { groupId: "tenants", group: "Tenants", id: "users", label: "Users" },
   { groupId: "index", group: "Index", id: "labeling", label: "Labeling queue" },
   { groupId: "index", group: "Index", id: "commitments", label: "Commitments" },
+  { groupId: "index", group: "Index", id: "filings", label: "Filing archive", permission: "filings.read" },
   {
     groupId: "index",
     group: "Index",

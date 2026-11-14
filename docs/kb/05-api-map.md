@@ -126,6 +126,9 @@ Requires `platform_admin_role` on session user or API key. See `docs/ADMIN_PORTA
 | GET | `/api/admin/portal/labeling` | `audit.read`. Open queue, pending extracts, source-check failures |
 | GET | `/api/admin/portal/commitments` | `audit.read`. Unreviewed commitments |
 | GET | `/api/admin/portal/system` | `system.ops` |
+| GET | `/api/admin/portal/filings` | `filings.read` (super, ops, compliance). Stored filings with `q`, `exchange` (`nse` \| `bse` \| `intl`), `doc_type`, `company_id`, `date_from`, `date_to`, `in_s3`, `limit` ≤ 200, `offset`. Returns facets and archive status |
+| GET | `/api/admin/portal/filings/{doc_id}` · `/original` | `filings.read`. Full extracted text and S3 paths; `/original` streams the file as served from the data volume, else S3. 404 when it was not kept |
+| POST | `/api/admin/portal/filings/archive` | `system.ops`. Starts one background pass copying stored filings not yet in S3 |
 | GET | `/api/admin/portal/reports` | catalog for the caller's permissions |
 | GET | `/api/admin/portal/reports/{id}` | `index`, `coverage`, `sla`, `audit-events` (`audit.read`); `usage` (`billing.read`); `trust` (`legal.read`). `?format=csv` on `audit-events` |
 | POST | `/api/admin/portal/billing/invoices` | `billing.write` |

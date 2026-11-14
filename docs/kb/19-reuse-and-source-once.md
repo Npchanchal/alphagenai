@@ -17,6 +17,7 @@ The browser does not call those hosts. UI goes through `frontend/src/lib/api.ts`
 | Job | Owner | Store / skip |
 |---|---|---|
 | Filing bytes, any market | `app/data/doc_store.py` | `find_by_url` (`url_key`), `find_by_hash`, `stored_preview`, `upsert_document` (same hash + company returns the row). Lookups are indexed in memory; do not scan `list_documents` for a URL. Body over 4,000 chars in `doc_text/<hash>.txt`; file as served in `doc_raw/<raw_sha256>` with `public_available_at` |
+| Filing copy in S3 + admin archive browser | `services/filing_archive.py`, `jobs/archive_filings.py`, `/admin?section=filings` | Copies stored text and `doc_raw/` to one bucket per exchange (NSE, BSE, other markets) after the daily walks. `filing_archive.json` ledger: a `doc_id` already copied is not uploaded again. Never fetches a source host |
 | India exchange + issuer filings | `services/exchange_filings.py` | `ingest_company_urls` records `already_stored` and does not GET |
 | SEC results releases | `services/sec_filings.py` | `ingest_company` skips exhibit URLs already stored |
 | Disclosure model read (48k) | `services/disclosures.py` | `{INTELLENS_DATA_DIR}/disclosures/{id}.json`. `read_documents` skips known chunk keys; a file fully read at 12k is not read again |

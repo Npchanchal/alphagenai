@@ -94,6 +94,25 @@ def _read_text(name: str) -> Optional[str]:
     return text
 
 
+def document_text(doc: Dict[str, Any]) -> str:
+    """Full body of a listing row. Reads ``doc_text/`` directly, so it is safe off the store lock."""
+    name = doc.get("text_file")
+    root = _text_dir()
+    if name and root is not None and (root / str(name)).exists():
+        return (root / str(name)).read_text(encoding="utf-8")
+    return str(doc.get("text") or "")
+
+
+def raw_file(raw_sha: Optional[str]) -> Optional[bytes]:
+    """The file as served, from ``doc_raw/<sha256>``, or None when it was not kept."""
+    overlay = _overlay_path()
+    want = (raw_sha or "").strip().lower()
+    if overlay is None or len(want) != 64 or not all(c in "0123456789abcdef" for c in want):
+        return None
+    path = overlay.parent / "doc_raw" / want
+    return path.read_bytes() if path.is_file() else None
+
+
 def _hydrate(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     if not doc or not doc.get("text_file"):
         return doc

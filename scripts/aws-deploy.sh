@@ -279,6 +279,11 @@ else
     -target=aws_s3_bucket_server_side_encryption_configuration.index
     -target=aws_s3_bucket_public_access_block.index
     -target=aws_iam_role_policy.ecs_task_index_s3
+    -target=aws_s3_bucket.filings
+    -target=aws_s3_bucket_server_side_encryption_configuration.filings
+    -target=aws_s3_bucket_public_access_block.filings
+    -target=aws_s3_bucket_ownership_controls.filings
+    -target=aws_iam_role_policy.ecs_task_filings_s3
     -target=aws_ecs_task_definition.app
     -target=aws_ecs_service.app
   )

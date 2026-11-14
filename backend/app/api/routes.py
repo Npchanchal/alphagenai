@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Cookie, Depends, Header, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
 
 from app.data.seed import get_data, reset_data
 from app.models.schemas import (
@@ -4351,6 +4351,89 @@ def admin_portal_system(
     actor=Depends(admin_portal_svc.require_platform_perm("system.ops")),
 ) -> Dict[str, Any]:
     return admin_portal_svc.system_status()
+
+
+@router.get("/api/admin/portal/filings")
+def admin_portal_filings(
+    q: str = "",
+    exchange: Optional[str] = None,
+    doc_type: Optional[str] = None,
+    company_id: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    in_s3: Optional[bool] = None,
+    limit: int = 50,
+    offset: int = 0,
+    actor=Depends(admin_portal_svc.require_platform_perm("filings.read")),
+) -> Dict[str, Any]:
+    """Stored filings and transcripts by exchange, with where each sits in S3."""
+    from app.services import filing_archive
+
+    return filing_archive.browse(
+        q=q,
+        exchange=exchange or None,
+        doc_type=doc_type or None,
+        company_id=company_id or None,
+        date_from=date_from or None,
+        date_to=date_to or None,
+        in_s3=in_s3,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.post("/api/admin/portal/filings/archive")
+def admin_portal_filings_archive(
+    body: Dict[str, Any] = Body(default={}),
+    actor=Depends(admin_portal_svc.require_platform_perm("system.ops")),
+) -> Dict[str, Any]:
+    """Start one upload pass of stored filings not yet in S3. Runs in the background."""
+    from app.data import audit_log
+    from app.services import filing_archive
+
+    limit = body.get("limit")
+    out = filing_archive.start_background(int(limit) if limit else None)
+    if out.get("status") == "started":
+        audit_log.record(
+            "filing_archive_run",
+            org=str(actor.get("org_id") or "platform"),
+            actor=str(actor.get("email") or actor.get("name") or "platform"),
+            role=str(actor.get("platform_admin_role") or "ops"),
+            detail={"limit": limit},
+        )
+    return out
+
+
+@router.get("/api/admin/portal/filings/{doc_id}")
+def admin_portal_filing(
+    doc_id: str,
+    actor=Depends(admin_portal_svc.require_platform_perm("filings.read")),
+) -> Dict[str, Any]:
+    from app.services import filing_archive
+
+    out = filing_archive.detail(doc_id)
+    if out is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return out
+
+
+@router.get("/api/admin/portal/filings/{doc_id}/original")
+def admin_portal_filing_original(
+    doc_id: str,
+    actor=Depends(admin_portal_svc.require_platform_perm("filings.read")),
+) -> Response:
+    """The file as the exchange or issuer served it, from the data volume or S3."""
+    from app.services import filing_archive
+
+    found = filing_archive.original_file(doc_id)
+    if found is None:
+        raise HTTPException(status_code=404, detail="The original file was not kept for this document")
+    data, ctype, name = found
+    return Response(
+        content=data,
+        media_type=ctype,
+        headers={"Content-Disposition": f'inline; filename="{name}"', "Cache-Control": "private, no-store"},
+    )
 
 
 @router.post("/api/admin/portal/billing/invoices")

@@ -48,6 +48,7 @@ ROLE_PERMISSIONS: Dict[str, Set[str]] = {
         "feedback.write",
         "pilot.manage",
         "audit.read",
+        "filings.read",
     },
     "compliance": {
         "portal.access",
@@ -55,6 +56,7 @@ ROLE_PERMISSIONS: Dict[str, Set[str]] = {
         "legal.write",
         "audit.read",
         "orgs.read",
+        "filings.read",
     },
     "billing": {
         "portal.access",
@@ -232,6 +234,8 @@ def _sections_for(actor: Dict[str, Any]) -> List[Dict[str, str]]:
         sections.append({"id": "audit", "label": "Audit"})
         sections.append({"id": "labeling", "label": "Labeling"})
         sections.append({"id": "commitments", "label": "Commitments"})
+    if "filings.read" in perms:
+        sections.append({"id": "filings", "label": "Filing archive"})
     if "audit.read" in perms or "billing.read" in perms or "legal.read" in perms:
         sections.append({"id": "reports", "label": "Reports"})
     if "pilot.manage" in perms:

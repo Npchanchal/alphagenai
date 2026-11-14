@@ -44,6 +44,17 @@ def _us_walk() -> None:
         print(json.dumps({"us_coverage": "error", "detail": type(exc).__name__}), flush=True)
 
 
+def _archive_walk() -> None:
+    try:
+        from app.services.filing_archive import archive_pending
+
+        report = archive_pending()
+        if report.get("status") != "off":
+            print(json.dumps({"filing_archive": report}), flush=True)
+    except Exception as exc:  # noqa: BLE001 — the S3 copy must not stop the review
+        print(json.dumps({"filing_archive": "error", "detail": type(exc).__name__}), flush=True)
+
+
 def serve() -> None:
     """Walk India and US filings side by side, run today's market, then sleep until 02:30 IST each day."""
     try:
@@ -59,6 +70,7 @@ def serve() -> None:
         us_walk.start()
         _india_walk()
         us_walk.join()
+        _archive_walk()
         try:
             report = run_daily()
         except Exception as exc:  # noqa: BLE001 — keep the daily loop alive

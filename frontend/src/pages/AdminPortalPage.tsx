@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import AdminFilingArchive from "../components/AdminFilingArchive";
 import CoverageEditor from "../components/CoverageEditor";
 import Skeleton from "../components/Skeleton";
 import { PLATFORM_SUPER_EMAILS } from "../lib/platformRole";
@@ -1230,6 +1231,10 @@ export default function AdminPortalPage() {
                 </table>
               )}
             </div>
+          )}
+
+          {section === "filings" && can("filings.read") && token && (
+            <AdminFilingArchive token={token} canRun={can("system.ops")} />
           )}
 
           {sections.some((s) => s.id === section) && section === "reports" && (

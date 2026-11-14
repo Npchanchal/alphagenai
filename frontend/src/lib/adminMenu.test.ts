@@ -11,6 +11,7 @@ const SUPER = [
   "audit",
   "labeling",
   "commitments",
+  "filings",
   "reports",
   "pilot-requests",
   "system",
@@ -29,6 +30,7 @@ const SUPER_PERMS = [
   "billing.write",
   "pilot.manage",
   "audit.read",
+  "filings.read",
   "system.ops",
   "portal.access",
 ];
@@ -41,7 +43,16 @@ describe("admin menus", () => {
     expect(labels).toContain("Jobs and cleanup");
     expect(labels).toContain("Index health");
     expect(labels).toContain("Trust snapshot");
+    expect(labels).toContain("Filing archive");
     expect(groups.find((g) => g.id === "system")?.items[0].to).toBe("/admin?section=system");
+  });
+
+  it("shows the filing archive only with filings.read", () => {
+    const sections = [{ id: "overview" }, { id: "filings" }];
+    const withPerm = platformMenu(sections, ["filings.read"]).flatMap((g) => g.items);
+    expect(withPerm.find((i) => i.id === "filings")?.to).toBe("/admin?section=filings");
+    const without = platformMenu(sections, ["audit.read"]).flatMap((g) => g.items.map((i) => i.label));
+    expect(without).not.toContain("Filing archive");
   });
 
   it("omits system, invoices, and trust for ops", () => {

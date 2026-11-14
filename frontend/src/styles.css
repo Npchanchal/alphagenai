@@ -6215,6 +6215,51 @@ h2 .info-tip {
   margin-top: 0;
 }
 
+.filing-archive-status {
+  margin-bottom: 1rem;
+}
+
+.filing-archive-buckets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  list-style: none;
+  font-size: 0.8rem;
+}
+
+.filing-reader {
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.filing-reader-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+}
+
+.filing-reader-meta dd {
+  margin: 0.1rem 0 0;
+  word-break: break-all;
+}
+
+.filing-reader-text {
+  max-height: 32rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
 .admin-portal-nav.panel {
   padding: 0.5rem;
 }

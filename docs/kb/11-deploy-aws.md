@@ -31,6 +31,18 @@ curl -sf http://127.0.0.1:8000/health
 
 Analyst stores (`analyst_*.json`, `analyst_house_style/`, `analyst_uploads/`) live under `INTELLENS_DATA_DIR` on EFS. Team accounts in `protected_users.json` are re-applied on every start and open on India once per `universe.version`.
 
+## Filing archive (S3)
+
+`deploy/aws/filing_archive.tf` (on with `enable_filing_archive` in the production overlay) creates three private buckets in `ap-south-1`, SSE-S3, public access blocked:
+
+| Exchange | Bucket | Holds |
+|---|---|---|
+| NSE | `intellens-gci-aws-filings-nse-884686184601` | NSE-hosted files and other Indian issuer filings |
+| BSE | `intellens-gci-aws-filings-bse-884686184601` | BSE-hosted files and BSE-only issuers |
+| Other markets | `intellens-gci-aws-filings-intl-884686184601` | SEC exhibits and every non-India market |
+
+Keys: `text/<company>/<doc_type>/<date>_<hash16>.txt` (extracted body) and `raw/…/<date>_<sha16>.pdf|html` (file as served). Object metadata carries `doc-id`, `source-url`, `filing-date`, `public-available-at`, `content-sha256`. The task gets `INTELLENS_FILING_S3_NSE|BSE|INTL`; the copy runs after the daily India and US walks, from `/admin?section=filings` (system.ops), or `python -m app.jobs.archive_filings [--dry-run] [--limit N]`.
+
 ## Mail (SES)
 
 Product mail uses Amazon SES in `ap-south-1` (`deploy/aws/ses.tf`). The task role calls `ses:SendEmail`. `INTELLENS_MAIL_TRANSPORT=ses` and `SMTP_FROM` are set when the domain is managed and `smtp_host` is empty. An `SMTP_HOST` still wins, for a staging inbox.

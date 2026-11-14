@@ -348,6 +348,12 @@ variable "enable_index_bucket" {
   description = "S3 bucket for frozen GCI CSV/Parquet (W9.2). Off until the production overlay is applied."
 }
 
+variable "enable_filing_archive" {
+  type        = bool
+  default     = false
+  description = "S3 buckets for stored filings and transcripts: NSE, BSE, and other markets."
+}
+
 variable "ledger_digest_to" {
   type        = string
   default     = ""
