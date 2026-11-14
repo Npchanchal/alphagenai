@@ -11,10 +11,11 @@ test.describe("Route crawl — all public routes load", () => {
 });
 
 test("404 page shows recovery link to GCI Screener", async ({ page }) => {
-  await page.goto("/this-route-does-not-exist");
+  const response = await page.goto("/this-route-does-not-exist");
+  expect(response?.status()).toBe(404);
   await dismissOverlays(page);
   await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
-  await page.locator("#main").getByRole("link", { name: "GCI Screener" }).first().click();
+  await page.getByRole("main").getByRole("link", { name: "GCI Screener" }).first().click();
   await expect(page).toHaveURL(/\/tracker$/);
 });
 

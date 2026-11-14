@@ -29,7 +29,7 @@ _ENV = {"nse": "INTELLENS_FILING_S3_NSE", "bse": "INTELLENS_FILING_S3_BSE", "int
 
 # Seeded outcome text and sample concalls are not filings.
 _SKIP_TYPES = frozenset({"guidance", "guidance_outcome"})
-_SKIP_SOURCES = frozenset({"sample_transcript"})
+_SKIP_SOURCES = frozenset({"sample_transcript", "ir_catalog"})
 
 _LEDGER: Optional[Dict[str, Any]] = None
 _RUN_GUARD = threading.Lock()

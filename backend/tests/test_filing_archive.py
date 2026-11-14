@@ -84,6 +84,9 @@ def test_seeded_outcome_text_and_sample_concalls_stay_out():
     docs = _seed()
     assert not filing_archive.archivable(docs["seeded"])
     assert not filing_archive.archivable({"doc_type": "transcript", "source": "sample_transcript"})
+    assert not filing_archive.archivable(
+        {"doc_type": "filing", "source": "ir_catalog", "url": "https://www.tcs.com/investor-relations"}
+    )
     assert {d["doc_id"] for d in filing_archive.pending()} == {
         docs["nse"]["doc_id"], docs["bse"]["doc_id"], docs["us"]["doc_id"]
     }
