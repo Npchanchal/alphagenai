@@ -7,13 +7,14 @@ Base: FastAPI `backend/app/api/routes.py`. Public OpenAPI (`/docs`, `/openapi.js
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/health` | Liveness |
-| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median); `published_gci_count` / `published_ranked_count`: India rows with a score from the same `score_meta` call as the screener (the one count every public page states; `PublishedCountLine`) |
+| GET | `/api/meta` | Version, gaps, `gci_algorithm`, `pending_depth`, flags; `gci_scored_count` (scoreable quality with a score), `gci_listing_unscored_count`, `sensex_scored_count` / `sensex_count`; `gci_coverage` tallies; `filing_to_score` (W2.8 target + observed median); `published_gci_count` / `published_ranked_count`: India rows with a score from the same `score_meta` call as the screener (the one count every public page states; `PublishedCountLine`). One payload is reused for `META_CACHE_SECONDS` (default 60) |
 
 **Score policy:** only `hand_labeled` companies carry a public `gci_score`. Listings and demo companies return `score: null` with status `not_yet_scored` (see `services/score_policy.py`). Outcome rows may include `revisions[]`, `revision_direction` (raised/cut/unchanged), `final_guided_low/high` and a context-only `final_label`; the score always uses the opening band.
 | GET | `/api/ops/pending-depth` | Depth backlog + optional `?bootstrap=true` |
 | POST | `/api/ops/pending-depth/bootstrap` | Nifty M2 enqueue + PIT warehouse ensure |
 | GET | `/api/ops/corpus-coverage` | Sensex hand_labeled Tier-1 gate rollup |
-| GET | `/api/public/seo-dossiers` | Hand-labeled dossier titles/descriptions for prerender + sitemap (W5.2) |
+| GET | `/api/public/seo-dossiers` | Hand-labeled dossiers with a published GCI: title (GCI · tier · data date), description, delivery sentence and dual-cited `evidence` rows for prerender, sitemap and `llms-full.txt` (W5.2) |
+| HEAD | `/api/v1/*` · `/api/public/*` · `/api/og/*` · `/api/meta` · `/health` · `/openapi.json` | Answered as GET without a body (`services/head_requests.py`); HEAD elsewhere stays 405 |
 | GET | `/api/og/{id}.png` · `/api/og/{id}.svg` | OG share card (W5.3) |
 | GET | `/api/v1/companies` · `/{id}/gci` · `/{id}/gci/history` · `/api/v1/rankings` | Public-read aliases (W8.5) |
 | GET | `/api/v1/index/files` · `/files/{name}` | Frozen daily GCI CSV + Parquet + checksum (W9.2). S3 when `INTELLENS_INDEX_S3_BUCKET` is set |

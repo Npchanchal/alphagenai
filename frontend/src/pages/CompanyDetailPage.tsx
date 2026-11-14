@@ -357,6 +357,7 @@ export default function CompanyDetailPage() {
       asOf: detail.as_of,
       dataQuality: detail.data_quality,
       recordSentence: englishRecordSentence(buildRecordParts(detail.outcomes)),
+      tier: detail.confidence_tier,
     });
     setSeoOverride(next);
     return () => setSeoOverride(null);

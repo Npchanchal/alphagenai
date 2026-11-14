@@ -19,6 +19,7 @@ def test_seo_dossiers_are_hand_labeled_and_include_infy():
     assert body["count"] == len(rows)
     assert rows
     assert all(d["data_quality"] == "hand_labeled" for d in rows)
+    assert all(d["gci_score"] is not None for d in rows)
     infy = next(d for d in rows if d["id"] == "infy")
     assert infy["gci_score"] == 76.5
     assert "Guidance Credibility Index (GCI) 76.5" in infy["title"]

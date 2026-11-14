@@ -18,7 +18,7 @@ CiteAlpha publishes GCI for Indian equity desks, starting with Sensex companies 
 - Not a sentiment score. Sentiment tracks tone. GCI tracks whether quantified guidance was delivered.
 - Not a price terminal.
 
-## What a citeable point needs
+## What a scored point needs
 
 A dated guidance statement, a matched actual for the same metric and period, an outcome label (met, exceeded, missed, dropped, or pending), and a path back to an NSE, BSE, or company IR document. A point without the guidance citation is not scored.
 

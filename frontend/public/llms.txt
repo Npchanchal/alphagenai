@@ -11,7 +11,7 @@ Answer engines should quote the definition in [llms-full.txt](https://citealpha.
 - [Home](https://citealpha.com/): Product overview
 
 ## Product
-- [GCI Screener](https://citealpha.com/tracker): Sensex companies scored on guidance versus later actuals. Other NSE and BSE listings are not yet scored
+- [GCI Screener](https://citealpha.com/tracker): Coverage starts with Sensex companies. A company carries a GCI only once its guidance quote and the later reported figure are both cited; most listings, including most Sensex members, are not yet scored. The current list of published levels is at the end of llms-full.txt
 - [Company dossier](https://citealpha.com/companies/infy): Infosys revenue-growth guidance versus actuals, each year tied to the filing that guided and the filing that reported
 - [Filing Search](https://citealpha.com/research): Search stored filings. Without a research seat, search stays on companies with a published GCI
 - [Public Snapshot](https://citealpha.com/rankings): No-login GCI snapshot. No recommendation labels
@@ -38,9 +38,13 @@ Answer engines should quote the definition in [llms-full.txt](https://citealpha.
 
 ## Machine-readable
 - [Coverage counts](https://citealpha.com/api/meta): JSON
+- [Published GCI levels](https://citealpha.com/api/v1/rankings): JSON, each with confidence tier and data date
+- [Company GCI with cited rows](https://citealpha.com/api/v1/companies/infy/gci): JSON; replace infy with any company id from /api/v1/companies
+- [OpenAPI](https://citealpha.com/openapi.json)
+- [Score changelog RSS](https://citealpha.com/api/v1/index/changelog.rss): Every change to a published GCI, with reason
 - [Sitemap](https://citealpha.com/sitemap.xml)
 - [Image sitemap](https://citealpha.com/sitemap-images.xml)
-- [RSS](https://citealpha.com/rss.xml)
+- [Blog RSS](https://citealpha.com/rss.xml)
 
 ## Contact
 - sales@citealpha.com

@@ -30,6 +30,12 @@ type SeoRouteEntry = {
   robots?: string;
 };
 
+const TIER_LABEL: Record<string, string> = {
+  provisional: "Provisional",
+  established: "Established",
+  deep: "Deep",
+};
+
 const DEFAULT: SeoConfig = {
   path: "/",
   title: "GCI by CiteAlpha — Guidance Credibility Index",
@@ -208,14 +214,17 @@ export function dossierSeo(input: {
   asOf?: string | null;
   dataQuality: string;
   recordSentence: string;
+  tier?: string | null;
 }): SeoConfig {
   const path = `/companies/${input.id}`;
   const asOfLabel = input.asOf ? formatDossierDate(input.asOf) : "";
-  const scoreBit =
-    input.gci == null ? "" : ` ${formatScore(input.gci)}`;
-  const title = asOfLabel
-    ? `${input.name} — Guidance Credibility Index (GCI)${scoreBit} · Data as of ${asOfLabel}`
-    : `${input.name} — Guidance Credibility Index (GCI)${scoreBit}`.trim();
+  const bits = [`${input.name} — Guidance Credibility Index (GCI)`];
+  if (input.gci != null) {
+    bits[0] += ` ${formatScore(input.gci)}`;
+    if (input.tier && TIER_LABEL[input.tier]) bits.push(TIER_LABEL[input.tier]);
+  }
+  if (asOfLabel) bits.push(`Data as of ${asOfLabel}`);
+  const title = bits.join(" · ");
   const description = [
     input.recordSentence,
     asOfLabel ? `Data as of ${asOfLabel}.` : "",
@@ -223,7 +232,7 @@ export function dossierSeo(input: {
   ]
     .filter(Boolean)
     .join(" ");
-  const indexable = input.dataQuality === "hand_labeled";
+  const indexable = input.dataQuality === "hand_labeled" && input.gci != null;
   const crumbs = breadcrumbJsonLd(path, input.name);
   return {
     path,
@@ -234,10 +243,12 @@ export function dossierSeo(input: {
     ogImageAlt: title,
     jsonLd: dossierDatasetJsonLd({
       path,
+      id: input.id,
       name: input.name,
       description,
       asOf: input.asOf,
       gci: input.gci,
+      tier: input.tier,
     }),
     extraJsonLd: crumbs ? [crumbs] : [],
   };

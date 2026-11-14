@@ -31,6 +31,65 @@
       ],
       "version": "1.0.0",
       "updatedAt": "2026-10-25T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:citealpha.com:openapi",
+      "displayName": "CiteAlpha public API (OpenAPI)",
+      "type": "application/json",
+      "url": "https://citealpha.com/openapi.json",
+      "description": "OpenAPI description of the CiteAlpha API. The /api/v1 company, GCI, rankings and changelog reads need no key.",
+      "representativeQueries": [
+        "Which endpoint returns a company's GCI with its cited rows?",
+        "How do I list companies covered by CiteAlpha?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-11-14T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:citealpha.com:gci-rankings",
+      "displayName": "Published GCI levels",
+      "type": "application/json",
+      "url": "https://citealpha.com/api/v1/rankings",
+      "description": "Companies with a published Guidance Credibility Index, each with its confidence tier and data date. A company that is not listed has no published GCI.",
+      "representativeQueries": [
+        "Which Indian companies have a published GCI?",
+        "What is Infosys's Guidance Credibility Index?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-11-14T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:citealpha.com:company-gci",
+      "displayName": "Company GCI with cited rows",
+      "type": "application/json",
+      "url": "https://citealpha.com/api/v1/companies/{company_id}/gci",
+      "description": "One company's GCI, confidence tier, and the guidance and result filings behind each scored row. Company ids come from https://citealpha.com/api/v1/companies.",
+      "representativeQueries": [
+        "Which filings support this company's GCI?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-11-14T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:citealpha.com:changelog-rss",
+      "displayName": "GCI score changelog (RSS)",
+      "type": "application/rss+xml",
+      "url": "https://citealpha.com/api/v1/index/changelog.rss",
+      "description": "Every change to a published GCI, with the before and after level and the reason: methodology, data correction, new filing, or flag change.",
+      "representativeQueries": [
+        "Why did a company's GCI change?"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-11-14T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:citealpha.com:sitemap",
+      "displayName": "Sitemap",
+      "type": "application/xml",
+      "url": "https://citealpha.com/sitemap.xml",
+      "description": "Every indexable public page, including one page per company with a published GCI.",
+      "version": "1.0.0",
+      "updatedAt": "2026-11-14T00:00:00Z"
     }
   ]
 }

@@ -788,7 +788,8 @@ def _append_changelog(
             payload = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             payload = {"entries": []}
-    bits = [f"{row.company_id} {row.prior_gci} → {row.gci}" for row in moves]
+    names = {c["id"]: c.get("name") or c["id"] for c in list_companies()}
+    bits = [f"{names.get(row.company_id, row.company_id)} {row.prior_gci} → {row.gci}" for row in moves]
     payload.setdefault("entries", []).insert(
         0,
         {

@@ -6,8 +6,8 @@ Expert-grade UI/UX for the homepage, GCI Screener, company dossier, Public Snaps
 
 ## Load
 
-- Skills: `citealpha-expert-ux` (public surfaces) · `citealpha-frontend-ux` (Workbench/Research chrome)
-- Rules: `frontend`, `frontend-ux`, `public-copy-voice`, `compliance-sebi`, `index-integrity`
+- Skills: `citealpha-expert-ux` (public surfaces) · `citealpha-frontend-ux` (Workbench/Research chrome) · `citealpha-search-visibility` (crawler HTML, JSON-LD, sitemaps, llms files)
+- Rules: `frontend`, `frontend-ux`, `public-copy-voice`, `compliance-sebi`, `index-integrity`, `seo-marketing`
 - KB: `docs/kb/06-frontend-ux.md`
 - Prompt: `docs/prompts/PROFESSIONAL_SITE_PROMPT.md`
 - Plan: `docs/PLAN_WORLDCLASS_GCI.md` (W3, W4, W6, W7)
@@ -20,6 +20,7 @@ Expert-grade UI/UX for the homepage, GCI Screener, company dossier, Public Snaps
 - Unscored rows sort last; "Not yet scored" explains why
 - Quality badges, disclaimers, accessible nav; preserve E2E `data-testid`s
 - Mobile 390 px readable header/record; tables scroll
+- A new public route also gets a crawler body in `seo-shared.mjs`, a `seoRoutes.json` entry, and its first segment in `nginx.spa-routes.conf`
 
 ## Do not
 

@@ -16,6 +16,7 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks und
 6. Any change that moves a published GCI follows `citealpha-index-integrity` (ledger + changelog).
 7. Public copy is for domain experts: rule `public-copy-voice`; canonical names GCI Screener · Analyst Workbench · Filing Search · Disclosure Explorer · Public Snapshot.
 8. Do not duplicate a shipped owner or refetch a stored source. Rules `reuse-before-add` and `source-once`; skill `citealpha-reuse-sources`; map `docs/kb/19-reuse-and-source-once.md`.
+9. A public page must read the same to a crawler that runs no JavaScript: a prerendered body, a published GCI with its tier and data date in the title, real 404s, no build-day sitemap dates. A new top-level route also goes in `frontend/nginx.spa-routes.conf`. Rule `seo-marketing`; skill `citealpha-search-visibility`.
 
 ## Current programme
 
@@ -31,7 +32,7 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks und
 |---|---|
 | [index-steward](.cursor/agents/index-steward.md) | Score policy, confidence tiers, ledger, changelog, labeling governance, index governance |
 | [gci-engineer](.cursor/agents/gci-engineer.md) | Scoring, APIs, pipeline, Screener/dossier backend |
-| [frontend-designer](.cursor/agents/frontend-designer.md) | Expert-grade UI/UX: homepage, dossier, Screener, Snapshot, Workbench chrome |
+| [frontend-designer](.cursor/agents/frontend-designer.md) | Expert-grade UI/UX: homepage, dossier, Screener, Snapshot, Workbench chrome; search and answer-engine visibility |
 | [research-terminal](.cursor/agents/research-terminal.md) | Search, cite-only chat, snapshots |
 | [labeling-analyst](.cursor/agents/labeling-analyst.md) | Hand-labeled Sensex outcomes |
 | [guidance-reviewer](.cursor/agents/guidance-reviewer.md) | Daily guidance-quote and later-filing review, one market per day |

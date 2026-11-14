@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "../lib/analytics";
 import { fetchAbuseChallenge, postPilotRequest } from "../lib/api";
@@ -24,16 +24,27 @@ export default function PilotRequestForm({ source = "landing", compact = false }
   const [success, setSuccess] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const [challengeFailed, setChallengeFailed] = useState(false);
+  const started = useRef(false);
 
   async function loadChallenge() {
+    setChallengeFailed(false);
     try {
       const ch = await fetchAbuseChallenge();
       setChallengeId(ch.challenge_id);
       setChallengePrompt(ch.prompt);
       setChallengeAnswer("");
     } catch {
-      setChallengePrompt(t("ui.PilotRequestForm.challengeError"));
+      setChallengeId("");
+      setChallengePrompt("");
+      setChallengeFailed(true);
     }
+  }
+
+  function onFirstFocus() {
+    if (started.current) return;
+    started.current = true;
+    trackEvent("pilot_form_start", { source });
   }
 
   useEffect(() => {
@@ -97,6 +108,7 @@ export default function PilotRequestForm({ source = "landing", compact = false }
     <form
       className={`auth-form pilot-request-form${compact ? " pilot-request-form--compact" : ""}`}
       onSubmit={(e) => void onSubmit(e)}
+      onFocus={onFirstFocus}
       data-testid="pilot-request-form"
     >
       <div className="pilot-form-grid">
@@ -177,6 +189,16 @@ export default function PilotRequestForm({ source = "landing", compact = false }
             data-testid="pilot-challenge"
           />
         </label>
+      ) : null}
+      {challengeFailed ? (
+        <p className="error" data-testid="pilot-challenge-error">
+          {t("ui.PilotRequestForm.challengeError")}{" "}
+          <button type="button" className="btn small" onClick={() => void loadChallenge()}>
+            {t("ui.PilotRequestForm.challengeRetry")}
+          </button>{" "}
+          {t("ui.PilotRequestForm.emailInstead")}{" "}
+          <a href="mailto:sales@citealpha.com?subject=CiteAlpha%20evaluation%20request">sales@citealpha.com</a>.
+        </p>
       ) : null}
       {error ? <p className="error">{error}</p> : null}
       <button type="submit" className="btn primary" disabled={busy || !challengeId} data-testid="pilot-submit">

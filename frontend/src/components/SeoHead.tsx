@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useI18n } from "../i18n";
-import { ogLocaleFor } from "../i18n/languages";
 import { resolveSeo } from "../lib/seo";
 import { getSeoOverride, subscribeSeoOverride } from "../lib/seoOverride";
 import { SITE } from "../lib/seoJsonLd";
@@ -20,6 +19,8 @@ function upsertLink(rel: string, href: string, extra?: Record<string, string>) {
   let selector = `link[rel="${rel}"]`;
   if (extra?.hreflang) {
     selector = `link[rel="${rel}"][hreflang="${extra.hreflang}"]`;
+  } else if (extra?.["data-feed"]) {
+    selector = `link[rel="${rel}"][data-feed="${extra["data-feed"]}"]`;
   } else if (extra?.type) {
     selector = `link[rel="${rel}"][type="${extra.type}"]`;
   } else if (rel === "canonical") {
@@ -101,7 +102,8 @@ export default function SeoHead() {
     upsertMeta("property", "og:url", url);
     upsertMeta("property", "og:image", ogImage);
     upsertMeta("property", "og:image:alt", seo.ogImageAlt ?? seo.title);
-    upsertMeta("property", "og:locale", ogLocaleFor(lang));
+    // Every URL is the English page; a reader's language choice does not create another document.
+    upsertMeta("property", "og:locale", "en_IN");
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", seo.title);
     upsertMeta("name", "twitter:description", seo.description);
@@ -115,7 +117,16 @@ export default function SeoHead() {
     upsertLink("canonical", url);
     upsertLink("alternate", url, { hreflang: "x-default" });
     upsertLink("alternate", url, { hreflang: "en-IN" });
-    upsertLink("alternate", `${SITE}/rss.xml`, { type: "application/rss+xml", title: "CiteAlpha Research Blog" });
+    upsertLink("alternate", `${SITE}/rss.xml`, {
+      type: "application/rss+xml",
+      title: "CiteAlpha Research Blog",
+      "data-feed": "blog",
+    });
+    upsertLink("alternate", `${SITE}/api/v1/index/changelog.rss`, {
+      type: "application/rss+xml",
+      title: "GCI score changelog",
+      "data-feed": "changelog",
+    });
 
     const gsc = import.meta.env.VITE_GSC_VERIFICATION?.trim();
     if (gsc) upsertMeta("name", "google-site-verification", gsc);

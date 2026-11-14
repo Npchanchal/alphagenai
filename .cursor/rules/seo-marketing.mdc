@@ -1,16 +1,47 @@
 ---
-description: SEO, prerender, and marketing site conventions
-globs: "{frontend/src/lib/{seo,blogMeta,blogPosts,siteFlags}.ts,frontend/src/components/SeoHead.tsx,frontend/scripts/prerender-seo.mjs,frontend/public/{sitemap.xml,robots.txt,site.webmanifest},docs/MARKETING_PLAN.md}"
+description: Search, answer-engine and AI visibility (SEO, AEO, GEO, LLMO, AXO, SXO, CRO) for the public site — prerender, JSON-LD, sitemaps, llms files, nginx crawl surface
+globs: "{frontend/src/lib/{seo,seoJsonLd,blogMeta,blogPosts,siteFlags}.ts,frontend/src/lib/{seoRoutes,seo-structured-data,seoDossiers}.json,frontend/src/components/{SeoHead,PilotRequestForm}.tsx,frontend/scripts/{prerender-seo,seo-shared}.mjs,frontend/public/{sitemap.xml,robots.txt,site.webmanifest,llms.txt,llms-full.txt,ai.txt,404.html},frontend/public/.well-known/**,frontend/nginx*.conf,frontend/Dockerfile*,backend/app/services/{seo_public,og_card,head_requests}.py,docs/MARKETING_PLAN.md}"
 alwaysApply: false
 ---
 
-# SEO / Marketing
+# Search and answer-engine visibility
 
-- Meta tags via `SeoHead.tsx` and `lib/seo.ts`; route map in `lib/seoRoutes.json`.
-- Prerender: `frontend/scripts/prerender-seo.mjs` — keep titles/descriptions factual, no accuracy over-claims.
-- Blog meta: `lib/blogMeta.ts` / `blogPosts.ts` — cite-only, India GCI positioning; not investment advice.
-- Public assets: `sitemap.xml`, `robots.txt`, `site.webmanifest` stay in sync with routes.
-- Company dossiers for `hand_labeled` names are **indexable**: per-ticker title ("Infosys — Guidance Credibility Index (GCI) …"), description with delivery record + as-of, `Dataset` JSON-LD, OG share card, sitemap + prerender entries. Non-hand-labeled dossiers stay `noindex`.
-- Every score-bearing page carries "Data as of" in its meta description.
-- Competitor names only in internal docs — never in public SEO copy or OG tags.
-- Align claims with `hand_labeled` cohort reality and `docs/customer/COMPLIANCE.md`.
+Skill `citealpha-search-visibility` has the audit commands. Copy follows `public-copy-voice`; numbers follow `index-integrity`.
+
+## Crawler HTML is the page
+
+- A crawler that runs no JavaScript must read the same words a reader sees. `prerender-seo.mjs` writes a body for every public route: marketing pages from `seo-shared.mjs` with `en.json` strings (`loadEnglishStrings`), Methodology / Workflows / Changelog from `en.json` and the public API, dossiers from `/api/public/seo-dossiers`.
+- `npm run build` snapshots `/api/public/seo-dossiers` into `src/lib/seoDossiers.json` first. The AWS image pins `PRERENDER_API_URL=https://citealpha.com` with `PRERENDER_REQUIRE_API=1`; an unreachable API fails the build rather than ship old scores.
+- Fetch helpers live in `prerender-seo.mjs`, not `seo-shared.mjs` (the copy-hygiene scan bans the word in `AbortSignal`).
+- `dist/llms-full.txt` gains a "Published GCI levels" section at build from the same rows as the dossiers. Never hand-write a score into `public/llms*.txt`.
+
+## Which pages are indexable
+
+- A dossier is indexable only when `data_quality == "hand_labeled"` **and** it has a published GCI. Same test in `seo.ts` (`dossierSeo`) and `seo_public.list_indexable_dossiers`. Everything else is `noindex`.
+- Dossier title: `{name} — Guidance Credibility Index (GCI) {gci} · {tier} · Data as of {d Mon yyyy}` (`seo_public.dossier_title`, `seo-shared.dossierTitle`, `seo.ts`). The tier sits next to the number everywhere, title and OG card included.
+- Delivery sentence counts dual-cited closed rows only: "Met or beat … in 4 of 5 closed years; missed FY24." / "Missed … in FY25, the only closed year." Backend `seo_public._sentence` and `score.ts englishRecordSentence` say the same words.
+- Unknown paths are a real 404. `nginx.spa-routes.conf` maps the first segment of every route in `App.tsx`; a new top-level route needs a line there (`tests/test_seo_crawl_surface.py` fails otherwise). `/.well-known/*` without a file is 404.
+
+## Structured data
+
+- Organization (`sameAs` only real external profiles; omit when empty), WebSite, Service (not SoftwareApplication) on `/`.
+- `FAQPage` only on `/answers`. `HowTo` on `/about`. Speakable selector `.seo-speakable` only.
+- Dossier: `Dataset` from `seo-shared.dossierDatasetJsonLd` (GCI and tier as `PropertyValue`, `DataDownload` → `/api/v1/companies/{id}/gci`, `dateModified` = as-of) plus `BreadcrumbList`. Same shape in `seoJsonLd.ts`.
+
+## Sitemaps and feeds
+
+- `lastmod` is a real date: the as-of for a dossier, the newest changelog entry for `/changelog`, `/tracker`, `/rankings`, the newest post for `/blog`, or `route.sitemap.lastmod`. Never the build day.
+- Image sitemap: each `<loc>` is a page; dossiers list their OG card `/api/og/{id}.png`. Titles are XML-escaped.
+- Advertise both feeds (`/rss.xml`, `/api/v1/index/changelog.rss`) in `index.html`, `SeoHead`, `llms.txt` and `.well-known/ai-catalog.json`.
+
+## Serving
+
+- `location ^~ /api/` so the static `\.png|\.svg|\.xml` regexes never answer an API path. HEAD on public reads (`/api/v1/`, `/api/public/`, `/api/og/`, `/api/meta`, `/health`, `/openapi.json`) is answered as GET without a body (`head_requests.py`).
+- `og:locale` is `en_IN` on every URL; the language switcher does not create indexable pages.
+- Search Console / Bing verification tags come from `VITE_GSC_VERIFICATION` / `VITE_BING_VERIFICATION` and are written into prerendered HTML.
+
+## Copy
+
+- Every score-bearing page carries "Data as of" in its meta description. Coverage claims say how many companies are scored; never imply all of the Sensex is.
+- Competitor names only in internal docs — never in public SEO copy or OG tags. No Buy / Hold / Sell.
+- Brand marks, favicons and manifest `icons` are off limits (`brand-assets`).

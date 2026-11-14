@@ -4,14 +4,50 @@ export const SITE = structured.site;
 
 type JsonLd = Record<string, unknown>;
 
-const ORG = structured.org;
+type Founder = { name: string; jobTitle?: string; sameAs?: string[] };
+type OrgData = {
+  name: string;
+  legalName: string;
+  email: string;
+  identifier?: Record<string, string>;
+  address?: Record<string, string>;
+  parentOrganization?: Record<string, string>;
+  socialProfiles?: string[];
+  founders?: Founder[];
+};
 
-function orgSameAs(): string[] {
-  const social = (ORG as { socialProfiles?: string[] }).socialProfiles ?? [];
-  return [...ORG.sameAs, ...social.filter(Boolean)];
+const ORG = structured.org as OrgData;
+
+/** Profiles on other sites only; a citealpha.com URL here tells a search engine nothing. */
+export function externalUrls(urls: string[] | undefined): string[] {
+  return (urls ?? []).filter((u) => Boolean(u) && u.startsWith("https://") && !u.startsWith(SITE));
+}
+
+export const SOCIAL_PROFILES = externalUrls(ORG.socialProfiles);
+
+/** Same output as orgEntityFields in scripts/seo-shared.mjs. */
+function orgEntityFields(): JsonLd {
+  const founders = (ORG.founders ?? [])
+    .filter((f) => f?.name)
+    .map((f) => {
+      const sameAs = externalUrls(f.sameAs);
+      return {
+        "@type": "Person",
+        name: f.name,
+        ...(f.jobTitle ? { jobTitle: f.jobTitle } : {}),
+        ...(sameAs.length ? { sameAs } : {}),
+      };
+    });
+  return {
+    ...(ORG.identifier ? { identifier: { "@type": "PropertyValue", ...ORG.identifier } } : {}),
+    ...(ORG.address ? { address: { "@type": "PostalAddress", ...ORG.address } } : {}),
+    ...(ORG.parentOrganization ? { parentOrganization: { "@type": "Organization", ...ORG.parentOrganization } } : {}),
+    ...(founders.length ? { founder: founders } : {}),
+  };
 }
 
 export function orgJsonLd(): JsonLd {
+  const sameAs = SOCIAL_PROFILES;
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -22,7 +58,8 @@ export function orgJsonLd(): JsonLd {
     description:
       "Guidance Credibility Index (GCI) — evidence-linked management guidance vs delivery for Indian equity desks. Not investment advice.",
     email: ORG.email,
-    sameAs: orgSameAs(),
+    ...orgEntityFields(),
+    ...(sameAs.length ? { sameAs } : {}),
   };
 }
 
@@ -51,22 +88,18 @@ export function websiteJsonLd(): JsonLd {
   };
 }
 
-export function softwareJsonLd(): JsonLd {
+/** Service, not SoftwareApplication: plans are quote-only, and an Offer without a price fails validation. */
+export function serviceJsonLd(): JsonLd {
   return {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": "Service",
     name: "CiteAlpha Guidance Credibility Index",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
+    serviceType: "Equity research data",
     url: SITE,
     description:
       "Evidence-linked Guidance Credibility Index (GCI) for Indian equity desks. Factual research product; not investment advice.",
-    offers: {
-      "@type": "Offer",
-      url: `${SITE}/package`,
-      priceCurrency: "INR",
-      availability: "https://schema.org/OnlineOnly",
-    },
+    areaServed: "IN",
+    audience: { "@type": "BusinessAudience", audienceType: "Institutional equity research desks" },
     provider: {
       "@type": "Organization",
       name: ORG.name,
@@ -154,14 +187,15 @@ export function breadcrumbJsonLd(pathname: string, pageTitle: string): JsonLd | 
 /** Extra JSON-LD blocks keyed by pathname (SPA + prerender parity). */
 export function extraJsonLdForPath(pathname: string, pageTitle?: string): JsonLd[] {
   const blocks: JsonLd[] = [];
+  // FAQPage lives on /answers only: the same questions marked up on several URLs compete with each other.
   if (pathname === "/") {
-    blocks.push(orgJsonLd(), softwareJsonLd(), faqJsonLd());
+    blocks.push(orgJsonLd(), serviceJsonLd());
   } else if (pathname === "/about") {
     blocks.push(howToGciJsonLd());
-  } else if (pathname === "/answers" || pathname === "/help") {
+  } else if (pathname === "/answers") {
     blocks.push(faqJsonLd());
   } else if (pathname === "/blog/what-is-guidance-credibility-index") {
-    blocks.push(faqJsonLd(), speakableJsonLd(`${SITE}/blog/what-is-guidance-credibility-index`));
+    blocks.push(speakableJsonLd(`${SITE}/blog/what-is-guidance-credibility-index`));
   } else if (pathname === "/blog") {
     blocks.push(orgJsonLd());
   }
@@ -172,37 +206,57 @@ export function extraJsonLdForPath(pathname: string, pageTitle?: string): JsonLd
   return blocks;
 }
 
+const TIER_NAME: Record<string, string> = {
+  provisional: "Provisional",
+  established: "Established",
+  deep: "Deep",
+};
+
+/** Same shape as `dossierDatasetJsonLd` in scripts/seo-shared.mjs (prerender). */
 export function dossierDatasetJsonLd(input: {
   path: string;
+  id: string;
   name: string;
   description: string;
   asOf?: string | null;
   gci: number | null;
+  tier?: string | null;
 }): JsonLd {
+  const org = { "@type": "Organization", name: ORG.name, legalName: ORG.legalName, url: SITE };
+  const measured: JsonLd[] = [
+    {
+      "@type": "PropertyValue",
+      name: "Guidance Credibility Index (GCI)",
+      minValue: 0,
+      maxValue: 100,
+      ...(input.gci != null ? { value: input.gci } : {}),
+    },
+  ];
+  if (input.tier && TIER_NAME[input.tier]) {
+    measured.push({ "@type": "PropertyValue", name: "Confidence tier", value: TIER_NAME[input.tier] });
+  }
   return {
     "@context": "https://schema.org",
     "@type": "Dataset",
     name: `${input.name} Guidance Credibility Index (GCI)`,
     description: input.description,
     url: `${SITE}${input.path}`,
-    creator: {
-      "@type": "Organization",
-      name: ORG.name,
-      legalName: ORG.legalName,
-    },
-    variableMeasured: "Guidance Credibility Index",
+    creator: org,
+    publisher: org,
+    keywords: ["Guidance Credibility Index", "management guidance", "Indian listed companies", input.name],
+    spatialCoverage: "India",
+    measurementTechnique: `Quantified management guidance compared with the later reported result, each cited to its filing. Method: ${SITE}/methodology`,
+    variableMeasured: measured,
+    distribution: [
+      {
+        "@type": "DataDownload",
+        encodingFormat: "application/json",
+        contentUrl: `${SITE}/api/v1/companies/${input.id}/gci`,
+      },
+    ],
     license: `${SITE}/terms`,
     isAccessibleForFree: true,
     ...(input.asOf ? { dateModified: String(input.asOf).slice(0, 10) } : {}),
-    ...(input.gci != null
-      ? {
-          additionalProperty: {
-            "@type": "PropertyValue",
-            name: "GCI",
-            value: input.gci,
-          },
-        }
-      : {}),
   };
 }
 

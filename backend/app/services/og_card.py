@@ -45,7 +45,7 @@ def _payload(company_id: str) -> dict:
         "tier": _TIER.get(d.confidence_tier or "", ""),
         "as_of": format_as_of(as_of),
         "sentence": sentence,
-        "title": dossier_title(d.name, gci, as_of),
+        "title": dossier_title(d.name, gci, as_of, d.confidence_tier),
         "data_quality": d.data_quality,
     }
 

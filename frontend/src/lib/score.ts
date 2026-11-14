@@ -443,6 +443,7 @@ const CLOSED_LABELS = new Set(["met", "exceeded", "missed"]);
 export type RecordParts = {
   metOrBeat: number;
   closed: number;
+  missed: string[];
   missedClause: string;
   metricLabel: string;
 };
@@ -460,22 +461,26 @@ export function buildRecordParts(
   );
   const revenue = closedRows.filter((o) => o.metric.includes("revenue"));
   const focus = revenue.length ? revenue : closedRows;
-  const missed = focus
-    .filter((o) => o.label === "missed")
-    .map((o) => o.period)
-    .sort();
+  const missed = [...new Set(focus.filter((o) => o.label === "missed").map((o) => o.period))].sort();
   const metOrBeat = focus.filter((o) => o.label === "met" || o.label === "exceeded").length;
   const metricId = focus[0]?.metric || "";
   return {
     metOrBeat,
     closed: focus.length,
+    missed,
     missedClause: missed.length ? `; missed ${missed.join(", ")}` : "",
     metricLabel: metricId ? metricDisplayName(metricId) : "guidance",
   };
 }
 
-/** English record sentence for SEO / OG (locale-independent). */
+/** English record sentence for SEO / OG (locale-independent). Mirrors `seo_public._sentence`. */
 export function englishRecordSentence(parts: RecordParts): string {
   if (parts.closed === 0) return "No closed, dual-cited results yet.";
-  return `Met or beat ${parts.metricLabel} guidance in ${parts.metOrBeat} of ${parts.closed} closed years${parts.missedClause}.`;
+  if (parts.metOrBeat === 0) {
+    return parts.closed === 1
+      ? `Missed ${parts.metricLabel} guidance in ${parts.missed[0]}, the only closed year.`
+      : `Missed ${parts.metricLabel} guidance in all ${parts.closed} closed years (${parts.missed.join(", ")}).`;
+  }
+  const years = parts.closed === 1 ? "closed year" : "closed years";
+  return `Met or beat ${parts.metricLabel} guidance in ${parts.metOrBeat} of ${parts.closed} ${years}${parts.missedClause}.`;
 }

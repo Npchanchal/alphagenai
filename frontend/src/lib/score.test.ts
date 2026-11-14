@@ -217,6 +217,16 @@ describe("dossier SEO (W5.1)", () => {
       recordSentence: "No closed, dual-cited results yet.",
     });
     expect(hidden.robots).toBe("noindex,follow");
+
+    const unscored = dossierSeo({
+      id: "tcs",
+      name: "Tata Consultancy Services",
+      gci: null,
+      asOf: null,
+      dataQuality: "hand_labeled",
+      recordSentence: "No closed, dual-cited results yet.",
+    });
+    expect(unscored.robots).toBe("noindex,follow");
   });
 
   it("does not flip a published dossier to noindex before the company request returns", () => {

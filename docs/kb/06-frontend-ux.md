@@ -28,6 +28,10 @@ Role seats and the screens they open are specified in `docs/BRD_ROLES.md`, `docs
 7. Quality badges always visible (Hand-labeled vs Demo).
 8. SEBI-oriented disclaimer on GCI and vernacular surfaces.
 
+## Crawler and answer-engine view
+
+Every public route is prerendered with a real body (`scripts/prerender-seo.mjs` + `scripts/seo-shared.mjs`), so a crawler that runs no JavaScript reads the page. Dossiers with a published GCI are indexable, titled with GCI, tier and data date, and carry the evidence table with both filings. Unknown paths are a real 404 (`nginx.spa-routes.conf`). `llms-full.txt` lists the published levels at build. Standards: rule `seo-marketing`; checks: skill `citealpha-search-visibility`.
+
 ## Shared components
 
 `EvidenceTable`, `ChangeChip`/`ChangeTriple`, `TabBar`, `CompanyPicker`, `QualityBadge`, `ScoreReveal`, `Toast`, `Skeleton`, `InfoTip`, `Disclaimer`, `CitationCard`, `SourceViewer` (citation click → highlighted document).

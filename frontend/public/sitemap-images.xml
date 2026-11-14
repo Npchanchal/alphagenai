@@ -8,13 +8,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://citealpha.com/og-image.png</loc>
-    <image:image>
-      <image:loc>https://citealpha.com/og-image.webp</image:loc>
-      <image:title>CiteAlpha OG image WebP</image:title>
-    </image:image>
-  </url>
-  <url>
     <loc>https://citealpha.com/blog/what-is-guidance-credibility-index</loc>
     <image:image>
       <image:loc>https://citealpha.com/og-image.png</image:loc>
@@ -152,6 +145,48 @@
     <image:image>
       <image:loc>https://citealpha.com/og-image.png</image:loc>
       <image:title>Institutional Buyer Checklist: Trust Center for GCI Pilots</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/companies/adani_ports</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/api/og/adani_ports.png</image:loc>
+      <image:title>Adani Ports &amp; SEZ Ltd. Guidance Credibility Index (GCI)</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/companies/apollohosp</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/api/og/apollohosp.png</image:loc>
+      <image:title>Apollo Hospitals Enterprise Ltd. Guidance Credibility Index (GCI)</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/companies/axisbank</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/api/og/axisbank.png</image:loc>
+      <image:title>Axis Bank Ltd. Guidance Credibility Index (GCI)</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/companies/cipla</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/api/og/cipla.png</image:loc>
+      <image:title>Cipla Ltd. Guidance Credibility Index (GCI)</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/companies/hdfclife</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/api/og/hdfclife.png</image:loc>
+      <image:title>HDFC Life Insurance Co. Ltd. Guidance Credibility Index (GCI)</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://citealpha.com/companies/infy</loc>
+    <image:image>
+      <image:loc>https://citealpha.com/api/og/infy.png</image:loc>
+      <image:title>Infosys Ltd. Guidance Credibility Index (GCI)</image:title>
     </image:image>
   </url>
 </urlset>

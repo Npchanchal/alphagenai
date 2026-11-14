@@ -20,12 +20,29 @@ const OUT = join(__dirname, "../docs/screenshots/tiers");
 const PUBLIC_OUT = join(__dirname, "../frontend/public/screenshots/tiers");
 const BASE = process.env.BASE_URL || process.env.E2E_BASE_URL || "http://127.0.0.1:8080";
 
+// Only shots a public page shows (HelpPage, ProductsPage) are copied to /screenshots.
+// Δ chips, price overlays and lead-lag panels stay in docs: index-integrity keeps them off public URLs.
+const PUBLIC_SHOTS = new Set([
+  "00-tracker-overview",
+  "01-entity-search",
+  "04-period-documents",
+  "05-auto-ingest-crawl",
+  "05b-corpus-foundation",
+  "06-citability-evidence",
+  "10-private-notes",
+  "11-report-templates-desk",
+  "11-report-templates-dossier",
+  "12-delivery-record",
+]);
+
 mkdirSync(OUT, { recursive: true });
 mkdirSync(PUBLIC_OUT, { recursive: true });
 
 async function shot(page, name, locator, pad = 8) {
   const saved = await capture(page, name, locator, pad);
-  if (saved) copyFileSync(join(OUT, `${name}.png`), join(PUBLIC_OUT, `${name}.png`));
+  if (saved && PUBLIC_SHOTS.has(name)) {
+    copyFileSync(join(OUT, `${name}.png`), join(PUBLIC_OUT, `${name}.png`));
+  }
 }
 
 async function capture(page, name, locator, pad) {

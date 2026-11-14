@@ -7,8 +7,8 @@
   },
   {
     "path": "/tracker",
-    "title": "GCI Screener: Sensex Guidance Credibility Scores — GCI by CiteAlpha",
-    "description": "Screen Sensex companies by Guidance Credibility Index with hand-labeled evidence. Other NSE/BSE listings are not yet scored. Not investment advice.",
+    "title": "GCI Screener: Guidance Credibility Scores for Indian Companies — CiteAlpha",
+    "description": "Screen Indian listed companies by Guidance Credibility Index, starting with the Sensex. A score appears only when guidance and result are both cited; most listings are not yet scored. Not investment advice.",
     "sitemap": { "changefreq": "daily", "priority": "0.9" }
   },
   {
@@ -110,7 +110,7 @@
   {
     "path": "/pilot",
     "title": "Request a CiteAlpha evaluation — Ocotillo Innovation",
-    "description": "Time-boxed GCI evaluation for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Not investment advice.",
+    "description": "Time-boxed GCI evaluation for Indian equity desks: the published scores with their filings, the Analyst Workbench, and Filing Search. Not investment advice.",
     "sitemap": { "changefreq": "monthly", "priority": "0.85" }
   },
   {

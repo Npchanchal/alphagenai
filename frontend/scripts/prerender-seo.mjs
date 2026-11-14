@@ -10,8 +10,11 @@ import {
   INDEXNOW_KEY,
   loadStructured,
   websiteJsonLd,
-  faqJsonLd,
   extraJsonLdForPath,
+  dossierDatasetJsonLd,
+  dossierBodyHtml,
+  dossierTitle,
+  TIER_NAME,
   speakableJsonLd,
   breadcrumbJsonLd,
   blogSeoTitle,
@@ -19,6 +22,10 @@ import {
   buildImageSitemap,
   buildRssFeed,
   pingIndexNow,
+  loadEnglishStrings,
+  methodologyBodyHtml,
+  workflowsBodyHtml,
+  changelogBodyHtml,
 } from "./seo-shared.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,8 +35,58 @@ const PUBLIC = path.join(ROOT, "public");
 const BLOG_TS = path.join(ROOT, "src/lib/blogPosts.ts");
 const SEO_ROUTES = path.join(ROOT, "src/lib/seoRoutes.json");
 const GLOSSARY_TS = path.join(ROOT, "src/lib/glossary.ts");
-const BUILD_DAY = new Date().toISOString().slice(0, 10);
+const DOSSIER_SNAPSHOT = path.join(ROOT, "src/lib/seoDossiers.json");
 const STRUCTURED = loadStructured(ROOT);
+const T = loadEnglishStrings(ROOT);
+
+/** Origins that serve published rows. A set PRERENDER_API_URL is the only source: a local API must not stand in for it. */
+function prerenderApiBases() {
+  const pinned = process.env.PRERENDER_API_URL?.trim();
+  const bases = pinned ? [pinned] : ["http://127.0.0.1:8000", "http://api:8000"];
+  return bases.map((base) => base.replace(/\/$/, ""));
+}
+
+/** GET a public API path from the first origin that answers; null when none does. */
+async function fetchPublishedJson(apiPath, timeoutMs = 8000) {
+  for (const base of prerenderApiBases()) {
+    try {
+      const res = await fetch(`${base}${apiPath}`, { signal: AbortSignal.timeout(timeoutMs) });
+      if (res.ok) return { base, body: await res.json() };
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
+/** Strict builds (PRERENDER_REQUIRE_API=1) stop rather than publish stale scores to crawlers. */
+function requirePublishedApi() {
+  return process.env.PRERENDER_REQUIRE_API === "1";
+}
+
+/** A dossier is indexable only with a published GCI; rows without one have no number to cite. */
+function publishedDossiers(rows) {
+  return (Array.isArray(rows) ? rows : []).filter((d) => d && d.gci_score != null);
+}
+
+// `--snapshot` runs before `vite build`: the bundle (seo.ts first paint) and the prerender
+// below then read the same published dossier rows.
+if (process.argv.includes("--snapshot")) {
+  const hit = await fetchPublishedJson("/api/public/seo-dossiers");
+  if (hit && Array.isArray(hit.body?.dossiers)) {
+    const dossiers = publishedDossiers(hit.body.dossiers);
+    fs.writeFileSync(DOSSIER_SNAPSHOT, `${JSON.stringify({ dossiers }, null, 2)}\n`);
+    console.log(`seo snapshot: ${dossiers.length} published dossiers from ${hit.base}`);
+  } else if (requirePublishedApi()) {
+    throw new Error(
+      "seo snapshot: no API answered /api/public/seo-dossiers. Set PRERENDER_API_URL to the deployed site, " +
+        "or PRERENDER_REQUIRE_API=0 to ship the committed snapshot.",
+    );
+  } else {
+    console.warn("seo snapshot: no API reachable; keeping the committed src/lib/seoDossiers.json");
+  }
+  process.exit(0);
+}
 
 function esc(s) {
   return String(s)
@@ -130,14 +187,14 @@ function blogArticleHtml(post) {
     `<article>`,
     `<h1>${esc(post.title)}</h1>`,
     `<p><strong>CiteAlpha Research · Ocotillo Innovation Private Limited</strong> · Published ${esc(post.published)}${post.updated && post.updated !== post.published ? ` · Updated ${esc(post.updated)}` : ""}</p>`,
-    `<p>${esc(post.description)}</p>`,
+    `<p class="seo-speakable">${esc(post.description)}</p>`,
   ];
   for (const sec of post.sections || []) {
     if (sec.heading) parts.push(`<h2>${esc(sec.heading)}</h2>`);
     for (const p of sec.paragraphs || []) parts.push(`<p>${esc(p)}</p>`);
   }
   parts.push(
-    `<p><a href="${SITE}/blog">CiteAlpha Research Blog</a> · <a href="${SITE}/tracker">GCI Tracker</a> · <a href="${SITE}/answers">FAQ</a></p>`,
+    `<p><a href="${SITE}/blog">CiteAlpha Research Blog</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/answers">FAQ</a></p>`,
     `</article>`,
   );
   return parts.join("\n      ");
@@ -173,6 +230,14 @@ function injectSeo(html, seo) {
     /<meta\s+name="robots"\s+content="[^"]*"\s*\/>/,
     `<meta name="robots" content="${robots}" />`,
   );
+  // Search Console and Bing read the verification tag from the served HTML; Bing does not run JavaScript.
+  const verify = [
+    ["google-site-verification", process.env.VITE_GSC_VERIFICATION],
+    ["msvalidate.01", process.env.VITE_BING_VERIFICATION],
+  ]
+    .filter(([name, v]) => v?.trim() && !out.includes(`name="${name}"`))
+    .map(([name, v]) => `<meta name="${name}" content="${esc(v.trim())}" />`);
+  if (verify.length) out = out.replace("</head>", () => `    ${verify.join("\n    ")}\n  </head>`);
   out = out.replace(
     /<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/,
     `<link rel="canonical" href="${url}" />`,
@@ -229,13 +294,12 @@ function injectSeo(html, seo) {
       )
       .join("\n    ");
     out = out.replace(/<script type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>\n?/g, "");
-    out = out.replace("</head>", `    ${block}\n  </head>`);
+    out = out.replace("</head>", () => `    ${block}\n  </head>`);
   }
 
   const root = rootFallbackHtml(seo);
   if (out.includes('id="root"')) {
-    out = out.replace(/<div id="root">[\s\S]*?<\/div>/, root);
-    out = out.replace(/<div id="root"><\/div>/, root);
+    out = out.replace(/<div id="root"><\/div>/, () => root);
   }
   out = out.replace(/<div id="seo-crawl-fallback"[\s\S]*?<\/div>/, "");
   return out;
@@ -281,13 +345,17 @@ function blogIndexJsonLd(posts) {
   };
 }
 
-function buildSitemap(staticRoutes, posts, dossiers = []) {
+/**
+ * A static page gets a lastmod only from a date that means a content change: its own `sitemap.lastmod`,
+ * or the newest published row it lists. The build day is not one — Google ignores a lastmod that moves every deploy.
+ */
+function buildSitemap(staticRoutes, posts, dossiers = [], lastmodByPath = {}) {
   const urls = [];
   for (const route of staticRoutes) {
     if (!route.sitemap || (route.robots ?? "index,follow").includes("noindex")) continue;
     urls.push({
       loc: route.path === "/" ? `${SITE}/` : `${SITE}${route.path}`,
-      lastmod: route.sitemap.lastmod ?? BUILD_DAY,
+      lastmod: route.sitemap.lastmod ?? lastmodByPath[route.path],
       changefreq: route.sitemap.changefreq,
       priority: route.sitemap.priority,
     });
@@ -303,7 +371,7 @@ function buildSitemap(staticRoutes, posts, dossiers = []) {
   for (const d of dossiers) {
     urls.push({
       loc: `${SITE}${d.path}`,
-      lastmod: String(d.as_of || BUILD_DAY).slice(0, 10),
+      lastmod: d.as_of ? String(d.as_of).slice(0, 10) : undefined,
       changefreq: "weekly",
       priority: "0.8",
     });
@@ -321,65 +389,83 @@ function buildSitemap(staticRoutes, posts, dossiers = []) {
   return `${lines.join("\n")}\n`;
 }
 
-function dossierBodyHtml(d, escFn) {
-  const ticker = d.ticker ? ` (${escFn(d.ticker)})` : "";
-  return `<main>
-      <h1>${escFn(d.name)}${ticker} — Guidance Credibility Index (GCI)</h1>
-      <p class="seo-speakable">${escFn(d.description)}</p>
-      <p>${escFn(d.name)}${ticker} on the CiteAlpha Guidance Credibility Index. ${escFn(d.record_sentence || d.description)}</p>
-      <p><a href="${SITE}/companies/${escFn(d.id)}">Open the full evidence trail</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/methodology">Methodology</a> · <a href="${SITE}/changelog">Score changelog</a></p>
-      <p>Not investment advice.</p>
-    </main>`;
+
+/** The published levels as plain text for llms-full.txt; written at build from the same rows as the dossiers. */
+function llmsPublishedLevels(rows) {
+  const lines = [
+    "## Published GCI levels",
+    "",
+    `Every company with a published Guidance Credibility Index at the time this file was built (${rows.length}). Cite the company page, not this list. Any company not listed here has no published GCI.`,
+    "",
+  ];
+  for (const d of rows) {
+    const tier = TIER_NAME[d.confidence_tier] || "";
+    const asOf = d.as_of ? String(d.as_of).slice(0, 10) : "";
+    lines.push(
+      `- ${d.name}${d.ticker ? ` (${d.ticker})` : ""}: GCI ${Number(d.gci_score).toFixed(1)}${tier ? `, ${tier} tier` : ""}${
+        asOf ? `, data as of ${asOf}` : ""
+      }. ${d.record_sentence || ""} ${SITE}${d.path}`,
+    );
+  }
+  return `${lines.join("\n")}\n`;
 }
 
-function dossierLinkList(rows) {
+/** Every published level with its tier and date, so "which companies have a GCI" is answerable from HTML. */
+function publishedScoresHtml(rows) {
   const items = rows
     .map(
       (d) =>
-        `<li><a href="${SITE}${esc(d.path)}">${esc(d.name)}${d.ticker ? ` (${esc(d.ticker)})` : ""}</a></li>`,
+        `<tr><td><a href="${SITE}${esc(d.path)}">${esc(d.name)}${d.ticker ? ` (${esc(d.ticker)})` : ""}</a></td><td>${Number(
+          d.gci_score,
+        ).toFixed(1)}</td><td>${esc(TIER_NAME[d.confidence_tier] || "")}</td><td>${esc(
+          d.as_of ? String(d.as_of).slice(0, 10) : "",
+        )}</td><td>${esc(d.record_sentence || "")}</td></tr>`,
     )
-    .join("\n        ");
+    .join("\n          ");
   return `<section>
-      <h2>Company dossiers</h2>
-      <ul>
-        ${items}
-      </ul>
+      <h2>Published GCI levels</h2>
+      <table>
+        <thead><tr><th>Company</th><th>GCI</th><th>Confidence tier</th><th>Data as of</th><th>Delivery record</th></tr></thead>
+        <tbody>
+          ${items}
+        </tbody>
+      </table>
     </section>`;
 }
 
-async function loadDossiers() {
-  const bases = [process.env.PRERENDER_API_URL, "http://127.0.0.1:8000", "http://api:8000"].filter(
-    Boolean,
-  );
-  for (const base of bases) {
-    try {
-      const res = await fetch(`${base.replace(/\/$/, "")}/api/public/seo-dossiers`, {
-        signal: AbortSignal.timeout(8000),
-      });
-      if (res.ok) {
-        const body = await res.json();
-        if (Array.isArray(body.dossiers) && body.dossiers.length) return body.dossiers;
-      }
-    } catch {
-      /* try next */
-    }
+/** Written by the `--snapshot` step from the published API, so it matches the bundle. */
+function loadDossiers() {
+  if (!fs.existsSync(DOSSIER_SNAPSHOT)) return [];
+  const body = JSON.parse(fs.readFileSync(DOSSIER_SNAPSHOT, "utf8"));
+  return publishedDossiers(body.dossiers);
+}
+
+async function loadChangelog(dossiers) {
+  const [entries, ledger, companies] = await Promise.all([
+    fetchPublishedJson("/api/v1/index/changelog"),
+    fetchPublishedJson("/api/v1/index/ledger?limit=500"),
+    fetchPublishedJson("/api/v1/companies", 30000),
+  ]);
+  if ((!entries || !ledger) && requirePublishedApi()) {
+    throw new Error("prerender: /api/v1/index/changelog or /ledger did not answer; the changelog would ship empty.");
   }
-  const snap = path.join(ROOT, "src/lib/seoDossiers.json");
-  if (fs.existsSync(snap)) {
-    try {
-      const body = JSON.parse(fs.readFileSync(snap, "utf8"));
-      return body.dossiers || body || [];
-    } catch {
-      return [];
-    }
+  const names = {};
+  for (const d of dossiers) names[d.id] = d.name;
+  if (Array.isArray(companies?.body)) {
+    for (const c of companies.body) if (c?.id && c?.name) names[c.id] = c.name;
   }
-  return [];
+  return {
+    entries: entries?.body?.entries ?? null,
+    ledger: ledger?.body?.rows ? [...ledger.body.rows].reverse() : null,
+    names,
+  };
 }
 
 const baseHtml = fs.readFileSync(path.join(DIST, "index.html"), "utf8");
 const staticRoutes = loadSeoRoutes();
 const posts = parseBlogPosts();
-const dossiers = await loadDossiers();
+const dossiers = loadDossiers();
+const changelog = await loadChangelog(dossiers);
 let prerenderCount = 0;
 const indexNowUrls = [];
 
@@ -396,10 +482,14 @@ for (const route of staticRoutes) {
     glossaryPath: GLOSSARY_TS,
     structuredData: STRUCTURED,
     esc,
+    t: T,
   });
   if (marketingBody) seo.bodyHtml = marketingBody;
+  if (route.path === "/methodology") seo.bodyHtml = methodologyBodyHtml(T, esc);
+  if (route.path === "/workflows") seo.bodyHtml = workflowsBodyHtml(T, esc);
+  if (route.path === "/changelog") seo.bodyHtml = changelogBodyHtml(T, esc, changelog);
   if ((route.path === "/tracker" || route.path === "/rankings") && dossiers.length) {
-    seo.bodyHtml = `${seo.bodyHtml || ""}\n${dossierLinkList(dossiers)}`;
+    seo.bodyHtml = `${seo.bodyHtml || ""}\n${publishedScoresHtml(dossiers)}`;
   }
   seo.extraJsonLd = extraJsonLdForPath(route.path, STRUCTURED, route.title);
   writeRoute(seo, baseHtml);
@@ -413,10 +503,7 @@ for (const post of posts) {
   const title = blogSeoTitle(post);
   const extras = [];
   if (post.slug === "what-is-guidance-credibility-index") {
-    extras.push(
-      faqJsonLd(STRUCTURED),
-      speakableJsonLd(`${SITE}/blog/${post.slug}`, STRUCTURED),
-    );
+    extras.push(speakableJsonLd(`${SITE}/blog/${post.slug}`, STRUCTURED));
   }
   const crumbs = breadcrumbJsonLd(`/blog/${post.slug}`, title);
   if (crumbs) extras.push(crumbs);
@@ -458,28 +545,13 @@ for (const d of dossiers) {
   const crumbs = breadcrumbJsonLd(d.path, d.name);
   const seo = {
     path: d.path,
-    title: d.title,
+    title: dossierTitle(d),
     description: d.description,
     robots: "index,follow",
     ogImage: `${SITE}/api/og/${d.id}.png`,
-    ogImageAlt: d.title,
+    ogImageAlt: dossierTitle(d),
     bodyHtml: dossierBodyHtml(d, esc),
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Dataset",
-      name: `${d.name} Guidance Credibility Index (GCI)`,
-      description: d.description,
-      url: `${SITE}${d.path}`,
-      creator: {
-        "@type": "Organization",
-        name: "CiteAlpha",
-        legalName: "Ocotillo Innovation Private Limited",
-      },
-      variableMeasured: "Guidance Credibility Index",
-      license: `${SITE}/terms`,
-      isAccessibleForFree: true,
-      ...(d.as_of ? { dateModified: String(d.as_of).slice(0, 10) } : {}),
-    },
+    jsonLd: dossierDatasetJsonLd(STRUCTURED, d),
     extraJsonLd: crumbs ? [crumbs] : [],
   };
   writeRoute(seo, baseHtml);
@@ -512,8 +584,15 @@ for (const d of dossiers) {
   prerenderCount += 1;
 }
 
-const sitemap = buildSitemap(staticRoutes, posts, dossiers);
-const imageSitemap = buildImageSitemap(posts);
+const newest = (dates) => dates.filter(Boolean).map((d) => String(d).slice(0, 10)).sort().pop();
+const scoresChanged = newest((changelog.entries ?? []).map((e) => e.date));
+const sitemap = buildSitemap(staticRoutes, posts, dossiers, {
+  "/changelog": scoresChanged,
+  "/tracker": scoresChanged,
+  "/rankings": scoresChanged,
+  "/blog": newest(posts.map((p) => p.updated || p.published)),
+});
+const imageSitemap = buildImageSitemap(posts, dossiers);
 const rss = buildRssFeed(posts);
 fs.writeFileSync(path.join(DIST, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(PUBLIC, "sitemap.xml"), sitemap);
@@ -527,6 +606,10 @@ fs.copyFileSync(path.join(PUBLIC, "robots.txt"), path.join(DIST, "robots.txt"));
 if (fs.existsSync(path.join(PUBLIC, "ai.txt"))) {
   fs.copyFileSync(path.join(PUBLIC, "ai.txt"), path.join(DIST, "ai.txt"));
 }
+fs.writeFileSync(
+  path.join(DIST, "llms-full.txt"),
+  `${fs.readFileSync(path.join(PUBLIC, "llms-full.txt"), "utf8").trimEnd()}\n\n${llmsPublishedLevels(dossiers)}`,
+);
 
 console.log(
   `prerender-seo: ${prerenderCount} routes, sitemap: ${sitemap.split("<url>").length - 1} urls, posts: ${posts.length}`,

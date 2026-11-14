@@ -870,7 +870,7 @@ def gci_badge_svg(ticker: str):
 
 @router.get("/api/public/seo-dossiers")
 def public_seo_dossiers() -> Dict[str, Any]:
-    """Hand-labeled dossiers for prerender + sitemap (W5.2)."""
+    """Hand-labeled dossiers with a published GCI, for prerender + sitemap (W5.2)."""
     from app.services.seo_public import list_indexable_dossiers
 
     rows = list_indexable_dossiers()
@@ -893,8 +893,25 @@ def og_svg(company_id: str):
     return og_card.svg_response(company_id)
 
 
+_META_CACHE: Dict[str, Any] = {"at": 0.0, "payload": None}
+
+
 @router.get("/api/meta")
 def meta() -> Dict[str, Any]:
+    """Coverage counts for the homepage. A full build reads every stored document,
+    so one payload is reused for META_CACHE_SECONDS (default 60)."""
+    import time
+
+    ttl = float(os.environ.get("META_CACHE_SECONDS", "60"))
+    now = time.monotonic()
+    if ttl > 0 and _META_CACHE["payload"] is not None and now - _META_CACHE["at"] < ttl:
+        return _META_CACHE["payload"]
+    payload = _meta_payload()
+    _META_CACHE.update(at=now, payload=payload)
+    return payload
+
+
+def _meta_payload() -> Dict[str, Any]:
     from app.data import doc_store
     from app.data import markets as markets_data
     from app.data.market_history import history_meta

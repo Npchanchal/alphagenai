@@ -12,9 +12,215 @@ export function loadStructured(root) {
   return JSON.parse(raw);
 }
 
+/** English UI strings, so crawler HTML carries the same sentences the page renders. */
+export function loadEnglishStrings(root) {
+  const strings = JSON.parse(fs.readFileSync(path.join(root, "src/i18n/locales/en.json"), "utf8"));
+  return (key, vars = {}) => {
+    const raw = strings[key];
+    if (typeof raw !== "string") throw new Error(`prerender: missing English string ${key}`);
+    return raw.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m));
+  };
+}
+
+export function methodologyBodyHtml(t, esc) {
+  const li = (key) => `<li>${esc(t(key))}</li>`;
+  const labeled = (key) => `<li><strong>${esc(t(`${key}.label`))}</strong> ${esc(t(`${key}.text`))}</li>`;
+  return `<main>
+      <h1>${esc(t("method.page.title"))}</h1>
+      <p class="seo-speakable">${esc(t("method.page.lede"))}</p>
+      <h2>${esc(t("method.page.guidance.title"))}</h2>
+      <ul>${li("method.page.guidance.i1")}${li("method.page.guidance.i2")}${li("method.page.guidance.i3")}</ul>
+      <h2>${esc(t("method.page.review.title"))}</h2>
+      <ul>${li("method.page.review.i1")}${li("method.page.review.i2")}${li("method.page.review.i3")}${li("method.page.review.i4")}</ul>
+      <h2>${esc(t("method.page.sla.title"))}</h2>
+      <p>${esc(t("method.page.sla.target", { days: 5, since: "2026-09-29" }))}</p>
+      <h2>${esc(t("method.page.revisions.title"))}</h2>
+      <p>${esc(t("method.page.revisions.p1"))}</p>
+      <p>${esc(t("method.page.revisions.p2"))}</p>
+      <p>${esc(t("method.page.revisions.example"))} <a href="${SITE}/companies/infy">${esc(t("method.page.revisions.exampleLink"))}</a></p>
+      <h2>${esc(t("method.page.formula.title"))}</h2>
+      <p>${esc(t("method.page.formula.intro"))}</p>
+      <p>${esc(t("method.page.formula.philosophy"))}</p>
+      <ul>
+        ${labeled("method.page.formula.inside")}
+        <li><strong>${esc(t("method.page.formula.outside.label"))}</strong> ${esc(t("method.page.formula.outside.text1"))} e<sup>−0.35·δ<sup>1.25</sup></sup>${esc(t("method.page.formula.outside.text2"))}</li>
+        ${labeled("method.page.formula.beats")}
+        ${labeled("method.page.formula.misses")}
+      </ul>
+      <p><strong>${esc(t("method.page.formula.floor.label"))}</strong> ${esc(t("method.page.formula.floor.text"))}</p>
+      <p>${esc(t("method.page.formula.example"))}</p>
+      <p><strong>${esc(t("method.page.formula.constants.label"))}</strong> ${esc(t("method.page.formula.constants.text"))}</p>
+      <h2>${esc(t("method.page.company.title"))}</h2>
+      <ul>
+        ${labeled("method.page.company.metric")}
+        ${labeled("method.page.company.company")}
+        ${labeled("method.page.company.deductions")}
+        ${labeled("method.page.company.comparable")}
+        ${labeled("method.page.company.open")}
+        ${li("method.page.company.history")}
+      </ul>
+      <p>${esc(t("method.page.company.record"))}</p>
+      <p>${esc(t("method.page.company.changelog"))} <a href="${SITE}/changelog">${esc(t("footer.changelog"))}</a>. Every restatement is a new ledger row; earlier levels are not overwritten.</p>
+      <h2>${esc(t("method.page.independence.title"))}</h2>
+      <p>${esc(t("method.page.independence.text", { product: "CiteAlpha" }))}</p>
+      <h2>${esc(t("method.page.limitations.title"))}</h2>
+      <ul>${li("method.page.limitations.i1")}${li("method.page.limitations.i2")}${li("method.page.limitations.i3")}${li("method.page.limitations.i4")}${li("method.page.limitations.i5")}</ul>
+      <h2>${esc(t("method.page.errors.title"))}</h2>
+      <p>${esc(t("method.page.errors.before"))} <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> ${esc(t("method.page.errors.after"))}</p>
+      <p><a href="${SITE}/">${esc(t("method.page.back"))}</a> · <a href="${SITE}/trust">${esc(t("footer.trust"))}</a> · <a href="${SITE}/answers">${esc(t("footer.answers"))}</a></p>
+      <p>Not investment advice.</p>
+    </main>`;
+}
+
+const WORKFLOW_JOBS = [
+  {
+    id: "earnings-season",
+    key: "earnings",
+    links: [
+      ["/companies/infy", "linkDossier"],
+      ["/analyst", "linkMonitor"],
+    ],
+  },
+  {
+    id: "management-delivery",
+    key: "delivery",
+    links: [
+      ["/tracker", "linkScreener"],
+      ["/companies/infy", "linkEvidence"],
+      ["/methodology", "linkMethod"],
+    ],
+  },
+  {
+    id: "coverage",
+    key: "coverage",
+    links: [
+      ["/tracker", "linkScreener"],
+      ["/rankings", "linkSnapshot"],
+      ["/sights", "linkExplorer"],
+    ],
+  },
+  {
+    id: "desk-note",
+    key: "note",
+    links: [
+      ["/analyst", "linkAnalyst"],
+      ["/desk", "linkWorkbench"],
+    ],
+  },
+];
+
+export function workflowsBodyHtml(t, esc) {
+  const jobs = WORKFLOW_JOBS.map((job) => {
+    const links = job.links
+      .map(([to, label]) => `<a href="${SITE}${to}">${esc(t(`workflows.${job.key}.${label}`))}</a>`)
+      .join(" · ");
+    return `<article id="${job.id}">
+        <h2>${esc(t(`workflows.${job.key}.title`))}</h2>
+        <p>${esc(t(`workflows.${job.key}.lede`))}</p>
+        <p>${esc(t(`workflows.${job.key}.body`))}</p>
+        <p>${links}</p>
+      </article>`;
+  }).join("\n      ");
+  return `<main>
+      <p>${esc(t("workflows.kicker"))}</p>
+      <h1>${esc(t("workflows.title"))}</h1>
+      <p class="seo-speakable">${esc(t("workflows.lede"))}</p>
+      ${jobs}
+      <p><a href="${SITE}/products#plans">${esc(t("workflows.pricing"))}</a></p>
+      <p>Not investment advice.</p>
+    </main>`;
+}
+
+/** Changelog and ledger as published by /api/v1/index/*, newest first, same columns as the page. */
+export function changelogBodyHtml(t, esc, { entries = null, ledger = null, names = {} } = {}) {
+  const nameOf = (id) => names[id] || String(id).toUpperCase();
+  const reason = (r) => {
+    try {
+      return t(`changelog.reason.${r}`);
+    } catch {
+      return r;
+    }
+  };
+  const score = (v) => (v == null ? "—" : Number(v).toFixed(1));
+  const companyLink = (id) => `<a href="${SITE}/companies/${esc(id)}">${esc(nameOf(id))}</a>`;
+
+  let entriesHtml = `<p>${esc(t("changelog.empty"))}</p>`;
+  if (entries && entries.length) {
+    entriesHtml = `<ol>
+        ${entries
+          .map(
+            (e) =>
+              `<li><time datetime="${esc(e.date)}">${esc(e.date)}</time> · ${esc(reason(e.reason))}${
+                e.companies?.length ? ` · ${e.companies.map(companyLink).join(", ")}` : ""
+              }<p>${esc(e.change)}</p></li>`,
+          )
+          .join("\n        ")}
+      </ol>`;
+  }
+
+  let ledgerHtml = `<p>${esc(t("changelog.ledger.empty"))}</p>`;
+  if (ledger && ledger.length) {
+    const cols = ["date", "company", "from", "to", "tier", "reason", "by"]
+      .map((c) => `<th>${esc(t(`changelog.ledger.cols.${c}`))}</th>`)
+      .join("");
+    const rows = ledger
+      .map(
+        (r) =>
+          `<tr><td><time datetime="${esc(r.as_of)}">${esc(r.as_of)}</time> ${esc(r.dataset_version || "")}</td><td>${companyLink(
+            r.company_id,
+          )}</td><td>${score(r.prior_gci)}</td><td>${score(r.gci)}</td><td>${
+            r.confidence_tier ? esc(t(`tier.${r.confidence_tier}`)) : esc(t("tier.unscored"))
+          }</td><td>${esc(reason(r.reason))}</td><td>${esc(r.by || "")}</td></tr>`,
+      )
+      .join("\n          ");
+    ledgerHtml = `<table>
+        <thead><tr>${cols}</tr></thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>`;
+  }
+
+  return `<main>
+      <p>${esc(t("changelog.kicker"))}</p>
+      <h1>${esc(t("changelog.title"))}</h1>
+      <p class="seo-speakable">${esc(t("changelog.lede"))}</p>
+      ${entriesHtml}
+      <h2>${esc(t("changelog.ledger.title"))}</h2>
+      <p>${esc(t("changelog.ledger.lede"))}</p>
+      ${ledgerHtml}
+      <p>${esc(t("changelog.api"))} · <a href="${SITE}/api/v1/index/changelog.rss">RSS</a> · <a href="${SITE}/methodology">Methodology</a></p>
+      <p>Not investment advice.</p>
+    </main>`;
+}
+
+/** Profiles on other sites only; a citealpha.com URL tells a search engine nothing about the entity. */
+const externalUrls = (urls) => (urls ?? []).filter((u) => Boolean(u) && u.startsWith("https://") && !u.startsWith(SITE));
+
+/** Entity facts beyond the name: registration number, city, parent company, founders. Same output as seoJsonLd.ts. */
+export function orgEntityFields(org) {
+  const founders = (org.founders ?? [])
+    .filter((f) => f?.name)
+    .map((f) => {
+      const sameAs = externalUrls(f.sameAs);
+      return {
+        "@type": "Person",
+        name: f.name,
+        ...(f.jobTitle ? { jobTitle: f.jobTitle } : {}),
+        ...(sameAs.length ? { sameAs } : {}),
+      };
+    });
+  return {
+    ...(org.identifier ? { identifier: { "@type": "PropertyValue", ...org.identifier } } : {}),
+    ...(org.address ? { address: { "@type": "PostalAddress", ...org.address } } : {}),
+    ...(org.parentOrganization ? { parentOrganization: { "@type": "Organization", ...org.parentOrganization } } : {}),
+    ...(founders.length ? { founder: founders } : {}),
+  };
+}
+
 export function orgJsonLd(data) {
   const org = data.org;
-  const social = org.socialProfiles ?? [];
+  const sameAs = externalUrls(org.socialProfiles);
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -25,7 +231,8 @@ export function orgJsonLd(data) {
     description:
       "Guidance Credibility Index (GCI) — evidence-linked management guidance vs delivery for Indian equity desks. Not investment advice.",
     email: org.email,
-    sameAs: [...(org.sameAs || []), ...social.filter(Boolean)],
+    ...orgEntityFields(org),
+    ...(sameAs.length ? { sameAs } : {}),
   };
 }
 
@@ -54,28 +261,145 @@ export function websiteJsonLd(data) {
   };
 }
 
-export function softwareJsonLd(data) {
+export function serviceJsonLd(data) {
   return {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": "Service",
     name: "CiteAlpha Guidance Credibility Index",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
+    serviceType: "Equity research data",
     url: SITE,
     description:
       "Evidence-linked Guidance Credibility Index (GCI) for Indian equity desks. Factual research product; not investment advice.",
-    offers: {
-      "@type": "Offer",
-      url: `${SITE}/products#plans`,
-      priceCurrency: "INR",
-      availability: "https://schema.org/OnlineOnly",
-    },
+    areaServed: "IN",
+    audience: { "@type": "BusinessAudience", audienceType: "Institutional equity research desks" },
     provider: {
       "@type": "Organization",
       name: data.org.name,
       legalName: data.org.legalName,
     },
   };
+}
+
+export const TIER_NAME = { provisional: "Provisional", established: "Established", deep: "Deep" };
+
+/** Same shape as `dossierDatasetJsonLd` in src/lib/seoJsonLd.ts. */
+export function dossierDatasetJsonLd(data, d) {
+  const org = { "@type": "Organization", name: data.org.name, legalName: data.org.legalName, url: SITE };
+  const measured = [
+    {
+      "@type": "PropertyValue",
+      name: "Guidance Credibility Index (GCI)",
+      minValue: 0,
+      maxValue: 100,
+      ...(d.gci_score != null ? { value: d.gci_score } : {}),
+    },
+  ];
+  if (TIER_NAME[d.confidence_tier]) {
+    measured.push({ "@type": "PropertyValue", name: "Confidence tier", value: TIER_NAME[d.confidence_tier] });
+  }
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: `${d.name} Guidance Credibility Index (GCI)`,
+    description: d.description,
+    url: `${SITE}${d.path}`,
+    creator: org,
+    publisher: org,
+    keywords: ["Guidance Credibility Index", "management guidance", "Indian listed companies", d.name],
+    spatialCoverage: "India",
+    measurementTechnique: `Quantified management guidance compared with the later reported result, each cited to its filing. Method: ${SITE}/methodology`,
+    variableMeasured: measured,
+    distribution: [
+      {
+        "@type": "DataDownload",
+        encodingFormat: "application/json",
+        contentUrl: `${SITE}/api/v1/companies/${d.id}/gci`,
+      },
+    ],
+    license: `${SITE}/terms`,
+    isAccessibleForFree: true,
+    ...(d.as_of ? { dateModified: String(d.as_of).slice(0, 10) } : {}),
+  };
+}
+
+const UNIT_SUFFIX = { pct: "%", inr_cr: " ₹ cr", days: " days" };
+
+function fmtValue(v, unit) {
+  if (v == null) return "—";
+  const n = Number(v);
+  const shown = Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return `${shown}${UNIT_SUFFIX[unit] ?? ""}`;
+}
+
+function fmtBand(r) {
+  if (r.guided_low != null && r.guided_high != null && r.guided_low !== r.guided_high) {
+    return `${fmtValue(r.guided_low, "")}–${fmtValue(r.guided_high, r.unit)}`;
+  }
+  return fmtValue(r.guided_value ?? r.guided_low ?? r.guided_high, r.unit);
+}
+
+const OUTCOME = { met: "Met", exceeded: "Exceeded", missed: "Missed" };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-04-23" → "23 Apr 2026", as seo_public.format_as_of prints it. */
+export function fmtAsOf(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ""));
+  if (!m) return "";
+  return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}`;
+}
+
+/** Same words as seo_public.dossier_title, built here so a build against an older API still shows the tier. */
+export function dossierTitle(d) {
+  const bits = [`${d.name} — Guidance Credibility Index (GCI)`];
+  if (d.gci_score != null) {
+    bits[0] += ` ${Number(d.gci_score).toFixed(1).replace(/\.0$/, "")}`;
+    if (TIER_NAME[d.confidence_tier]) bits.push(TIER_NAME[d.confidence_tier]);
+  }
+  const asOf = fmtAsOf(d.as_of);
+  if (asOf) bits.push(`Data as of ${asOf}`);
+  return bits.join(" · ");
+}
+
+/** Crawler body for a published dossier: the number with its tier and date, then every scored row with both filings. */
+export function dossierBodyHtml(d, esc) {
+  const ticker = d.ticker ? ` (${esc(d.ticker)})` : "";
+  const score = d.gci_score != null ? Number(d.gci_score).toFixed(1) : null;
+  const tier = TIER_NAME[d.confidence_tier];
+  const asOf = fmtAsOf(d.as_of);
+  const headline = score
+    ? `${esc(d.name)} has a Guidance Credibility Index (GCI) of ${score}${tier ? `, confidence tier ${tier}` : ""}${
+        asOf ? `, data as of ${esc(asOf)}` : ""
+      }.`
+    : "";
+  const rows = (d.evidence || [])
+    .map(
+      (r) => `<tr><td>${esc(r.period)}</td><td>${esc(r.metric)}</td><td>${esc(fmtBand(r))}</td><td>${esc(
+        fmtValue(r.actual_value, r.unit),
+      )}</td><td>${esc(OUTCOME[r.outcome] || r.outcome)}</td><td><a href="${esc(r.guidance_source_url)}">Guidance${
+        r.guidance_as_of ? `, ${esc(r.guidance_as_of)}` : ""
+      }</a>${r.guidance_quote ? ` “${esc(r.guidance_quote)}”` : ""}</td><td><a href="${esc(r.source_url)}">Result${
+        r.as_of ? `, ${esc(r.as_of)}` : ""
+      }</a>${r.actual_quote ? ` “${esc(r.actual_quote)}”` : ""}</td></tr>`,
+    )
+    .join("\n          ");
+  const table = rows
+    ? `<h2>Guidance versus reported results</h2>
+      <table>
+        <thead><tr><th>Period</th><th>Metric</th><th>Guided</th><th>Reported</th><th>Outcome</th><th>Guidance filing</th><th>Results filing</th></tr></thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>`
+    : "";
+  return `<main>
+      <h1>${esc(d.name)}${ticker} — Guidance Credibility Index (GCI)</h1>
+      ${headline ? `<p class="seo-speakable">${headline}</p>` : ""}
+      <p class="seo-speakable">${esc(d.record_sentence || d.description)}</p>
+      ${table}
+      <p><a href="${SITE}/companies/${esc(d.id)}">Open the full evidence trail</a> · <a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/methodology">Methodology</a> · <a href="${SITE}/changelog?company=${esc(d.id)}">Score changelog</a></p>
+      <p>Not investment advice.</p>
+    </main>`;
 }
 
 export function faqJsonLd(data) {
@@ -153,11 +477,12 @@ export function breadcrumbJsonLd(routePath, pageTitle) {
 
 export function extraJsonLdForPath(routePath, data, pageTitle) {
   const blocks = [];
+  // FAQPage lives on /answers only: the same questions marked up on several URLs compete with each other.
   if (routePath === "/") {
-    blocks.push(orgJsonLd(data), softwareJsonLd(data), faqJsonLd(data));
+    blocks.push(orgJsonLd(data), serviceJsonLd(data));
   } else if (routePath === "/about") {
     blocks.push(howToGciJsonLd(data));
-  } else if (routePath === "/answers" || routePath === "/help") {
+  } else if (routePath === "/answers") {
     blocks.push(faqJsonLd(data));
   } else if (routePath === "/blog") {
     blocks.push(orgJsonLd(data));
@@ -240,12 +565,19 @@ export function answersBodyHtml(data, esc) {
 }
 
 export function marketingBodyHtml(routePath, opts = {}) {
-  const { glossaryPath, structuredData, esc } = opts;
+  const { glossaryPath, structuredData, esc, t } = opts;
+  const hero = t
+    ? {
+        kicker: esc(t("landing.hero.kicker")),
+        title: esc(t("landing.hero.title")),
+        lede: esc(t("landing.hero.lede", { product: "CiteAlpha" })),
+      }
+    : null;
   const bodies = {
     "/": `<main>
-      <p>GCI by CiteAlpha · Guidance Credibility Index for Indian listed companies</p>
-      <h1 class="seo-speakable">Did management deliver on what they promised? We check.</h1>
-      <p class="seo-speakable">CiteAlpha's Guidance Credibility Index (GCI) compares what Indian listed management guided to what they later reported. Every score opens to the exchange filing, IR deck, or transcript behind it.</p>
+      <p>${hero?.kicker ?? ""}</p>
+      <h1 class="seo-speakable">${hero?.title ?? ""}</h1>
+      <p class="seo-speakable">${hero?.lede ?? ""}</p>
       <p><a href="${SITE}/pilot"><strong>Request an evaluation</strong></a> · <a href="${SITE}/companies/infy">Or see a scored company (Infosys)</a></p>
       <p>Built for: <a href="${SITE}/products#desk-buy-side">Buy-side</a> · <a href="${SITE}/products#desk-sell-side">Sell-side research</a> · <a href="${SITE}/products#desk-quant">Quant / data</a> · <a href="${SITE}/products#desk-ir-compliance">IR &amp; compliance</a></p>
       <h2>Worked example: Infosys revenue growth guidance vs actuals</h2>
@@ -280,14 +612,14 @@ export function marketingBodyHtml(routePath, opts = {}) {
         <li><a href="${SITE}/tracker"><strong>GCI Screener</strong></a> (Screen · Live · free preview) — screen covered companies by GCI score and change, with quality badges on every row.</li>
         <li><a href="${SITE}/desk"><strong>Analyst Workbench</strong></a> (Review &amp; export · Live · pilot and paid seats) — check extracted guidance against its source, then export cited reports and point-in-time data.</li>
         <li><a href="${SITE}/research"><strong>Filing Search</strong></a> (Search one company · Live · registered users) — search one company's filings and transcripts; answers only when a source can be cited.</li>
-        <li><a href="${SITE}/sights"><strong>Disclosure Explorer</strong></a> (Compare companies · Beta) — compare disclosures across companies with cite-only answers.</li>
+        <li><a href="${SITE}/sights"><strong>Disclosure Explorer</strong></a> (Compare companies · Live · browse free) — themes, street context, field evidence, compare, deep dive, and fundamentals. Each cell opens the filing.</li>
         <li><a href="${SITE}/rankings"><strong>Public Snapshot</strong></a> (Share · Live · public, no login) — public GCI snapshot; no recommendation labels.</li>
       </ul>
       <p><a href="${SITE}/answers">FAQ</a> · <a href="${SITE}/products#plans">Packages</a> · <a href="${SITE}/pilot">Request an evaluation</a> · <a href="${SITE}/trust">Trust Center</a></p>
     </main>`,
     "/pilot": `<main>
       <h1>Request a CiteAlpha evaluation</h1>
-      <p class="seo-speakable">Time-boxed evaluation for Indian equity desks: Sensex hand-labeled evidence, the Analyst Workbench, and Filing Search. Share firm details — we follow up within one business day. Not investment advice.</p>
+      <p class="seo-speakable">Time-boxed evaluation for Indian equity desks: the published scores with their filings, the Analyst Workbench, and Filing Search. Share firm details — we follow up within one business day. Not investment advice.</p>
       <p>The evaluation includes GCI Screener access, evidence trails with quality badges, and optional API discussion. Read the <a href="${SITE}/trust">Trust Center</a> and <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a> before requesting.</p>
       <p>Contact: <a href="mailto:sales@citealpha.com">sales@citealpha.com</a> · <a href="${SITE}/products#plans">View packages</a></p>
     </main>`,
@@ -309,9 +641,9 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p class="seo-speakable">Workspace where analysts check guidance extracted from filings, review new documents, and export cited reports and point-in-time data for Indian equity research. A short guided walkthrough opens on the first visit. Not investment advice.</p>
       <h2>What the Workbench is for</h2>
       <ul>
-        <li>Analyst ops: jump from the GCI Screener to evidence, labeling queue, and vernacular blurbs.</li>
-        <li>Corpus management and extract/match review before scores go citeable.</li>
-        <li>PIT series and API hooks for platform embed — beside your market terminal.</li>
+        <li>Open a company from the GCI Screener and check each guidance figure against the filing it came from.</li>
+        <li>Accept or reject an extracted figure before it can enter a published score.</li>
+        <li>Export cited reports, and point-in-time GCI history through the API, beside your market terminal.</li>
       </ul>
       <p><a href="${SITE}/tracker">Open GCI Screener</a> · <a href="${SITE}/products#features">Tier features</a> · <a href="${SITE}/products#plans">Packages</a></p>
     </main>`,
@@ -320,9 +652,9 @@ export function marketingBodyHtml(routePath, opts = {}) {
       <p class="seo-speakable">Search IR filings and transcripts for one Indian company or across all covered companies, with India IR synonyms and cite-only answers that refuse invented actuals. Complements the GCI Screener. Not a price feed and not investment advice.</p>
       <h2>Capabilities</h2>
       <ul>
-        <li>Filings and concall search with citation ids back to sources.</li>
-        <li>Desk snapshot with MoM/QoQ/YoY context beside guidance evidence.</li>
-        <li>Watchlist and news — structured for research memos, not retail tips.</li>
+        <li>Search results filings, investor decks and call transcripts; every hit links to its source.</li>
+        <li>Answers are given only when a filing can be cited; otherwise the search says the figure is not on file.</li>
+        <li>A watchlist keeps the companies a desk follows in one place. No tips, no recommendations.</li>
       </ul>
       <p><a href="${SITE}/tracker">GCI Screener</a> · <a href="${SITE}/desk">Analyst Workbench</a> · <a href="${SITE}/help">Help &amp; glossary</a></p>
     </main>`,
@@ -340,7 +672,7 @@ export function marketingBodyHtml(routePath, opts = {}) {
     "/rankings": `<main>
       <h1>Public Snapshot: GCI for Indian Listings — GCI by CiteAlpha</h1>
       <p class="seo-speakable">Public, no-login snapshot of Guidance Credibility Index scores for covered Indian listings. Evidence-linked delivery scores with honest quality badges — not investment recommendations.</p>
-      <p>The snapshot shows relative guidance credibility within covered cohorts. Every citeable row links to guidance, actuals, outcome labels, and sources. Prefer hand_labeled names when citing in IC materials.</p>
+      <p>The snapshot shows the delivery record of every published GCI. A company is ranked only once it reaches the Established tier. Every scored row links to the guidance quote, the reported figure, its outcome, and both filings.</p>
       <p><a href="${SITE}/tracker">Full GCI Screener</a> · <a href="${SITE}/blog/hand-labeled-vs-demo-data">Hand-labeled vs demo data</a> · <a href="${SITE}/about">About GCI</a></p>
     </main>`,
     "/sights": `<main>
@@ -406,24 +738,24 @@ export function marketingBodyHtml(routePath, opts = {}) {
     </main>`,
     "/about": `<main>
       <h1>About CiteAlpha — GCI by Ocotillo Innovation</h1>
-      <p>CiteAlpha delivers the Guidance Credibility Index (GCI) — a 0–100 score of whether Indian listed management delivered on quantified guidance. Credit score for promises vs actuals — not sentiment, not a price terminal.</p>
+      <p>CiteAlpha publishes the Guidance Credibility Index (GCI): a 0–100 score of whether Indian listed management delivered on its quantified guidance. It is a delivery record, not a sentiment score, a rating, or a price terminal.</p>
       <h2>How GCI is built</h2>
       <ol>
-        <li><strong>Ingest</strong> — IR decks, NSE/BSE filings, transcripts.</li>
-        <li><strong>Extract</strong> — quantified guidance with human-in-the-loop review.</li>
-        <li><strong>Match</strong> — actuals paired to the same metric and period.</li>
-        <li><strong>Score</strong> — outcome labels into company GCI with PIT history.</li>
-        <li><strong>Cite</strong> — every point reopens to primary sources.</li>
+        <li><strong>Collect</strong> — NSE and BSE filings, company results releases and investor decks, call transcripts.</li>
+        <li><strong>Extract</strong> — a number or range for a named metric and period; a reviewer accepts each figure.</li>
+        <li><strong>Match</strong> — the later reported figure for the same metric and period.</li>
+        <li><strong>Score</strong> — each closed result is met, exceeded or missed, and rolls into the company GCI with a dated history.</li>
+        <li><strong>Cite</strong> — every point opens to both filings.</li>
       </ol>
       <p><a href="${SITE}/tracker">Open GCI Screener</a> · <a href="${SITE}/blog/what-is-guidance-credibility-index">GCI definition</a></p>
     </main>`,
     "/tracker": `<main>
-      <h1>GCI Screener: Sensex Guidance Credibility Scores</h1>
-      <p class="seo-speakable">Screen Sensex companies by Guidance Credibility Index, with hand-labeled evidence behind every citeable score. Other NSE/BSE listings are listed as not yet scored.</p>
+      <h1>GCI Screener: Guidance Credibility Scores for Indian Listed Companies</h1>
+      <p class="seo-speakable">Screen Indian listed companies by Guidance Credibility Index. Coverage starts with the Sensex; a company carries a score only once its guidance quote and the later reported figure are both cited. Most NSE and BSE listings are shown as not yet scored.</p>
       <ul>
-        <li>Company GCI with trend and coverage context.</li>
-        <li>Evidence trail: guidance → actual → label → source.</li>
-        <li>Honest data-quality badges (hand_labeled vs demo_structured).</li>
+        <li>Each score with its confidence tier and the date it was last updated.</li>
+        <li>Evidence trail: guidance quote, reported figure, outcome, and both filings.</li>
+        <li>A data-quality badge on every row, so sample data is never mistaken for a score.</li>
       </ul>
       <p><a href="${SITE}/rankings">Public Snapshot</a> · <a href="${SITE}/desk">Analyst Workbench</a> · <a href="${SITE}/blog/what-is-guidance-credibility-index">What is GCI?</a></p>
     </main>`,
@@ -448,21 +780,24 @@ export function marketingBodyHtml(routePath, opts = {}) {
   return bodies[routePath] || null;
 }
 
-export function buildImageSitemap(posts) {
+/** Each <loc> is a page; its <image:image> entries are the images that page shows or shares. */
+export function buildImageSitemap(posts, dossiers = []) {
   const urls = [
     {
       loc: `${SITE}/`,
       images: [{ loc: `${SITE}/og-image.png`, title: "CiteAlpha Guidance Credibility Index" }],
-    },
-    {
-      loc: `${SITE}/og-image.png`,
-      images: [{ loc: `${SITE}/og-image.webp`, title: "CiteAlpha OG image WebP" }],
     },
   ];
   for (const post of posts) {
     urls.push({
       loc: `${SITE}/blog/${post.slug}`,
       images: [{ loc: `${SITE}/og-image.png`, title: post.title }],
+    });
+  }
+  for (const d of dossiers) {
+    urls.push({
+      loc: `${SITE}${d.path}`,
+      images: [{ loc: `${SITE}/api/og/${d.id}.png`, title: `${d.name} Guidance Credibility Index (GCI)` }],
     });
   }
   const lines = [
@@ -472,7 +807,7 @@ export function buildImageSitemap(posts) {
   for (const u of urls) {
     lines.push("  <url>", `    <loc>${u.loc}</loc>`);
     for (const img of u.images) {
-      lines.push("    <image:image>", `      <image:loc>${img.loc}</image:loc>`, `      <image:title>${img.title}</image:title>`, "    </image:image>");
+      lines.push("    <image:image>", `      <image:loc>${img.loc}</image:loc>`, `      <image:title>${escXml(img.title)}</image:title>`, "    </image:image>");
     }
     lines.push("  </url>");
   }

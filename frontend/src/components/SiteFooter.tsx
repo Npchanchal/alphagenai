@@ -3,6 +3,21 @@ import { Link, useLocation } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { copyrightLine, LEGAL_ENTITY, PRODUCT_NAME, TAGLINE } from "../lib/legal";
 import { useAuth } from "../lib/auth";
+import { SOCIAL_PROFILES } from "../lib/seoJsonLd";
+
+const PROFILE_SITES: Record<string, string> = {
+  "linkedin.com": "LinkedIn",
+  "x.com": "X",
+  "twitter.com": "X",
+  "crunchbase.com": "Crunchbase",
+  "github.com": "GitHub",
+  "youtube.com": "YouTube",
+};
+
+function profileLabel(url: string): string {
+  const host = new URL(url).hostname.replace(/^www\./, "");
+  return PROFILE_SITES[host] ?? host;
+}
 
 type FooterLink = { to: string; labelKey: string; hashHome?: string };
 
@@ -101,6 +116,19 @@ export default function SiteFooter() {
         <p className="site-footer-tagline" data-testid="footer-tagline">
           {PRODUCT_NAME} · {TAGLINE}
         </p>
+        {SOCIAL_PROFILES.length ? (
+          <p className="site-footer-follow" data-testid="footer-follow">
+            {t("footer.follow")}:{" "}
+            {SOCIAL_PROFILES.map((url, i) => (
+              <span key={url}>
+                {i ? " · " : ""}
+                <a href={url} rel="me noopener noreferrer" target="_blank">
+                  {profileLabel(url)}
+                </a>
+              </span>
+            ))}
+          </p>
+        ) : null}
         <p className="site-footer-copy">{copyrightLine()}</p>
         <p className="muted site-footer-note">
           {t("footer.note", { product: PRODUCT_NAME, entity: LEGAL_ENTITY })}

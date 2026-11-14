@@ -4,14 +4,25 @@
     "name": "CiteAlpha",
     "legalName": "Ocotillo Innovation Private Limited",
     "email": "sales@citealpha.com",
-    "sameAs": [
-      "https://citealpha.com/",
-      "https://citealpha.com/trust",
-      "https://citealpha.com/press",
-      "https://citealpha.com/answers",
-      "https://citealpha.com/blog/what-is-guidance-credibility-index"
-    ],
-    "socialProfiles": []
+    "identifier": {
+      "propertyID": "CIN",
+      "name": "Corporate Identification Number (Ministry of Corporate Affairs, India)",
+      "value": "U62011MH2025PTC439829"
+    },
+    "address": {
+      "addressLocality": "Mumbai",
+      "addressRegion": "Maharashtra",
+      "addressCountry": "IN"
+    },
+    "parentOrganization": {
+      "name": "Ocotillo Innovation Private Limited",
+      "url": "https://ocotilloinnovation.com/"
+    },
+    "socialProfiles": ["https://www.linkedin.com/company/145374813/"],
+    "founders": [
+      { "name": "Sunil Rajak", "jobTitle": "Founder & CEO", "sameAs": ["https://www.linkedin.com/in/sunilkrajak"] },
+      { "name": "Dolly Kumari", "jobTitle": "Founder & CTO", "sameAs": ["https://www.linkedin.com/in/dolly-kumari-55a9a29"] }
+    ]
   },
   "faq": [
     {
@@ -32,7 +43,7 @@
     },
     {
       "question": "Who is CiteAlpha built for?",
-      "answer": "Indian equity desks — buy-side and sell-side research teams that need evidence-linked management delivery history beside their market terminal. Pilots start with Sensex-depth hand-labeled evidence."
+      "answer": "Indian equity desks — buy-side and sell-side research teams that need evidence-linked management delivery history beside their market terminal. Coverage starts with Sensex companies; a company carries a score only once both its guidance quote and the later reported figure are cited, and most listings are not yet scored."
     },
     {
       "question": "How do I read a GCI level?",
@@ -79,6 +90,6 @@
     ]
   },
   "speakable": {
-    "cssSelector": [".seo-speakable", "h1", ".landing-faq dd"]
+    "cssSelector": [".seo-speakable"]
   }
 }
