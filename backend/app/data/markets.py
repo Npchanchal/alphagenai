@@ -463,6 +463,298 @@ def get_stock(stock_id: str) -> Optional[StockRow]:
     return _stock_index().get(stock_id)
 
 
+# ── GCI Core market profiles (docs/PLAN_GCI_CORE.md §Markets) ────────────────
+#
+# What each market discloses decides what GCI Core may do there:
+#   publish          — Core may carry a published level after human review (India).
+#   shadow           — Core runs for reviewers; nothing is published.
+#   diagnostic_only  — forward numeric guidance is rare or arrives after the period
+#                      closes; guidance-practice diagnostics only, no Core level.
+# ``regimes`` are the accounting regimes the Core comparability checks accept.
+# A company reporting under any other regime is NOT_ELIGIBLE until an adapter
+# is reviewed (methodology §20: a new regime needs a reviewed adapter).
+
+CORE_PUBLISH = "publish"
+CORE_SHADOW = "shadow"
+CORE_DIAGNOSTIC_ONLY = "diagnostic_only"
+
+GCI_CORE_PROFILES: Dict[str, Dict[str, Any]] = {
+    "IN": {
+        "regimes": ["Ind AS"],
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "0331",
+        "core_status": CORE_PUBLISH,
+        "numeric_guidance": "low",
+        "history_from": "FY2017",
+        "sources": ["NSE corporate filings", "BSE corporate filings", "Company investor pages"],
+        "language": "English",
+        "practice": (
+            "Numeric guidance is concentrated in IT services (constant-currency revenue growth and "
+            "margin bands), banks (credit growth, margin, credit cost), autos (volumes) and cement "
+            "(capacity). Most other companies guide in words. Call transcripts are filed with the "
+            "exchanges from 2021-22."
+        ),
+        "modifications": [
+            "Ind AS history starts FY2016-17; earlier Indian GAAP years are not scored.",
+            "Fiscal year April to March; quarter labels follow the Indian FY.",
+            "Constant-currency and reported growth are separate parameters, never mixed.",
+            "Commitments given only in words go to the Commitment Record, not the GCI.",
+        ],
+        "typical_unscorable": ["PENDING_GUIDANCE_CITE", "ACCOUNTING_BASIS_MISMATCH"],
+    },
+    "US": {
+        "regimes": ["US GAAP"],
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "high",
+        "history_from": "FY2002",
+        "sources": ["SEC EDGAR 8-K Item 2.02 (Exhibit 99.1)", "10-Q", "10-K"],
+        "language": "English",
+        "practice": (
+            "Annual revenue and EPS ranges are common and are reaffirmed, raised or cut each "
+            "quarter. Many companies guide on non-GAAP measures reconciled under Regulation G."
+        ),
+        "modifications": [
+            "Quarterly raises are routine: only unfavourable revisions count toward the "
+            "frequency penalty.",
+            "Non-GAAP (adjusted) and GAAP figures are separate bases; a mismatch is "
+            "ACCOUNTING_BASIS_MISMATCH.",
+            "Fiscal year end is taken from the SEC submissions record, not assumed to be December.",
+        ],
+        "typical_unscorable": ["ACCOUNTING_BASIS_MISMATCH"],
+    },
+    "GB": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "H",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "medium",
+        "history_from": "FY2015",
+        "sources": ["RNS regulatory announcements", "Annual and half-year reports"],
+        "language": "English",
+        "practice": (
+            "Half-yearly reporting with trading updates between. Guidance is often stated as "
+            "'in line with market expectations' against a company-compiled consensus."
+        ),
+        "modifications": [
+            "Half-year cadence: revision horizon 180 days and the half-year frequency curve.",
+            "'In line with expectations' is RELATIVE_TO_CONSENSUS and unscorable unless the "
+            "company publishes the consensus figure it means.",
+        ],
+        "typical_unscorable": ["RELATIVE_TO_CONSENSUS"],
+    },
+    "EU": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "H",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "medium",
+        "history_from": "FY2015",
+        "sources": ["Company investor pages", "National storage mechanisms"],
+        "language": "English, German, French and others",
+        "practice": (
+            "Large caps give ranges for revenue growth and margin; many others guide by "
+            "direction only ('moderate growth', 'slightly above prior year')."
+        ),
+        "modifications": [
+            "Directional wording without a number is AMBIGUOUS_DIRECTION and is not scored.",
+            "Organic and reported growth are separate parameters.",
+        ],
+        "typical_unscorable": ["AMBIGUOUS_DIRECTION"],
+    },
+    "JP": {
+        "regimes": ["IFRS", "US GAAP"],
+        "unsupported_regimes": ["J-GAAP"],
+        "default_regime": "J-GAAP",
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "0331",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "high",
+        "history_from": "FY2015",
+        "sources": ["TDnet timely disclosure (Kessan Tanshin)", "EDINET"],
+        "language": "Japanese (English summaries for large caps)",
+        "practice": (
+            "Nearly every listed company publishes full-year forecasts in its Kessan Tanshin. "
+            "Exchange rules require a revision notice when revenue moves 10% or profit 30% "
+            "from the last forecast."
+        ),
+        "modifications": [
+            "J-GAAP reporters are NOT_ELIGIBLE until a reviewed J-GAAP adapter exists; IFRS "
+            "and US GAAP reporters run in shadow.",
+            "Mandated revision notices are revisions like any other; only unfavourable ones "
+            "count toward the frequency penalty.",
+        ],
+        "typical_unscorable": ["REGIME_ADAPTER_PENDING"],
+    },
+    "HK": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "H",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_DIAGNOSTIC_ONLY,
+        "numeric_guidance": "rare",
+        "history_from": "FY2015",
+        "sources": ["HKEXnews"],
+        "language": "English and Chinese",
+        "practice": (
+            "Forward numeric guidance is rare. Profit warnings and positive profit alerts are "
+            "published after the period has closed."
+        ),
+        "modifications": [
+            "Profit warnings issued after period end are GUIDANCE_AFTER_PERIOD_END, never a promise.",
+            "Guidance-practice diagnostics and the Commitment Record only; no Core level.",
+        ],
+        "typical_unscorable": ["GUIDANCE_AFTER_PERIOD_END"],
+    },
+    "CN": {
+        "regimes": [],
+        "unsupported_regimes": ["CAS"],
+        "default_regime": "CAS",
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_DIAGNOSTIC_ONLY,
+        "numeric_guidance": "rare",
+        "history_from": "FY2015",
+        "sources": ["CNINFO", "SSE and SZSE disclosure"],
+        "language": "Chinese",
+        "practice": (
+            "Required performance forecasts are estimates of a period that has already closed "
+            "(typically published in January for the December year)."
+        ),
+        "modifications": [
+            "Performance forecasts are GUIDANCE_AFTER_PERIOD_END and are not commitments.",
+            "CAS has no reviewed adapter; Core is NOT_ELIGIBLE.",
+        ],
+        "typical_unscorable": ["GUIDANCE_AFTER_PERIOD_END", "REGIME_ADAPTER_PENDING"],
+    },
+    "SG": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "H",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "low",
+        "history_from": "FY2015",
+        "sources": ["SGXNet"],
+        "language": "English",
+        "practice": (
+            "Half-yearly reporting for most issuers since 2020. The three banks guide on loan "
+            "growth, margin and credit cost; few other issuers give numbers."
+        ),
+        "modifications": [
+            "Expect bank-only coverage; most names have no scorable family.",
+            "Half-year cadence: revision horizon 180 days.",
+        ],
+        "typical_unscorable": ["NO_ELIGIBLE_PROMISE"],
+    },
+    "AU": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "H",
+        "fy_end_mmdd": "0630",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "high",
+        "history_from": "FY2015",
+        "sources": ["ASX Market Announcements", "Quarterly production reports"],
+        "language": "English",
+        "practice": (
+            "Earnings and production guidance are common; miners issue quarterly production and "
+            "unit-cost guidance updates under continuous disclosure."
+        ),
+        "modifications": [
+            "Fiscal year July to June.",
+            "Production and unit-cost guidance are level parameters; quarterly updates are revisions.",
+            "Next market to move from shadow to publish once a reviewer is assigned.",
+        ],
+        "typical_unscorable": [],
+    },
+    "KR": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "medium",
+        "history_from": "FY2015",
+        "sources": ["DART fair-disclosure filings"],
+        "language": "Korean",
+        "practice": "Large caps file annual business targets as fair-disclosure forecasts.",
+        "modifications": ["K-IFRS is treated as IFRS; quotes need a reviewed translation."],
+        "typical_unscorable": [],
+    },
+    "BR": {
+        "regimes": ["IFRS"],
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "medium",
+        "history_from": "FY2015",
+        "sources": ["CVM Formulário de Referência (projections section)", "ITR / DFP"],
+        "language": "Portuguese",
+        "practice": (
+            "Companies that disclose projections must list them in the reference form and "
+            "compare them with actuals each quarter, which gives a structured promise trail."
+        ),
+        "modifications": ["Read the reference-form projections section first; it carries both sides."],
+        "typical_unscorable": [],
+    },
+    "CA": {
+        "regimes": ["IFRS", "US GAAP"],
+        "reporting_cadence": "Q",
+        "fy_end_mmdd": "1231",
+        "core_status": CORE_SHADOW,
+        "numeric_guidance": "high",
+        "history_from": "FY2015",
+        "sources": ["SEDAR+", "MD&A"],
+        "language": "English and French",
+        "practice": (
+            "Securities rules require a financial outlook to be updated and compared with actual "
+            "results in the MD&A. Resource companies guide on production and unit cost."
+        ),
+        "modifications": ["The MD&A outlook comparison is the preferred source for the actual."],
+        "typical_unscorable": [],
+    },
+}
+
+_COMPANY_PREFIX_MARKETS = {m["id"].lower(): m["id"] for m in MARKETS if m["id"] != "IN"}
+
+
+def company_market_id(company: Optional[Dict[str, Any]]) -> str:
+    """Market of a GCI company: explicit ``market_id``, else the id prefix (``us_aapl``), else IN."""
+    row = company or {}
+    explicit = str(row.get("market_id") or "").strip().upper()
+    if explicit in GCI_CORE_PROFILES:
+        return explicit
+    prefix = str(row.get("id") or "").split("_", 1)[0].lower()
+    return _COMPANY_PREFIX_MARKETS.get(prefix, "IN")
+
+
+def gci_core_profile(market_id: str) -> Optional[Dict[str, Any]]:
+    mid = (market_id or "").upper()
+    prof = GCI_CORE_PROFILES.get(mid)
+    if prof is None:
+        return None
+    name = next((m["name"] for m in MARKETS if m["id"] == mid), mid)
+    return {"market_id": mid, "name": name, **prof}
+
+
+def gci_core_profiles() -> List[Dict[str, Any]]:
+    return [p for p in (gci_core_profile(m["id"]) for m in MARKETS) if p]
+
+
+def core_publication_status(market_id: str, regime: Optional[str] = None) -> Tuple[str, Optional[str]]:
+    """``(PUBLISHABLE | SHADOW | NOT_ELIGIBLE, reason)`` for a company in ``market_id``.
+
+    PUBLISHABLE still requires the human-approved lane and the validation gate.
+    """
+    prof = gci_core_profile(market_id) or gci_core_profile("IN")
+    chosen = (regime or prof.get("default_regime") or (prof["regimes"] or [""])[0]).strip()
+    if chosen not in prof["regimes"]:
+        return "NOT_ELIGIBLE", "REGIME_ADAPTER_PENDING"
+    if prof["core_status"] == CORE_DIAGNOSTIC_ONLY:
+        return "NOT_ELIGIBLE", "MARKET_DIAGNOSTIC_ONLY"
+    if prof["core_status"] == CORE_SHADOW:
+        return "SHADOW", "UNAPPROVED_ENGINE"
+    return "PUBLISHABLE", None
+
+
 def markets_meta() -> Dict[str, Any]:
     from app.data.india_listings import listing_counts
 

@@ -44,9 +44,16 @@ def record(
     log = _load()
     log.append(row)
     if len(log) > 2000:
-        del log[:1000]
+        old, recent = log[:1000], log[1000:]
+        log[:] = [r for r in old if r.get("action") in KEEP_ACTIONS] + recent
     save()
     return row
+
+
+#: Governance events survive the trim: publication decisions, release sign-offs, label accepts.
+KEEP_ACTIONS = frozenset(
+    {"publication_requested", "publication_decided", "release_signoff", "label_accept", "seat_change"}
+)
 
 
 def list_by_action(action: str) -> List[Dict[str, Any]]:

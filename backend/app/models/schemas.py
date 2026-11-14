@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 class CompanySummary(BaseModel):
@@ -332,6 +332,15 @@ class CompanyGCIDetail(BaseModel):
     metrics_scored: int = 0
     as_of: Optional[str] = None
     algorithm_id: Optional[str] = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def method_label(self) -> Optional[str]:
+        """Display name of the scoring method, e.g. ``GCI Classic (v4)``."""
+        from app.services.gci_scoring import method_label
+
+        return method_label(self.algorithm_id)
+
     coverage_status: Optional[str] = None
     coverage_reason: Optional[str] = None
     reviewed_at: Optional[str] = None
@@ -601,3 +610,33 @@ class RefreshRequest(BaseModel):
     live: Optional[bool] = None
     auto_extract: Optional[bool] = None
     warm_fmp: Optional[bool] = None
+
+
+class LabComparison(BaseModel):
+    """One column in the GCI method lab: a method, a preset, and any values changed from it."""
+
+    id: Optional[str] = Field(default=None, max_length=64)
+    label: Optional[str] = Field(default=None, max_length=120)
+    method: str
+    preset: Optional[str] = None
+    params: Dict[str, Any] = Field(default_factory=dict)
+    rollup: Dict[str, Any] = Field(default_factory=dict)
+
+
+class LabHypotheticalRow(BaseModel):
+    """A figure typed in by the reader; scored for comparison, never stored."""
+
+    period: str = Field(default="FY", max_length=12)
+    metric: str = Field(max_length=80)
+    low: float
+    high: float
+    actual: float
+    bound: Optional[Literal["floor", "ceiling"]] = None
+
+
+class LabRunRequest(BaseModel):
+    company_ids: Optional[List[str]] = Field(default=None, max_length=12)
+    comparisons: List[LabComparison] = Field(min_length=1, max_length=8)
+    row_scope: Literal["published", "all_closed"] = "published"
+    hypothetical_rows: List[LabHypotheticalRow] = Field(default_factory=list, max_length=20)
+    behaviour: bool = True

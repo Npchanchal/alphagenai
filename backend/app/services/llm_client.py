@@ -1,6 +1,9 @@
 """OpenAI-compatible LLM + embeddings client (urllib only — no SDK required).
 
 Uses OPENAI_API_KEY or INTELLENS_LLM_API_KEY. When unset, callers fall back locally.
+``INTELLENS_LLM_PROVIDER=bedrock`` reads through Amazon Bedrock's Converse API with the
+task's IAM role instead (``INTELLENS_BEDROCK_REGION``, default ap-south-1); there is no
+web-search tool on that path.
 """
 
 from __future__ import annotations
@@ -14,7 +17,7 @@ import time
 import urllib.error
 import urllib.request
 from collections import deque
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 
 def llm_base_url() -> str:
@@ -25,8 +28,25 @@ def llm_base_url() -> str:
     ).rstrip("/")
 
 
+def llm_provider() -> str:
+    return (os.environ.get("INTELLENS_LLM_PROVIDER") or "openai").strip().lower()
+
+
+def is_bedrock() -> bool:
+    return llm_provider() == "bedrock"
+
+
+def bedrock_region() -> str:
+    return (
+        os.environ.get("INTELLENS_BEDROCK_REGION")
+        or os.environ.get("AWS_REGION")
+        or os.environ.get("AWS_DEFAULT_REGION")
+        or "ap-south-1"
+    )
+
+
 def is_gemini() -> bool:
-    return "generativelanguage.googleapis.com" in llm_base_url()
+    return not is_bedrock() and "generativelanguage.googleapis.com" in llm_base_url()
 
 
 # Gemini 3.x counts hidden reasoning against max_tokens; ~1.1k-5k tokens on a 12k-char chunk.
@@ -48,11 +68,30 @@ def llm_chat_model() -> str:
 
 
 def embed_model() -> str:
-    return os.environ.get("INTELLENS_EMBED_MODEL") or "text-embedding-3-small"
+    default = "amazon.titan-embed-text-v2:0" if is_bedrock() else "text-embedding-3-small"
+    return os.environ.get("INTELLENS_EMBED_MODEL") or default
 
 
 def llm_configured() -> bool:
+    if is_bedrock():
+        try:
+            import boto3  # noqa: F401
+        except ImportError:
+            return False
+        return True
     return llm_api_key() is not None
+
+
+_USAGE = threading.local()
+
+
+def last_usage() -> Dict[str, int]:
+    """Tokens of this thread's latest chat call: ``input``, ``output`` (0 when the provider did not say)."""
+    return dict(getattr(_USAGE, "value", None) or {"input": 0, "output": 0})
+
+
+def _note_usage(input_tokens: Any, output_tokens: Any) -> None:
+    _USAGE.value = {"input": int(input_tokens or 0), "output": int(output_tokens or 0)}
 
 
 class LLMRateLimited(RuntimeError):
@@ -130,6 +169,16 @@ def chat_completion(
     service_tier: Optional[str] = None,
 ) -> str:
     """``max_tokens`` budgets the answer; Gemini's hidden reasoning gets its own headroom."""
+    if is_bedrock():
+        return _bedrock_chat(
+            messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            wait=wait,
+            reasoning=reasoning,
+            timeout=timeout,
+            service_tier=service_tier,
+        )
     payload: Dict[str, Any] = {
         "model": llm_chat_model(),
         "temperature": temperature,
@@ -144,6 +193,8 @@ def chat_completion(
         if service_tier:
             payload["service_tier"] = service_tier
     doc = _post_json("/chat/completions", payload, timeout=timeout, wait=wait)
+    usage = doc.get("usage") or {}
+    _note_usage(usage.get("prompt_tokens"), usage.get("completion_tokens"))
     choices = doc.get("choices") or []
     if not choices:
         raise RuntimeError("LLM returned no choices")
@@ -151,6 +202,72 @@ def chat_completion(
         raise RuntimeError("LLM answer cut off at max_tokens")
     content = (choices[0].get("message") or {}).get("content") or ""
     return str(content).strip()
+
+
+_BEDROCK_CLIENTS: Dict[Tuple[str, float], Any] = {}
+_BEDROCK_RETRYABLE = {
+    "ThrottlingException": 429,
+    "ServiceUnavailableException": 503,
+    "ModelNotReadyException": 503,
+    "InternalServerException": 503,
+}
+
+
+def _bedrock(timeout: float) -> Any:
+    import boto3
+    from botocore.config import Config
+
+    key = (bedrock_region(), timeout)
+    if key not in _BEDROCK_CLIENTS:
+        _BEDROCK_CLIENTS[key] = boto3.client(
+            "bedrock-runtime",
+            region_name=key[0],
+            config=Config(read_timeout=timeout, connect_timeout=10, retries={"max_attempts": 1}),
+        )
+    return _BEDROCK_CLIENTS[key]
+
+
+def _bedrock_chat(
+    messages: Sequence[Dict[str, str]],
+    *,
+    temperature: float,
+    max_tokens: int,
+    wait: bool,
+    reasoning: Optional[str],
+    timeout: float,
+    service_tier: Optional[str],
+) -> str:
+    """Converse API. Errors read like the HTTP path (``LLM HTTP 429``) so callers retry the same way."""
+    from botocore.exceptions import ClientError
+
+    model = llm_chat_model()
+    request: Dict[str, Any] = {
+        "modelId": model,
+        "messages": [
+            {"role": m["role"], "content": [{"text": m["content"]}]} for m in messages if m["role"] != "system"
+        ],
+        "inferenceConfig": {"maxTokens": max_tokens, "temperature": temperature},
+    }
+    system = [{"text": m["content"]} for m in messages if m["role"] == "system"]
+    if system:
+        request["system"] = system
+    if reasoning and "gpt-oss" in model:
+        request["additionalModelRequestFields"] = {"reasoning_effort": reasoning}
+    if service_tier:
+        request["serviceTier"] = {"type": service_tier}
+    _acquire_slot(wait=wait)
+    try:
+        doc = _bedrock(timeout).converse(**request)
+    except ClientError as e:
+        err = e.response.get("Error") or {}
+        status = _BEDROCK_RETRYABLE.get(str(err.get("Code")), e.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 400))
+        raise RuntimeError(f"LLM HTTP {status}: {err.get('Code')} {str(err.get('Message'))[:400]}") from e
+    usage = doc.get("usage") or {}
+    _note_usage(usage.get("inputTokens"), usage.get("outputTokens"))
+    if doc.get("stopReason") == "max_tokens":
+        raise RuntimeError("LLM answer cut off at max_tokens")
+    blocks = ((doc.get("output") or {}).get("message") or {}).get("content") or []
+    return "".join(str(b["text"]) for b in blocks if "text" in b).strip()
 
 
 def search_model() -> str:
@@ -211,6 +328,8 @@ def web_search_links(prompt: str, *, timeout: float = 120.0) -> List[Dict[str, s
     """
     links: List[Dict[str, str]] = []
     seen = set()
+    if is_bedrock():
+        return links
 
     def add(url: str, title: str = "") -> None:
         url = url.rstrip(".,;:")
@@ -253,6 +372,14 @@ def web_search_links(prompt: str, *, timeout: float = 120.0) -> List[Dict[str, s
 def embed_texts(texts: Sequence[str]) -> List[List[float]]:
     if not texts:
         return []
+    if is_bedrock():
+        client = _bedrock(60.0)
+        out = []
+        for text in texts:
+            _acquire_slot(wait=False)
+            resp = client.invoke_model(modelId=embed_model(), body=json.dumps({"inputText": text}))
+            out.append(list(json.loads(resp["body"].read()).get("embedding") or []))
+        return out
     # OpenAI embeds API accepts batch
     doc = _post_json(
         "/embeddings",

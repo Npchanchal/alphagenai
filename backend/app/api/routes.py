@@ -36,6 +36,7 @@ from app.models.schemas import (
     IngestPasteRequest,
     IngestUrlRequest,
     LabelDraftRequest,
+    LabRunRequest,
     SetAuditFlagRequest,
     LabelImportRequest,
     LabelRejectRequest,
@@ -3673,6 +3674,474 @@ def index_ledger_digest() -> Dict[str, Any]:
     body = preview()
     body.pop("recipients", None)
     return body
+
+
+# --- GCI Core v2.4 (shadow), market profiles, snapshots, change feed (docs/PLAN_GCI_CORE.md) ---
+
+
+@router.get("/api/v1/index/methodology")
+def index_methodology() -> Dict[str, Any]:
+    """Which method publishes today, which runs in shadow, the alternatives, and the companion indexes."""
+    from app.services import gci_scoring as g
+    from app.services.guidance_profile import COMPANION_IDS
+
+    return {
+        "methods": [{**m, "label": g.method_label(m["algorithm_id"])} for m in g.GCI_METHODS],
+        "published": {
+            "algorithm_id": g.algorithm_id(),
+            "revision": g.ALGORITHM_REVISION,
+            "method_label": g.method_label(g.algorithm_id()),
+        },
+        "shadow": {
+            "algorithm_id": g.CORE_ALGORITHM_ID,
+            "methodology_version": g.CORE_METHODOLOGY_VERSION,
+            "ruleset": g.CORE_RULESET_LOCKED,
+            "revision": g.CORE_REVISION,
+            "approved": g.CORE_ENGINE_APPROVED,
+            "composite_weights": {"quant": str(g.CORE_QUANT_WEIGHT), "qual": str(g.CORE_QUAL_WEIGHT)},
+        },
+        "default_ruleset": g.CORE_DEFAULT_RULESET,
+        "r2": {
+            "algorithm_id": g.CORE_R2_ALGORITHM_ID,
+            "ruleset": g.CORE_RULESET_R2,
+            "status": "shadow_pending_owner_ruling",
+            **g.r2_constants(),
+        },
+        "delivery": {
+            "algorithm_id": g.CORE_DELIVERY_ALGORITHM_ID,
+            "ruleset": g.CORE_RULESET_DELIVERY,
+            "status": "alternative",
+            "excludes": list(g.CORE_DELIVERY_EXCLUDES),
+            "growth_floor_pp": str(g.DELIVERY_GROWTH_FLOOR_PP),
+        },
+        "proposals": {
+            "algorithm_id": g.CORE_PROPOSAL_ALGORITHM_ID,
+            "ruleset": g.CORE_RULESET_PROPOSAL,
+            "status": "change_control",
+        },
+        "companions": [
+            {"id": cid, "algorithm_id": f"companion_{cid}_v1", "status": "preview"} for cid in COMPANION_IDS
+        ],
+    }
+
+
+@router.get("/api/v1/index/markets")
+def index_markets() -> Dict[str, Any]:
+    """Per-market disclosure profile and what GCI Core may do in each market."""
+    from app.data.markets import gci_core_profiles
+
+    profiles = gci_core_profiles()
+    return {"count": len(profiles), "markets": profiles}
+
+
+@router.get("/api/v1/index/updates")
+def index_updates(since: str, limit: int = 500) -> Dict[str, Any]:
+    """Ledger rows and changelog entries dated after ``since`` — poll this instead of re-reading levels."""
+    from app.services import score_ledger
+    from app.services.guidance_review import changelog_entries
+
+    cutoff = _as_of_param(since)
+    lim = max(1, min(int(limit), 1000))
+    rows = score_ledger.updates_since(cutoff or "", limit=lim)
+    entries = sorted(
+        (e for e in changelog_entries() if str(e.get("date") or "") > (cutoff or "")),
+        key=lambda e: e.get("date") or "",
+    )
+    return {"since": cutoff, "count": len(rows), "rows": rows, "changelog": entries}
+
+
+@router.get("/api/v1/index/snapshots/{snapshot_id}")
+def index_snapshot(snapshot_id: str, include_inputs: bool = False, auth=Depends(optional_api_key)) -> Dict[str, Any]:
+    """Replay the calculation behind a ledger row. Inputs need an API key."""
+    from app.services import score_ledger
+
+    replay = score_ledger.replay_snapshot(snapshot_id)
+    if replay is None:
+        raise HTTPException(status_code=404, detail="No calculation snapshot with that id")
+    body: Dict[str, Any] = {"replay": replay}
+    if include_inputs:
+        if auth is None:
+            raise HTTPException(status_code=401, detail="X-API-Key required for snapshot inputs")
+        body["snapshot"] = score_ledger.read_snapshot(snapshot_id)
+    return body
+
+
+def _core_company(company_id: str) -> Dict[str, Any]:
+    from app.data.seed import list_companies
+
+    company = next((c for c in list_companies() if c["id"] == company_id), None)
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    return company
+
+
+@router.get("/api/v1/index/core")
+def index_core_shadow(auth=Depends(require_any_feature("labeling", "analytics_experimental"))) -> Dict[str, Any]:
+    """Reviewer view: published v4 level beside the GCI Core shadow level (gate 8), inside the desk's markets."""
+    from app.jobs.validation_gates import _scored_companies, gate_core_shadow
+    from app.services import market_scope
+
+    companies = _scored_companies()
+    in_scope = market_scope.predicate(auth)
+    if in_scope is not None:
+        companies = {cid: rows for cid, rows in companies.items() if in_scope(cid)}
+    return gate_core_shadow(companies)
+
+
+@router.get("/api/v1/index/core/{company_id}")
+def index_core_company(
+    company_id: str,
+    ruleset: Optional[str] = None,
+    as_of: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """Reviewer view: full GCI Core calculation for one company. Shadow — not a published level.
+
+    ``ruleset=v2.4-R2`` runs the owner's R2 specification with the tech-team amendments;
+    ``ruleset=delivery`` drops revision frequency, lead time and Qual from the level;
+    ``ruleset=v2.5-proposal`` runs the change-control proposals for impact analysis.
+    """
+    company = _core_company(company_id)
+    return {"company_id": company_id, "name": company.get("name"), **_core_detail(company_id, ruleset, as_of)}
+
+
+def _core_detail(company_id: str, ruleset: Optional[str], as_of: Optional[str]) -> Dict[str, Any]:
+    from app.jobs.validation_gates import core_inputs
+    from app.services import gci_scoring as g
+
+    rs = _core_ruleset(ruleset)
+    kw = core_inputs(company_id, as_of=_as_of_param(as_of))
+    return g.compute_core_detail(kw.pop("outcomes"), ruleset=rs, **kw)
+
+
+def _core_ruleset(value: Optional[str]) -> Optional[str]:
+    """A ruleset id or a method code (``range``, ``delivery`` …); 422 for anything else."""
+    from app.services import gci_scoring as g
+
+    try:
+        return g.resolve_ruleset(value)
+    except ValueError:
+        codes = [m["code"] for m in g.GCI_METHODS if m["ruleset"]]
+        raise HTTPException(
+            status_code=422, detail=f"ruleset must be one of {list(g.CORE_RULESETS)} or a method code {codes}"
+        ) from None
+
+
+@router.get("/api/v1/index/lab")
+def index_method_lab(auth=Depends(require_any_feature("labeling", "analytics_experimental"))) -> Dict[str, Any]:
+    """Method lab catalogue: every scoring rule, its parameters and ranges, presets and actor views."""
+    from app.services import gci_scoring as g
+
+    return g.lab_catalogue()
+
+
+@router.post("/api/v1/index/lab/run")
+def index_method_lab_run(
+    body: LabRunRequest,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """Score companies and typed-in figures under up to eight method configurations. Research only:
+    nothing is stored, ranked or published. Engine levels for the named methods are shown beside."""
+    from app.data.seed import list_companies
+    from app.jobs.validation_gates import _scored_companies, core_inputs
+    from app.services import gci_scoring as g
+    from app.services import market_scope
+
+    try:
+        comparisons = [g.lab_resolve(c.model_dump()) for c in body.comparisons]
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+    ids = [c["id"] for c in comparisons]
+    if len(set(ids)) != len(ids):
+        raise HTTPException(status_code=422, detail="comparison ids must be unique")
+
+    companies = _scored_companies()
+    in_scope = market_scope.predicate(auth)
+    wanted = body.company_ids or sorted(companies)
+    unknown = [cid for cid in wanted if cid not in companies]
+    if unknown:
+        raise HTTPException(status_code=404, detail=f"No scored company: {', '.join(unknown)}")
+    names = {c["id"]: c.get("name") for c in list_companies()}
+    engine_rulesets = {m["code"]: m["ruleset"] for m in g.GCI_METHODS if m["ruleset"]}
+    out_companies: List[Dict[str, Any]] = []
+    for cid in wanted:
+        if in_scope is not None and not in_scope(cid):
+            continue
+        rows = companies[cid]
+        kw = core_inputs(cid, rows)
+        outcomes = kw.pop("outcomes")
+        run = g.lab_run(outcomes, comparisons, row_scope=body.row_scope, audit_flags=kw["audit_flags"])
+        if not run["rows_scored"]:
+            continue
+        engine = {"classic": g.compute_gci_v3_detail(outcomes, audit_flags=kw["audit_flags"], version="v4").gci}
+        for code, rs in engine_rulesets.items():
+            engine[code] = g.compute_core_detail(outcomes, ruleset=rs, **kw)["headline_gci"]
+        for c in comparisons:
+            run["levels"][c["id"]]["engine_level"] = engine.get(c["gci_method"]) if c["gci_method"] else None
+        out_companies.append({"company_id": cid, "name": names.get(cid), "engine_levels": engine, **run})
+
+    hypothetical = None
+    if body.hypothetical_rows:
+        typed = [
+            g.GuidanceOutcome(period=r.period, metric=r.metric, guided_value=(r.low + r.high) / 2,
+                              actual_value=r.actual, guided_text="", guided_low=r.low, guided_high=r.high,
+                              bound=r.bound)
+            for r in body.hypothetical_rows
+        ]
+        hypothetical = g.lab_run(typed, comparisons, row_scope="all_closed")
+    return {
+        "status": "research",
+        "note": "Research calculation. Not a published level; nothing is stored or ranked.",
+        "base_method": g.LAB_BASE_METHOD,
+        "row_scope": body.row_scope,
+        "comparisons": comparisons,
+        "companies": out_companies,
+        "hypothetical": hypothetical,
+        "behaviour": {c["id"]: g.lab_behaviour(c) for c in comparisons} if body.behaviour else None,
+    }
+
+
+def _evidence(url: Optional[str], quote: Optional[str]) -> Dict[str, Any]:
+    """Stored copy behind a citation: hash, dates, and where the quote sits. Store only; never fetches."""
+    from app.data import doc_store
+
+    held = doc_store.find_by_url(url) if url else None
+    if held is None:
+        return {"source_url": url, "quote": quote, "stored": False}
+    text = str(held.get("text") or "")
+    start = text.find(quote) if quote else -1
+    return {
+        "source_url": url,
+        "quote": quote,
+        "stored": True,
+        "doc_id": held.get("doc_id"),
+        "doc_type": held.get("doc_type"),
+        "content_hash": held.get("content_hash"),
+        "raw_sha256": held.get("raw_sha256"),
+        "filing_date": held.get("date"),
+        "public_available_at": held.get("public_available_at"),
+        "ingested_at": held.get("ingested_at"),
+        "quote_start": start if start >= 0 else None,
+        "quote_end": start + len(quote) if quote and start >= 0 else None,
+    }
+
+
+@router.get("/api/v1/index/core/{company_id}/parameters/{parameter_id}")
+def index_core_parameter(
+    company_id: str,
+    parameter_id: str,
+    ruleset: Optional[str] = None,
+    as_of: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """One parameter: its score and every family under it."""
+    _core_company(company_id)
+    detail = _core_detail(company_id, ruleset, as_of)
+    param = next((p for p in detail["parameters"] if p["parameter"] == parameter_id), None)
+    families = [f for f in detail["families"] if f["parameter"] == parameter_id]
+    if param is None and not families:
+        raise HTTPException(status_code=404, detail="No families for that parameter")
+    return {
+        "company_id": company_id,
+        "algorithm_id": detail["algorithm_id"],
+        "ruleset": detail["ruleset"],
+        "parameter": param,
+        "families": families,
+    }
+
+
+@router.get("/api/v1/index/core/{company_id}/families/{family_id}")
+def index_core_family(
+    company_id: str,
+    family_id: str,
+    ruleset: Optional[str] = None,
+    as_of: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """One family with the stored evidence behind every vintage and the actual."""
+    from app.data.seed import get_outcomes
+    from app.services.gci_scoring import core_family_id
+
+    _core_company(company_id)
+    detail = _core_detail(company_id, ruleset, as_of)
+    family = next((f for f in detail["families"] if f["family_id"] == family_id), None)
+    if family is None:
+        raise HTTPException(status_code=404, detail="No family with that id")
+    row = next((o for o in get_outcomes(company_id) if core_family_id(company_id, o) == family_id), None)
+    return {
+        "company_id": company_id,
+        "algorithm_id": detail["algorithm_id"],
+        "ruleset": detail["ruleset"],
+        "family": family,
+        "evidence": {
+            "vintages": [{"vintage_id": v["vintage_id"], **_evidence(v["source_url"], v.get("quote"))} for v in family["vintages"]],
+            "actual": _evidence(row.source_url, row.quote_span) if row else None,
+            "reviewed_by": row.reviewed_by if row else None,
+            "reviewed_at": row.reviewed_at if row else None,
+        },
+    }
+
+
+@router.get("/api/v1/index/core/{company_id}/vintages/{vintage_id}")
+def index_core_vintage(
+    company_id: str,
+    vintage_id: str,
+    ruleset: Optional[str] = None,
+    as_of: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """One vintage: its band, weight, score and the stored statement."""
+    _core_company(company_id)
+    detail = _core_detail(company_id, ruleset, as_of)
+    for f in detail["families"]:
+        for v in f["vintages"]:
+            if v["vintage_id"] == vintage_id:
+                return {
+                    "company_id": company_id,
+                    "algorithm_id": detail["algorithm_id"],
+                    "family_id": f["family_id"],
+                    "parameter": f["parameter"],
+                    "period": f["period"],
+                    "vintage": v,
+                    "evidence": _evidence(v["source_url"], v.get("quote")),
+                }
+    raise HTTPException(status_code=404, detail="No vintage with that id")
+
+
+@router.post("/api/v1/index/core/bulk")
+def index_core_bulk(
+    body: Dict[str, Any],
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """Headline Core fields for up to 100 companies in one call (no families)."""
+    ids = [str(i) for i in (body.get("company_ids") or [])][:100]
+    ruleset = body.get("ruleset")
+    keep = ("algorithm_id", "method", "method_label", "ruleset", "headline", "headline_rule", "headline_gci",
+            "composite_gci", "composite_low", "composite_high", "quant_gci",
+            "qual_low", "qual_high", "confidence_tier", "calculation_status", "publication_status",
+            "coverage", "uncertainty", "company_flags", "input_digest")
+    rows = []
+    for cid in ids:
+        _core_company(cid)
+        d = _core_detail(cid, ruleset, body.get("as_of"))
+        rows.append({"company_id": cid, **{k: d[k] for k in keep}})
+    return {"count": len(rows), "rows": rows}
+
+
+@router.get("/api/v1/index/companions/{company_id}")
+def index_companions(
+    company_id: str,
+    as_of: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """Companion indexes (preview): what the GCI should not blend into a delivery score, plus record diagnostics."""
+    from app.jobs.validation_gates import _scored_companies, core_inputs
+    from app.services.guidance_profile import companion_indexes, guidance_diagnostics, setting_reference
+
+    company = _core_company(company_id)
+    kw = core_inputs(company_id, as_of=_as_of_param(as_of))
+    body = companion_indexes(
+        kw["outcomes"],
+        market_id=kw["market_id"],
+        fy_end_mmdd=kw["fy_end_mmdd"],
+        commitments=kw["commitments"],
+        as_of=kw["as_of"],
+        setting_ref=setting_reference(_scored_companies()),
+    )
+    return {
+        "company_id": company_id,
+        "name": company.get("name"),
+        **body,
+        "diagnostics": guidance_diagnostics(kw["outcomes"], commitments=kw["commitments"]),
+    }
+
+
+@router.get("/api/v1/index/core/{company_id}/readiness")
+def index_core_readiness(
+    company_id: str,
+    ruleset: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    """Release gates for a Core level (methodology, replay, coverage, review, sign-offs)."""
+    from app.jobs.validation_gates import core_release_gates
+    from app.services.score_ledger import signed_off_gates
+
+    rs = _core_ruleset(ruleset)
+    _core_company(company_id)
+    return core_release_gates(company_id, ruleset=rs, signed_off=signed_off_gates())
+
+
+@router.get("/api/v1/index/publication-requests")
+def index_publication_requests(
+    company_id: Optional[str] = None,
+    auth=Depends(require_any_feature("labeling", "analytics_experimental")),
+) -> Dict[str, Any]:
+    from app.services import market_scope
+    from app.services.score_ledger import publication_events
+
+    rows = market_scope.filter_rows(auth, publication_events(company_id))
+    return {"count": len(rows), "rows": rows}
+
+
+@router.post("/api/v1/index/core/{company_id}/publication-requests")
+def index_publication_request(
+    company_id: str,
+    body: Optional[Dict[str, Any]] = None,
+    auth=Depends(require_feature("labeling")),
+) -> Dict[str, Any]:
+    """Freeze the Core calculation and ask a second reviewer to approve it. Publishes nothing."""
+    from app.services.score_ledger import request_publication
+
+    ruleset = _core_ruleset((body or {}).get("ruleset"))
+    _core_company(company_id)
+    return request_publication(company_id, by=_actor_label(auth), role=str(auth.get("role") or ""), ruleset=ruleset)
+
+
+@router.post("/api/v1/index/publication-requests/{event_id}/decision")
+def index_publication_decision(
+    event_id: str,
+    body: Dict[str, Any],
+    auth=Depends(require_feature("labeling")),
+) -> Dict[str, Any]:
+    """Second reviewer approves or rejects. Approval writes the ledger only when every release gate passes."""
+    from app.services import market_scope
+    from app.services.score_ledger import decide_publication, publication_events
+
+    event = next((e for e in publication_events() if e.get("event_id") == event_id), None)
+    if event is not None:
+        market_scope.require_in_scope(auth, str(event["company_id"]))
+    if str(auth.get("role") or "") not in ("reviewer", "admin", "owner") and not auth.get("platform_admin_role"):
+        raise HTTPException(status_code=403, detail="Only a reviewer or admin can decide a publication request")
+    try:
+        return decide_publication(
+            event_id,
+            approve=bool(body.get("approve")),
+            by=_actor_label(auth),
+            role=str(auth.get("role") or ""),
+            note=str(body.get("note") or ""),
+        )
+    except KeyError:
+        raise HTTPException(status_code=404, detail="No publication request with that id") from None
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from None
+
+
+@router.post("/api/v1/index/release-signoffs")
+def index_release_signoff(body: Dict[str, Any], auth=Depends(require_feature("labeling"))) -> Dict[str, Any]:
+    """Record a manual release gate (counsel, data licence, committee, security). Admins only."""
+    from app.services.score_ledger import record_signoff
+
+    if str(auth.get("role") or "") not in ("admin", "owner") and not auth.get("platform_admin_role"):
+        raise HTTPException(status_code=403, detail="Only an admin can sign off a release gate")
+    try:
+        return record_signoff(
+            str(body.get("gate_id") or ""),
+            by=_actor_label(auth),
+            role=str(auth.get("role") or ""),
+            note=str(body.get("note") or ""),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from None
 
 
 @router.get("/api/v1/pit/contract")

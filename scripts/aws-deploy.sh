@@ -331,7 +331,8 @@ echo "  Package:  ${APP_URL}/package"
 echo "  Health:   ${APP_URL}/health"
 echo "  API docs: ${APP_URL}/docs"
 echo "  Meta:     ${APP_URL}/api/meta"
-curl -sf "${APP_URL}/api/meta" | python3 -m json.tool | head -20
+curl -sf --retry 3 --retry-delay 5 --max-time 60 "${APP_URL}/api/meta" | python3 -m json.tool | head -20 \
+  || echo "  (meta not ready yet; /health passed — re-check ${APP_URL}/api/meta)"
 
 if [[ -n "${BOOTSTRAP_SUPER_EMAIL:-}" && -n "${BOOTSTRAP_SUPER_PASSWORD:-}" ]]; then
   echo "== Bootstrap platform super user =="

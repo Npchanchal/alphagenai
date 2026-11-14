@@ -16,6 +16,8 @@ import InfoTip from "../components/InfoTip";
 import PilotChecklistPanel from "../components/PilotChecklistPanel";
 import LabelWorkbench from "../components/LabelWorkbench";
 import FeedbackInbox from "../components/FeedbackInbox";
+import CorePreviewPanel from "../components/CorePreviewPanel";
+import MethodLabPanel from "../components/MethodLabPanel";
 import TabBar from "../components/TabBar";
 import Toast from "../components/Toast";
 import PlanAccessGate from "../components/PlanAccessGate";
@@ -96,6 +98,8 @@ const TABS = [
   { id: "wordmap", labelKey: "ui.DeskPage.tab.wordmap", title: tipText("sentiment") },
   { id: "vernacular", labelKey: "ui.DeskPage.tab.vernacular", title: tipText("gci") },
   { id: "labeling", labelKey: "ui.DeskPage.tab.labeling", title: tipText("labeling_queue") },
+  { id: "core", labelKey: "ui.DeskPage.tab.core", titleKey: "ui.DeskPage.tab.coreTitle" },
+  { id: "lab", labelKey: "ui.DeskPage.tab.lab", titleKey: "ui.DeskPage.tab.labTitle" },
   { id: "feedback", labelKey: "ui.DeskPage.tab.feedback", titleKey: "ui.DeskPage.tab.feedbackTitle" },
   { id: "csm", labelKey: "ui.DeskPage.tab.csm", title: tipText("csm") },
 ] as const;
@@ -105,7 +109,17 @@ type TabId = (typeof TABS)[number]["id"];
 const PRIMARY_TABS = TABS.filter((t) =>
   ["console", "review", "corpus", "reports", "pit"].includes(t.id),
 );
-const MORE_TAB_IDS = new Set(["import", "parameters", "wordmap", "vernacular", "labeling", "feedback", "csm"]);
+const MORE_TAB_IDS = new Set([
+  "import",
+  "parameters",
+  "wordmap",
+  "vernacular",
+  "labeling",
+  "core",
+  "lab",
+  "feedback",
+  "csm",
+]);
 
 const DEFAULT_FACTS = `[
   {
@@ -1897,6 +1911,10 @@ export default function DeskPage() {
         </div>
         </>
       )}
+
+      {tab === "core" && <CorePreviewPanel companyId={companyId} />}
+
+      {tab === "lab" && <MethodLabPanel />}
 
       {tab === "feedback" && <FeedbackInbox />}
 

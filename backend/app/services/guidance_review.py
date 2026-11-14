@@ -222,13 +222,75 @@ def _accepted_docs(company_id: str) -> List[Dict[str, Any]]:
     return rows
 
 
-def _matching_doc(
+#: Guidance dated after this share of the period has run is a mid-year update, not the opening promise.
+OPENING_SHARE = 0.5
+_SEGMENT_SPLIT = re.compile(r"\n+|(?<=[.!?])\s+(?=[A-Z(])")
+_SOURCE_TAG = re.compile(r"(?im)^\s*source:\s*$")
+
+
+def _labeller_notes(outcome: Dict[str, Any], outcomes: Optional[List[Dict[str, Any]]]) -> List[str]:
+    """Our own labelling notes and source tags. Stored excerpts carry them beside the filing quote."""
+    notes = set()
+    for row in [outcome, *(outcomes or [])]:
+        if not isinstance(row, dict):
+            continue
+        for key in ("guided_text", "source_ref", "guidance_source_ref"):
+            note = str(row.get(key) or "").strip()
+            if len(note) >= 6:
+                notes.add(note)
+    return sorted(notes, key=len, reverse=True)
+
+
+def _filing_text(doc: Dict[str, Any], notes: List[str]) -> str:
+    """Stored excerpt minus labelling notes: only what the filing itself says can confirm a number."""
+    text = str(doc.get("text") or "")
+    for note in [*notes, str(doc.get("source") or "").strip()]:
+        if len(note) >= 6:
+            text = text.replace(note, "\n")
+    return _SOURCE_TAG.sub("", text).strip()
+
+
+def _period_window(period: str, company: Optional[Dict[str, Any]]) -> Optional[tuple]:
+    """(start, opening cutoff, end) of the period, or None when the label cannot be placed."""
+    from app.data.markets import company_market_id
+    from app.services.disclosures import period_bounds
+
+    bounds = period_bounds(period, company_market_id(company), (company or {}).get("fy_end_mmdd"))
+    if bounds is None:
+        return None
+    start, end = bounds
+    return start, start + (end - start) * OPENING_SHARE, end
+
+
+def _doc_date(doc: Dict[str, Any]) -> Optional[date]:
+    try:
+        return date.fromisoformat(str(doc.get("date") or "")[:10])
+    except ValueError:
+        return None
+
+
+def _opening_doc(doc: Dict[str, Any], window: Optional[tuple]) -> bool:
+    """A promise is cited from a filing dated before the period is half run."""
+    when = _doc_date(doc)
+    return window is not None and when is not None and when <= window[1]
+
+
+def _after_close(doc: Dict[str, Any], window: Optional[tuple]) -> bool:
+    """A result is cited from a filing dated after the period ends."""
+    when = _doc_date(doc)
+    return window is not None and when is not None and when > window[2]
+
+
+def _matching_quote(
     docs: List[Dict[str, Any]],
     *,
     period: str,
     numbers: List[float],
     rule: Dict[str, Any],
-) -> Optional[Dict[str, Any]]:
+    notes: List[str],
+    dated_ok,
+) -> Optional[tuple]:
+    """(doc, sentence) where one filing sentence names the metric and holds every number in its unit."""
     if not numbers or not rule:
         return None
     unit = str(rule.get("unit") or "")
@@ -236,29 +298,44 @@ def _matching_doc(
         doc_period = str(doc.get("period") or "")
         if doc_period and period and doc_period != period:
             continue
-        text = str(doc.get("text") or "")
-        if not _mentions_metric(rule, text):
+        if not dated_ok(doc):
             continue
-        if all(_number_with_unit(n, text, unit) for n in numbers):
-            return doc
+        for segment in _SEGMENT_SPLIT.split(_filing_text(doc, notes)):
+            quote = segment.strip()[:500]
+            if not _mentions_metric(rule, quote):
+                continue
+            if not all(_number_with_unit(n, quote, unit) for n in numbers):
+                continue
+            if quote_in_text(quote, str(doc.get("text") or "")):
+                return doc, quote
     return None
 
 
-def _quote_from_doc(doc: Dict[str, Any]) -> str:
-    text = str(doc.get("text") or "").strip()[:500]
-    if not quote_in_text(text, str(doc.get("text") or "")):
-        return ""
-    return text
+def _sibling_has_promise(outcome: Dict[str, Any], outcomes: Optional[List[Dict[str, Any]]]) -> bool:
+    """Another row for the same period and metric already carries a promise citation."""
+    key = (str(outcome.get("period") or ""), normalize_metric(str(outcome.get("metric") or "")))
+    for row in outcomes or []:
+        if row is outcome or not isinstance(row, dict):
+            continue
+        if (str(row.get("period") or ""), normalize_metric(str(row.get("metric") or ""))) != key:
+            continue
+        if all(str(row.get(k) or "").strip() for k in ("guidance_source_url", "guidance_quote", "guidance_as_of")):
+            return True
+    return False
 
 
-def _doc_for_quote(docs: List[Dict[str, Any]], quote: Any) -> Optional[Dict[str, Any]]:
+def _doc_for_quote(docs: List[Dict[str, Any]], quote: Any, notes: List[str] = ()) -> Optional[Dict[str, Any]]:
     q = str(quote or "").strip()
     if len(q) < 12:
         return None
     for doc in docs:
-        if quote_in_text(q, str(doc.get("text") or "")):
+        if quote_in_text(q, _filing_text(doc, list(notes))):
             return doc
     return None
+
+
+def _promise_dated_ok(outcome: Dict[str, Any], window: Optional[tuple]) -> bool:
+    return _opening_doc({"date": outcome.get("guidance_as_of")}, window)
 
 
 def _metric_allowed(
@@ -332,9 +409,11 @@ def bind_from_documents(
 ) -> bool:
     """File a citation when this stock's metric rules match an accepted filing.
 
-    The quote is the filing text already stored. The metric name and unit have to be in
-    that text. A band-preferred metric files only when both ends of the recorded band are
-    in the text. A number that is not in that text is left blank.
+    The quote is one sentence of the stored filing text, never our labelling note. It has
+    to name the metric and carry every recorded number in its unit; a band-preferred
+    metric files only when both ends are in it. A promise is cited only from a filing
+    dated before the period is half run, a result only from one dated after it ends, and
+    only one promise per period and metric. Anything else is left blank.
     """
     if not isinstance(outcome, dict):
         return False
@@ -343,15 +422,28 @@ def bind_from_documents(
         return False
     changed = False
     period = str(outcome.get("period") or "")
+    notes = _labeller_notes(outcome, outcomes)
+    window = _period_window(period, company)
     guidance_missing = not all(
         str(outcome.get(key) or "").strip()
         for key in ("guidance_source_url", "guidance_quote", "guidance_as_of")
     )
-    if guidance_missing and _promise_distinct(outcome) and not _known_unverified(company, outcome):
-        numbers = _guided_numbers(outcome, rule)
-        doc = _matching_doc(docs, period=period, numbers=numbers, rule=rule)
-        quote = _quote_from_doc(doc) if doc is not None else ""
-        if doc is not None and quote:
+    if (
+        guidance_missing
+        and _promise_distinct(outcome)
+        and not _known_unverified(company, outcome)
+        and not _sibling_has_promise(outcome, outcomes)
+    ):
+        hit = _matching_quote(
+            docs,
+            period=period,
+            numbers=_guided_numbers(outcome, rule),
+            rule=rule,
+            notes=notes,
+            dated_ok=lambda d: _opening_doc(d, window),
+        )
+        if hit is not None:
+            doc, quote = hit
             outcome["guidance_quote"] = quote
             outcome["guidance_source_url"] = str(doc.get("url") or "").strip()
             outcome["guidance_source_ref"] = str(doc.get("source") or doc.get("doc_id") or "")
@@ -361,14 +453,16 @@ def bind_from_documents(
         str(outcome.get(key) or "").strip() for key in ("source_url", "quote_span", "as_of")
     )
     if filing_missing and outcome.get("actual_value") is not None:
-        doc = _matching_doc(
+        hit = _matching_quote(
             docs,
             period=period,
             numbers=_targets(outcome, ("actual_value",)),
             rule=rule,
+            notes=notes,
+            dated_ok=lambda d: _after_close(d, window),
         )
-        quote = _quote_from_doc(doc) if doc is not None else ""
-        if doc is not None and quote:
+        if hit is not None:
+            doc, quote = hit
             outcome["quote_span"] = quote
             outcome["source_url"] = str(doc.get("url") or "").strip()
             outcome["source_ref"] = str(doc.get("source") or doc.get("doc_id") or "")
@@ -379,7 +473,7 @@ def bind_from_documents(
         for q in (outcome.get("guidance_quote"), outcome.get("quote_span"))
         if str(q or "").strip()
     ]
-    quotes_checked = bool(present) and all(_doc_for_quote(docs, q) for q in present)
+    quotes_checked = bool(present) and all(_doc_for_quote(docs, q, notes) for q in present)
     guided_ok = _quote_fits(rule, outcome.get("guidance_quote"), _guided_numbers(outcome, rule))
     actual_numbers = _targets(outcome, ("actual_value",))
     actual_ok = outcome.get("actual_value") is None or _quote_fits(
@@ -393,7 +487,7 @@ def bind_from_documents(
         and not _known_unverified(company, outcome)
         and outcome.get("source_verified") is False
     ):
-        filing = _doc_for_quote(docs, outcome.get("quote_span"))
+        filing = _doc_for_quote(docs, outcome.get("quote_span"), notes)
         if filing is not None and str(filing.get("url") or "") != outcome.get("source_url"):
             outcome["source_url"] = str(filing.get("url") or "").strip()
             outcome["source_ref"] = str(filing.get("source") or filing.get("doc_id") or "")
@@ -419,6 +513,7 @@ def bind_from_documents(
         and _promise_distinct(outcome)
         and not _known_unverified(company, outcome)
         and outcome.get("source_verified") is not False
+        and _promise_dated_ok(outcome, window)
         and not str(outcome.get("reviewed_by") or "").strip()
     ):
         outcome["reviewed_by"] = REVIEWER
@@ -684,6 +779,7 @@ def _append_changelog(
     moves: List[Any],
     *,
     lead: str = "Daily guidance review copied quotes from accepted filings.",
+    reason: str = "new_filing",
 ) -> None:
     path = changelog_write_path()
     payload: Dict[str, Any] = {"entries": []}
@@ -697,7 +793,7 @@ def _append_changelog(
         0,
         {
             "date": day.isoformat(),
-            "reason": "new_filing",
+            "reason": reason,
             "companies": [row.company_id for row in moves],
             "change": f"{lead} " + "; ".join(bits) + ".",
         },

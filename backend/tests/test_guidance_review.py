@@ -24,7 +24,7 @@ def _guidance_doc() -> dict:
         "doc_id": "doc-fy25",
         "text": "we are up by about 2.5% on volume terms",
         "url": "https://example.test/guidance.pdf",
-        "date": "2025-05-08",
+        "date": "2024-05-08",
         "source": "bse",
         "review_status": "accepted",
     }
@@ -97,7 +97,7 @@ def test_bind_copies_the_filing_sentence_when_the_number_is_in_it():
     assert bind_from_documents(row, [doc, results]) is True
     assert row["guidance_quote"] == doc["text"]
     assert row["guidance_source_url"] == doc["url"]
-    assert row["guidance_as_of"] == "2025-05-08"
+    assert row["guidance_as_of"] == "2024-05-08"
     assert row["reviewed_by"] == REVIEWER
     assert row["actual_value"] == 2.4
 
@@ -125,7 +125,7 @@ def test_bind_requires_both_ends_of_a_recorded_band():
         "period": "FY25",
         "text": "revenue growth of 12% in constant currency",
         "url": "https://example.test/guidance.pdf",
-        "date": "2025-04-13",
+        "date": "2024-04-13",
     }
     assert bind_from_documents(row, [one_end]) is False
     both = {
@@ -148,12 +148,68 @@ def test_capex_requires_a_currency_unit():
         "period": "FY25",
         "text": "capex of about 2500 for the year",
         "url": "https://example.test/capex.pdf",
-        "date": "2025-05-08",
+        "date": "2024-05-08",
     }
     assert bind_from_documents(row, [bare]) is False
     crore = {**bare, "text": "capex of about 2500 crore for the year"}
     assert bind_from_documents(row, [crore]) is True
     assert row["guidance_quote"] == crore["text"]
+
+
+def _margin_row(**kw) -> dict:
+    return {
+        "period": "FY25",
+        "metric": "ebitda_margin_pct",
+        "guided_low": 24.5,
+        "guided_high": 25.5,
+        "actual_value": None,
+        **kw,
+    }
+
+
+def test_bind_never_confirms_a_number_from_our_own_labelling_note():
+    note = "FY25 EBITDA margin guidance 24.5%–25.5%; year printed 25.9% (beat / exceeded band)."
+    row = _margin_row(guided_text=note)
+    excerpt = {
+        "period": "FY25",
+        "text": f"{note}\nmanagement remains confident on margins\nSource: CIPLA-Q4FY24-FY25-guide",
+        "url": "https://example.test/guide.pdf",
+        "date": "2024-05-10",
+        "source": "CIPLA-Q4FY24-FY25-guide",
+    }
+    assert bind_from_documents(row, [excerpt]) is False
+    assert "guidance_quote" not in row
+    verbatim = {**excerpt, "text": f"{note}\n24.5% to 25.5% to EBITDA margin\nSource: CIPLA-Q4FY24-FY25-guide"}
+    assert bind_from_documents(row, [verbatim]) is True
+    assert row["guidance_quote"] == "24.5% to 25.5% to EBITDA margin"
+
+
+def test_bind_refuses_a_promise_dated_late_in_or_after_the_period():
+    for when in ("2025-01-28", "2025-05-13"):  # Q3 reaffirmation; after FY25 closed
+        row = _margin_row()
+        doc = {"period": "FY25", "text": "EBITDA margin of 24.5% to 25.5%", "url": "https://example.test/g.pdf",
+               "date": when}
+        assert bind_from_documents(row, [doc]) is False, when
+        assert "guidance_quote" not in row
+
+
+def test_bind_refuses_a_result_dated_before_the_period_ends():
+    row = _margin_row(actual_value=25.9, guidance_source_url="https://example.test/g.pdf",
+                      guidance_quote="EBITDA margin of 24.5% to 25.5%", guidance_as_of="2024-05-10")
+    early = {"period": "FY25", "text": "EBITDA margin was 25.9%", "url": "https://example.test/r.pdf",
+             "date": "2025-01-28"}
+    assert bind_from_documents(row, [early]) is False
+    assert "quote_span" not in row
+
+
+def test_bind_files_one_promise_per_period_and_metric():
+    doc = {"period": "FY25", "text": "EBITDA margin of 24.5% to 25.5%", "url": "https://example.test/g.pdf",
+           "date": "2024-05-10"}
+    first, second = _margin_row(), _margin_row()
+    rows = [first, second]
+    assert bind_from_documents(first, [doc], outcomes=rows) is True
+    assert bind_from_documents(second, [doc], outcomes=rows) is False
+    assert "guidance_quote" not in second
 
 
 def test_a_bank_metric_is_not_filed_for_an_it_company():
@@ -168,7 +224,7 @@ def test_a_bank_metric_is_not_filed_for_an_it_company():
         "period": "FY25",
         "text": "NIM guided at 3.4% to 3.6%",
         "url": "https://example.test/nim.pdf",
-        "date": "2025-04-20",
+        "date": "2024-04-20",
     }
     assert bind_from_documents(row, [doc], company={"id": "infy", "sector": "IT Services"}) is False
     assert bind_from_documents(row, [doc], company={"id": "hdfcbank", "sector": "Banks"}) is True

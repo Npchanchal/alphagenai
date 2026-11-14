@@ -166,6 +166,140 @@ def excluded_from_score(outcome: object) -> bool:
     )
 
 
+# ── GCI Core v2.4 vocabulary (methodology §4, §10; plan docs/PLAN_GCI_CORE.md) ──
+
+ROUTE_QUANT = "QUANT"
+ROUTE_QUANT_PENDING = "QUANT_PENDING"
+ROUTE_UNSCORABLE = "UNSCORABLE"
+ROUTE_WITHDRAWN = "WITHDRAWN"
+ROUTE_NOT_DUE = "NOT_DUE"
+#: A guidance row with no eligible numeric promise. Qualitative promises are
+#: commitments, scored by the Core Qual branch (``commitments.qual_family``).
+ROUTE_COMMITMENT_RECORD = "COMMITMENT_RECORD"
+CORE_ROUTES = (
+    ROUTE_QUANT,
+    ROUTE_QUANT_PENDING,
+    ROUTE_UNSCORABLE,
+    ROUTE_WITHDRAWN,
+    ROUTE_NOT_DUE,
+    ROUTE_COMMITMENT_RECORD,
+)
+
+CALCULATION_COMPUTED = "COMPUTED"
+CALCULATION_PARTIAL = "PARTIAL"
+CALCULATION_NOT_COMPUTABLE = "NOT_COMPUTABLE"
+
+PUBLICATION_PUBLISHABLE = "PUBLISHABLE"
+PUBLICATION_SHADOW = "SHADOW"
+PUBLICATION_NOT_ELIGIBLE = "NOT_ELIGIBLE"
+
+#: Methodology v2.4 reason codes, then CiteAlpha extensions (marked in the plan).
+CORE_REASON_CODES = (
+    "NO_ELIGIBLE_PROMISE",
+    "FUTURE_SOURCE",
+    "QUOTE_OFFSET_MISMATCH",
+    "DOCUMENT_HASH_MISMATCH",
+    "AMBIGUOUS_DIRECTION",
+    "RELATIVE_TO_CONSENSUS",
+    "CONDITION_NOT_ACTIVATED",
+    "CONDITION_UNKNOWN",
+    "ACTUAL_UNAVAILABLE",
+    "OUTCOME_NOT_DUE",
+    "UNIT_CONVERSION_ERROR",
+    "SCOPE_MISMATCH",
+    "ACCOUNTING_BASIS_MISMATCH",
+    "DEFINITION_CHANGED",
+    "ZERO_REFERENCE_UNAVAILABLE",
+    "REVISION_MAGNITUDE_UNAVAILABLE",
+    "WITHDRAWN",
+    "UNAPPROVED_ENGINE",
+    "LATE_GUIDANCE_FLAG",
+    "GUIDANCE_AFTER_PERIOD_END",
+    "AMBIGUOUS_ACCEPTANCE_EVENT",
+    # CiteAlpha extensions
+    "PENDING_GUIDANCE_CITE",
+    "UNREVIEWED",
+    "REGIME_ADAPTER_PENDING",
+    "MARKET_DIAGNOSTIC_ONLY",
+    "ISSUANCE_TIME_UNKNOWN",
+    "PERIOD_END_UNKNOWN",
+    "OUTCOME_UNRESOLVED",
+    "SUPERSEDED",
+    "SAME_DAY_CONFLICT",
+    "BASIS_SWITCH",
+    "THIN_HISTORY",
+    # v2.4-R2
+    "SCALE_FLOOR_APPLIED",
+    "PRE_PERIOD_GUIDANCE",
+)
+
+#: HC-03: furthest stage a guidance record has reached; each stage implies the earlier ones.
+RECORD_DOCUMENT_AVAILABLE = "DOCUMENT_AVAILABLE"
+RECORD_EXTRACTED = "EXTRACTED"
+RECORD_REVIEWER_ACCEPTED = "REVIEWER_ACCEPTED"
+RECORD_SCORE_COMPUTED = "SCORE_COMPUTED"
+RECORD_PUBLISHED = "PUBLISHED"
+RECORD_STATES = (
+    RECORD_DOCUMENT_AVAILABLE,
+    RECORD_EXTRACTED,
+    RECORD_REVIEWER_ACCEPTED,
+    RECORD_SCORE_COMPUTED,
+    RECORD_PUBLISHED,
+)
+_BEFORE_REVIEW = {"UNREVIEWED", "PENDING_GUIDANCE_CITE", "QUOTE_OFFSET_MISMATCH", "NO_ELIGIBLE_PROMISE"}
+
+
+def core_record_state(reason_code: Optional[str], calculation_status: str, *, published: bool) -> str:
+    if reason_code in _BEFORE_REVIEW:
+        return RECORD_EXTRACTED
+    if calculation_status == CALCULATION_COMPUTED:
+        return RECORD_PUBLISHED if published else RECORD_SCORE_COMPUTED
+    return RECORD_REVIEWER_ACCEPTED
+
+_CONDITION_BLOCKS = {"not_activated": "CONDITION_NOT_ACTIVATED", "unknown": "CONDITION_UNKNOWN"}
+
+
+def core_route(outcome: object) -> tuple:
+    """``(route, reason_code | None)`` for one guidance row under GCI Core.
+
+    Only ``QUANT`` rows are scored. Every other route carries the reason a
+    reviewer sees next to the row. Same governance as v4: a row v4 excludes,
+    Core excludes too, with a named reason instead of a silent drop.
+    """
+    from app.data.metric_catalog import normalize_basis
+
+    g = outcome.get if isinstance(outcome, dict) else lambda k, d=None: getattr(outcome, k, d)
+    if g("unmapped"):
+        return ROUTE_COMMITMENT_RECORD, "NO_ELIGIBLE_PROMISE"
+    if g("dropped"):
+        return ROUTE_WITHDRAWN, "WITHDRAWN"
+    condition = _CONDITION_BLOCKS.get(str(g("condition_state") or "").strip().lower())
+    if condition:
+        return ROUTE_UNSCORABLE, condition
+    if g("actual_value") is None:
+        return ROUTE_NOT_DUE, "OUTCOME_NOT_DUE"
+    promised, delivered = str(g("guidance_as_of") or ""), str(g("as_of") or "")
+    if promised and delivered and promised > delivered:
+        return ROUTE_UNSCORABLE, "FUTURE_SOURCE"
+    if is_pending_guidance_cite(outcome):
+        return ROUTE_QUANT_PENDING, "PENDING_GUIDANCE_CITE"
+    if is_source_verify_fail(outcome):
+        return ROUTE_QUANT_PENDING, "QUOTE_OFFSET_MISMATCH"
+    if is_unreviewed(outcome):
+        return ROUTE_QUANT_PENDING, "UNREVIEWED"
+    pb, ab = normalize_basis(g("reporting_basis")), normalize_basis(g("actual_reporting_basis"))
+    if pb and ab and pb != ab:
+        return ROUTE_UNSCORABLE, "ACCOUNTING_BASIS_MISMATCH"
+    if _token(g("unit")) and _token(g("actual_unit")) and _token(g("unit")) != _token(g("actual_unit")):
+        return ROUTE_UNSCORABLE, "UNIT_CONVERSION_ERROR"
+    if _token(g("scope")) and _token(g("actual_scope")) and _token(g("scope")) != _token(g("actual_scope")):
+        return ROUTE_UNSCORABLE, "SCOPE_MISMATCH"
+    bound = str(g("bound") or "").strip().lower()
+    if bound and bound not in ("floor", "ceiling"):
+        return ROUTE_UNSCORABLE, "AMBIGUOUS_DIRECTION"
+    return ROUTE_QUANT, None
+
+
 def closed_period_count(outcomes: Iterable) -> int:
     """Distinct reporting periods with a closed (non-pending) outcome."""
     periods = set()

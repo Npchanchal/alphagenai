@@ -70,6 +70,7 @@ def _results_rows(block: Dict[str, Any], since: str) -> List[Dict[str, Any]]:
             {
                 "accession": block["accessionNumber"][i],
                 "date": filed,
+                "accepted_at": str((block.get("acceptanceDateTime") or [""] * len(forms))[i] or "") or None,
                 "form": form,
                 "report_date": (block.get("reportDate") or [""] * len(forms))[i],
             }
@@ -208,7 +209,8 @@ def ingest_company(
                 already += 1
                 continue
             try:
-                text = exhibit_text(get(ex["url"]))
+                raw = get(ex["url"])
+                text = exhibit_text(raw)
             except Exception:  # noqa: BLE001
                 failed += 1
                 continue
@@ -224,6 +226,8 @@ def ingest_company(
                 source="sec_filing",
                 review_status="accepted",
                 persist=False,
+                raw_bytes=raw,
+                public_available_at=f.get("accepted_at") or f["date"],
             )
             stored.add(doc_store.url_key(ex["url"]))
             added += 1

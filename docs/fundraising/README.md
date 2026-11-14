@@ -77,6 +77,6 @@ Illustrative prices, already in the customer pack: Desk **₹45,000 per seat per
 | 8 | [backrr](backrr/DECK.md) · [supporting](backrr/SUPPORTING.md) |
 | 9 | [google-for-startups](google-for-startups/DECK.md) · [supporting](google-for-startups/SUPPORTING.md) |
 | 10 | [y-combinator](y-combinator/DECK.md) · [supporting](y-combinator/SUPPORTING.md) |
-| 11 | [IIMA Ventures](iima-ventures/BUSINESS_PLAN.md) — incubation plan, not a cheque. Form answers for email, AWS/Gemini, and the deck sit at the top. |
+| 11 | [IIMA Ventures](iima-ventures/BUSINESS_PLAN.md) — incubation plan, not a cheque. Form answers for email, AWS/Gemini, and the deck sit at the top. Pitch deck in the IIMA Ventures template order: [pptx](iima-ventures/CiteAlpha_IIMA_Ventures_Pitch_12_Nov_2026.pptx) · [pdf](iima-ventures/CiteAlpha_IIMA_Ventures_Pitch_12_Nov_2026.pdf), rebuilt by [build_pitch_deck.py](iima-ventures/build_pitch_deck.py). |
 
 Canonical claims and the two-minute talk track: [FACTS.md](FACTS.md). The IIMA Ventures plan may cite the SEBI intermediary counts dated 22 October 2026. Those counts are not for the equity decks.

@@ -1740,7 +1740,7 @@ export default function CompanyDetailPage() {
           <>
             {" · "}
             {t("dossier.footer.method", {
-              v: detail.algorithm_id.replace(/^gci_scoring_/, ""),
+              v: detail.method_label ?? detail.algorithm_id.replace(/^gci_scoring_/, ""),
             })}
           </>
         ) : null}

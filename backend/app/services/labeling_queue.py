@@ -156,6 +156,18 @@ def sync_reconcile_findings(company_id: str, result: Dict[str, Any]) -> Dict[str
         period, metric = str(item.get("period") or ""), str(item.get("promise_metric") or "")
         if _open_finding(company_id, "match_conflict", period, metric):
             continue
+        if item.get("reason") == "same_day_statements":
+            note = (
+                f"{period} {metric}: two statements on the same day disagree. "
+                f"Used (higher-ranked source): {item.get('promise_quote')} "
+                f"Other: {item.get('result_quote')}"
+            )
+        else:
+            note = (
+                f"{period} {metric} vs {item.get('result_metric')} ({item.get('reason')}). "
+                f"Promise: {item.get('promise_quote')} "
+                f"Result: {item.get('result_quote')}"
+            )
         enqueue(
             company_id=company_id,
             kind="match_conflict",
@@ -163,11 +175,7 @@ def sync_reconcile_findings(company_id: str, result: Dict[str, Any]) -> Dict[str
             metric=metric,
             priority="high",
             requested_by="job:disclosure_reconcile",
-            note=(
-                f"{period} {metric} vs {item.get('result_metric')} ({item.get('reason')}). "
-                f"Promise: {item.get('promise_quote')} "
-                f"Result: {item.get('result_quote')}"
-            ),
+            note=note,
         )
         enqueued += 1
     for item in drops:

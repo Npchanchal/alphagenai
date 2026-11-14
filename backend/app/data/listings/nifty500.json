@@ -1,6 +1,6 @@
 {
  "source": "https://archives.nseindia.com/content/indices/ind_nifty500list.csv",
- "as_of": "2026-10-18",
+ "as_of": "2026-11-10",
  "count": 501,
  "rows": [
   {
@@ -1330,6 +1330,12 @@
    "isin": "INE090A01021"
   },
   {
+   "symbol": "ICICILIFE",
+   "name": "ICICI Life Insurance Ltd.",
+   "industry": "Financial Services",
+   "isin": "INE726G01019"
+  },
+  {
    "symbol": "ICICIGI",
    "name": "ICICI Lombard General Insurance Company Ltd.",
    "industry": "Financial Services",
@@ -1340,12 +1346,6 @@
    "name": "ICICI Prudential Asset Management Company Ltd.",
    "industry": "Financial Services",
    "isin": "INE346A01027"
-  },
-  {
-   "symbol": "ICICIPRULI",
-   "name": "ICICI Prudential Life Insurance Company Ltd.",
-   "industry": "Financial Services",
-   "isin": "INE726G01019"
   },
   {
    "symbol": "IDBI",

@@ -36,7 +36,7 @@ Two answers, built together:
 | # | Decision | Consequence |
 |---|---|---|
 | D1 | The agent is part of the **core product**, not a separate SKU | Overrides the "SuperAnalyst OS" non-goal in `GAPS_VS_ALPHASENSE_BLOOMBERG.md`. Entitlements still apply per feature (guests get no agent runs) |
-| D2 | Commitments go into a **separate Commitment Record**; the GCI stays explicit-guidance only | No GCI methodology change, no ledger entries from this programme. Commitment Record has its own methodology page and changelog |
+| D2 | Commitments go into a **separate Commitment Record**; the GCI stays explicit-guidance only | No GCI methodology change, no ledger entries from this programme. Commitment Record has its own methodology page and changelog. *Revised 2026-11-10 (`docs/PLAN_GCI_CORE.md`, owner ruling):* accepted commitments feed the GCI Core v2.4 Qual branch (shadow, reviewer seats); they still never feed the published GCI |
 | D3 | Content is **public Indian disclosures plus the user's own uploads** | No broker research, no expert-call network, no unlicensed transcripts. Licensed content stays a later, separate decision |
 | D4 | First deliverable is this plan | Code starts at Phase A0 after approval |
 

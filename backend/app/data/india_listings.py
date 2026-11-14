@@ -5,6 +5,11 @@ GCI is NOT invented for these rows — only Sensex/Nifty seed outcomes score.
 One row per scrip. Every India index (SENSEX, NIFTY50, NIFTYBANK, NIFTY500,
 NSE_ALL, BSE_ALL, IN1000) is a membership tag on that row, never a separate record, so a
 dual-listed or multi-index name is stored, scored and walked exactly once.
+
+Main board only: BSE SME groups and non-equity ISINs are left out. With AMFI's
+half-yearly list on disk, a BSE-only scrip it does not rank (no market cap in six
+months) is left out, the walk runs in AMFI rank order, and IN1000 is the top 1,000
+by size.
 """
 
 from __future__ import annotations
@@ -31,6 +36,7 @@ INDIA_INDEX_IDS = ("SENSEX", "NIFTY50", "NIFTYBANK", "NIFTY500", "NSE_ALL", "BSE
 NIFTYBANK_TICKERS = frozenset(
     {"HDFCBANK", "ICICIBANK", "AXISBANK", "KOTAKBANK", "SBIN", "INDUSINDBK"}
 )
+BSE_SME_GROUPS = frozenset({"M", "MT", "MS"})
 
 
 def _slug(ticker: str) -> str:
@@ -73,14 +79,45 @@ def bse_meta() -> Dict[str, Any]:
     return {"count": int(raw.get("count") or len(raw.get("rows") or [])), "source": raw.get("source")}
 
 
-def _resolve_id_name_sector(symbol: str, name: str) -> Tuple[str, str, str, str]:
-    """Return (id, name, ticker, sector) preferring Sensex / Nifty seed ids."""
+@lru_cache(maxsize=1)
+def amfi_rank_by_isin() -> Dict[str, int]:
+    """AMFI six-month average market-cap rank by ISIN; empty when the file is absent."""
+    rows = _load_json("amfi_mcap.json").get("rows") or []
+    return {str(r["isin"]).upper(): int(r["rank"]) for r in rows if r.get("isin") and r.get("rank")}
+
+
+@lru_cache(maxsize=1)
+def nse_index_symbols() -> Dict[str, frozenset]:
+    """Nifty 50 / Nifty Bank symbols from NSE's files, else the lists kept in code."""
+    held = _load_json("nse_indexes.json").get("indexes") or {}
+    return {
+        "NIFTY50": frozenset(held.get("NIFTY50") or OFFICIAL_NIFTY50_TICKERS),
+        "NIFTYBANK": frozenset(held.get("NIFTYBANK") or NIFTYBANK_TICKERS),
+    }
+
+
+def _main_board_bse(row: Dict[str, Any]) -> bool:
+    isin = str(row.get("isin") or "").strip().upper()
+    return isin.startswith("INE") and str(row.get("group") or "").upper() not in BSE_SME_GROUPS
+
+
+def _resolve_id_name_sector(
+    symbol: str, name: str, id_symbol: Optional[str] = None
+) -> Tuple[str, str, str, str]:
+    """Return (id, name, ticker, sector) preferring Sensex / Nifty seed ids.
+
+    ``id_symbol`` is the symbol the id was first built from, kept across an NSE rename.
+    """
     sym = (symbol or "").upper()
-    if sym in _sensex_by_ticker():
-        return _sensex_by_ticker()[sym]
-    if sym in _nifty_extra_by_ticker():
-        return _nifty_extra_by_ticker()[sym]
-    return (f"nse_{_slug(sym)}", name or sym, sym, "Equity")
+    old = (id_symbol or "").upper()
+    for key in (sym, old):
+        if key and key in _sensex_by_ticker():
+            cid, nm, _, sector = _sensex_by_ticker()[key]
+            return (cid, nm, sym, sector)
+        if key and key in _nifty_extra_by_ticker():
+            cid, nm, _, sector = _nifty_extra_by_ticker()[key]
+            return (cid, nm, sym, sector)
+    return (f"nse_{_slug(old or sym)}", name or sym, sym, "Equity")
 
 
 @lru_cache(maxsize=1)
@@ -97,7 +134,9 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
         symbol = (row.get("symbol") or "").strip().upper()
         if not symbol:
             continue
-        cid, name, ticker, sector = _resolve_id_name_sector(symbol, row.get("name") or symbol)
+        cid, name, ticker, sector = _resolve_id_name_sector(
+            symbol, row.get("name") or symbol, row.get("id_symbol")
+        )
         quality = (
             deep_data_quality(cid)
             if cid in {x[0] for x in SENSEX_30} or cid in {x[0] for x in NIFTY50_BEYOND_SENSEX}
@@ -122,7 +161,10 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
         if isin:
             isin_to_id[isin] = cid
 
+    ranks = amfi_rank_by_isin()
     for row in bse_raw:
+        if not _main_board_bse(row):
+            continue
         isin = (row.get("isin") or "").strip().upper()
         symbol = (row.get("symbol") or "").strip().upper()
         name = (row.get("name") or symbol or row.get("scrip_code") or "").strip()
@@ -144,7 +186,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             continue
 
         cid = f"bse_{code or _slug(symbol)}"
-        if cid in by_id:
+        if cid in by_id or (ranks and isin not in ranks):
             continue
         by_id[cid] = {
             "id": cid,
@@ -183,14 +225,17 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
     sensex_ids = {cid for cid, *_ in SENSEX_30}
     nifty500 = nifty500_by_symbol()
     nifty500_isins = {str(r.get("isin") or "") for r in nifty500.values()} - {""}
+    nse_indexes = nse_index_symbols()
     for cid, entry in by_id.items():
         ids = list(entry.get("index_ids") or [])
         ticker = (entry.get("ticker") or "").upper()
+        if entry.get("isin") in ranks:
+            entry["amfi_rank"] = ranks[entry["isin"]]
         if cid in sensex_ids:
             ids.append("SENSEX")
-        if ticker in OFFICIAL_NIFTY50_TICKERS:
+        if ticker in nse_indexes["NIFTY50"]:
             ids.append("NIFTY50")
-        if ticker in NIFTYBANK_TICKERS:
+        if ticker in nse_indexes["NIFTYBANK"]:
             ids.append("NIFTYBANK")
         member = nifty500.get(ticker) if "NSE_ALL" in ids or cid in sensex_ids else None
         if member is None and entry.get("isin") in nifty500_isins:
@@ -201,13 +246,18 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
                 entry["sector"] = member["industry"]
         entry["index_ids"] = ids
 
-    # Stable order: deep GCI first, then NSE ticker, then BSE-only
+    # Stable order: deep GCI first, then AMFI size rank, then NSE ticker, then BSE-only
     deep = [by_id[c] for c, *_ in SENSEX_30]
     deep += [by_id[c] for c, *_ in NIFTY50_BEYOND_SENSEX if c not in sensex_ids]
     deep_ids = {r["id"] for r in deep}
+    unranked = len(ranks) + 1
     rest = sorted(
         (r for r in by_id.values() if r["id"] not in deep_ids),
-        key=lambda r: (0 if "NSE_ALL" in r.get("index_ids", []) else 1, r.get("ticker") or ""),
+        key=lambda r: (
+            r.get("amfi_rank") or unranked,
+            0 if "NSE_ALL" in r.get("index_ids", []) else 1,
+            r.get("ticker") or "",
+        ),
     )
     ordered = deep + rest
     for row in ordered[:IN1000_CAP]:
@@ -275,6 +325,8 @@ def clear_listing_caches() -> None:
     nse_meta.cache_clear()
     nifty500_by_symbol.cache_clear()
     bse_meta.cache_clear()
+    amfi_rank_by_isin.cache_clear()
+    nse_index_symbols.cache_clear()
     _sensex_by_ticker.cache_clear()
     _nifty_extra_by_ticker.cache_clear()
     _listings_by_ticker.cache_clear()

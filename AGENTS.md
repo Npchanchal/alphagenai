@@ -23,6 +23,8 @@ Ship a credible **Guidance Credibility Index (GCI)** for Indian equity desks und
 
 `docs/PLAN_WHITESPACE.md` — India guidance extract, match vs actuals, and the ranked index (WS0–WS4). Extend `disclosures.py`. Execute on request with `citealpha-gci-dev`.
 
+`docs/PLAN_GCI_CORE.md` — GCI Core v2.4 in shadow (`compute_core_detail`, locked rules; owner's `v2.4-R2` with amendments A1–A5 pending ruling, `delivery` and v2.5 proposals behind `ruleset`), Qual branch and 80/20 composite, companion indexes in `guidance_profile.py`, market profiles, calculation snapshots, release gates and two-person publication. Promotion only through gate 8 + release gates + ledger + changelog (`citealpha-index-integrity`).
+
 ## Specialist agents
 
 | Agent file | Use for |

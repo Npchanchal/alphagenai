@@ -158,6 +158,34 @@ def test_coverage_cohorts_are_disjoint_and_complete():
         assert {r["id"] for r in constituents_readonly(ix)} <= flagship
 
 
+def test_main_board_only_and_in1000_by_size():
+    import json
+    from pathlib import Path
+
+    from app.data.india_listings import BSE_SME_GROUPS, amfi_rank_by_isin, india_equity_universe
+
+    universe = india_equity_universe()
+    bse_only = {r.get("isin") for r in universe if r.get("exchange") == "BSE"}
+    bse_rows = json.loads((Path(__file__).parents[1] / "app/data/listings/bse_equity.json").read_text())["rows"]
+    sme = [r for r in bse_rows if r.get("group") in BSE_SME_GROUPS]
+    assert sme and not any(r["isin"] in bse_only for r in sme)
+    ranks = amfi_rank_by_isin()
+    assert ranks, "amfi_mcap.json is part of the listing set"
+    for row in universe:
+        if row.get("exchange") == "BSE":
+            assert row["isin"] in ranks and row["isin"].startswith("INE")
+    in1000 = [r for r in universe if "IN1000" in r["index_ids"]]
+    outside = [r.get("amfi_rank") for r in universe if "IN1000" not in r["index_ids"] and r.get("amfi_rank")]
+    ranked_in = sorted(r["amfi_rank"] for r in in1000 if r.get("amfi_rank"))
+    assert len(in1000) == 1000 and ranked_in[-1] < min(outside)
+
+
+def test_renamed_nse_symbol_keeps_its_company_id():
+    row = find_listing("nse_heg")
+    assert row is not None and row["ticker"] == "HEGAM"
+    assert find_listing_by_ticker("HEGAM")["id"] == "nse_heg"
+
+
 def test_find_listing_by_ticker_numeric_symbol():
     row = find_listing_by_ticker("20MICRONS")
     assert row is not None

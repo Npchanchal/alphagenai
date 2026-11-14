@@ -54,6 +54,14 @@ def main(argv: List[str] | None = None) -> int:
         reason=args.reason, note=args.note, by=args.by, as_of=args.as_of
     )
     n = score_ledger.append_many(rows)
+    from app.data import audit_log
+
+    audit_log.record(
+        "score_recalculation",
+        actor=args.by,
+        role="system",
+        detail={"reason": args.reason, "changed": len(rows), "appended": n, "as_of": args.as_of},
+    )
     json.dump(
         {"appended": n, "rows": [r.to_json() for r in rows]},
         sys.stdout,

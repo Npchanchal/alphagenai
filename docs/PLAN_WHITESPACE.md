@@ -1,6 +1,6 @@
 # Plan — India whitespace (extract → match → index)
 
-**Status:** WS0–WS2, WS3.1–WS3.2, WS4 implemented 2026-10-24 · WS-C (8 established Sensex names) waits on stored filings · **Owner:** product + `gci-engineer`
+**Status:** WS0–WS2, WS3.1–WS3.2, WS4 implemented 2026-10-24 · WS-C (8 established Sensex names) waits on stored filings · WS5 (every NSE/BSE main-board listing) WS5.0–5.1 done 2026-11-11, WS5.7 model comparison built and blocked on Gemini credit and Bedrock quota · **Owner:** product + `gci-engineer`
 **Source:** pitch slide “Proven category abroad. Whitespace in India.” (`docs/PITCH_DECK.md` slide 4, `docs/COMPETITIVE_LANDSCAPE.md`).
 **Runs alongside:** `docs/PLAN_WORLDCLASS_GCI.md` (W2.2–W2.4 are the review depth this plan consumes) and `docs/PLAN_CITEALPHA_ANALYST.md` (Commitment Record stays beside the GCI). Nothing here may score a commitment or publish a number without the ledger protocol.
 **Execute with:** `citealpha-gci-dev` (WS0–WS2) · `citealpha-guidance-review` + `citealpha-labeling` (WS3) · `citealpha-index-integrity` on any moved number · `citealpha-expert-ux` (WS4). Before a new file, `citealpha-reuse-sources`.
@@ -144,6 +144,46 @@ Extend the panels the guest dossier already has. Do not add a seventh panel.
 
 Public Snapshot continues to rank `established` and `deep` only. Provisional rows appear on the company page with the tier, unranked.
 
+### WS5 — Every NSE and BSE main-board listing
+
+Bring the walk from the Nifty 500 to every active main-board equity (SME boards out) at the lowest model and fetch cost. Everything lands provisional (`extracted_verified` at most). Nothing here publishes or moves a number. Extend `refresh_index_lists`, `india_listings`, `exchange_filings`, `india_coverage` and `disclosures`; no second client, store or extractor.
+
+Spike, 11 Nov 2026:
+
+| Source | Result |
+|---|---|
+| NSE announcements by date, no symbol | Works. One call returns the day for every company (10 Nov 2026: 307 filings, 210 companies) with ISIN, dissemination time `exchdisstime` and `hasXbrl` |
+| NSE `EQUITY_L.csv`, Nifty 50 and Nifty Bank CSVs | Work |
+| NSE financial-results list by date | Returns `[]` for a one-day query; parameters still to find |
+| BSE announcements, scrip list, bhavcopy | Refused: 403 to scripts, and a browser session is sent to BSE's data "show interest" page. BSE data is a licensed product |
+| AMFI six-month average market cap | Works. 5,427 companies with ISIN, BSE and NSE symbols and rank (`portal.amfiindia.com`) |
+
+| ID | Task | Files | Done when |
+|---|---|---|---|
+| WS5.0 | India lists: NSE master, Nifty 50 / Bank from NSE's files, AMFI rank. A renamed NSE symbol keeps its company id (same ISIN). BSE SME groups, non-`INE` ISINs and BSE-only scrips AMFI does not rank are left out. Walk and `IN1000` in AMFI rank order | `jobs/refresh_index_lists.py` (`--india`), `data/india_listings.py` | Done 2026-11-11 |
+| WS5.1 | `doc_store` lookups by `url_key`, hash and (hash, company) instead of a scan per call; ingest asks `stored_preview` per URL | `data/doc_store.py`, `exchange_filings.py` | Done 2026-11-11 |
+| WS5.2 | Announcement index by day: `exchange_filings.discover_by_date`, one file per day under `announcements/nse/`; a past day is fetched once. `discover_nse_filings(payload=…)` ranks each company's slice unchanged. `exchdisstime` becomes `public_available_at`. `roll_daily` walks names with a new guidance-bearing filing; per-symbol discovery stays for one name on demand | `exchange_filings.py`, `india_coverage.py`, kb 19 row | A second run for a past day does not fetch. Nifty 500 discovery calls a day fall from about 1,000 to under 10 |
+| WS5.3 | BSE-only names (1,722 in the universe; AMFI ranks about 2,950, of which 656 are missing from the August BSE file). No free exchange source | Decision: BSE data licence, or web-search and issuer-site leads (60 a day each), or AMFI-only rows without scrip code | Owner decision recorded here |
+| WS5.4 | Results from XBRL: candidate actual for `reconcile`, quote bound by text search in the stored results PDF (no model), cross-check of model-read actuals. Results PDFs go to the model only for metrics XBRL does not carry | `exchange_filings.py` (fetch, parse), `disclosures.reconcile` | Golden case: XBRL figure and PDF quote agree; disagreement enqueues `match_conflict` |
+| WS5.5 | Model backfill since Jan 2024, finished before 31 Dec 2026 (Flex price doubles 1 Jan 2027). Separate Fargate Spot task, not the API task. AMFI order. No guidance-bearing filing → no model call and its own coverage sentence; else probe the latest two transcripts or presentations; full lookback where the probe finds guidance. A forward-language chunk gate only after it keeps ≥ 99% of guidance in chunks already read | `india_coverage.py`, `disclosures.py`, `coverage.py`, deploy task | 200 names (AMFI rank 501–700) measured first; calls per company recorded in §8 |
+| WS5.6 | Steady state: one NSE sweep a day; fetch and read only new filings | `india_coverage.run_daily_from_env` | Daily discovery calls ≈ days swept, not companies |
+| WS5.7 | Reading model. `llm_client` reads through Amazon Bedrock (Converse API, task IAM role) when `INTELLENS_LLM_PROVIDER=bedrock`; Gemini stays the default. Choose the backfill model by `jobs/extract_model_compare` on the same stored pieces: accepted items under `_check_item`, recall against Gemini 3.8 Flash, drops by reason, seconds and tokens per piece. Switch only if a candidate keeps ≥ 95% of Gemini's accepted guidance items at lower cost per piece | `services/llm_client.py`, `jobs/extract_model_compare.py`, deploy task env | Comparison table reprinted below. Bedrock path built 2026-11-11; run blocked (see below) |
+
+Model comparison, 11 Nov 2026 (not run):
+
+| Item | State |
+|---|---|
+| Sample | 34 pieces from 15 Nifty 500 companies' stored filings since 2024: the opening 48k piece of the latest call and of the latest deck or results, plus outlook pieces from 5 annual reports. 1.27M characters, about 9,000–10,000 input tokens a piece. Saved by `extract_model_compare sample`, so every model reads the same text |
+| Gemini 3.8 Flash (baseline) | Production key refused: HTTP 402, prepaid credit used up. Production reads on this key fail the same way until the credit is topped up |
+| Bedrock, ap-south-1 | Account `884686184601` has 0 requests and 0 tokens a minute for every candidate. gpt-oss-120b / 20b and Nova Lite quotas are not adjustable from Service Quotas; Claude Haiku 4.5 and Nova Lite cross-region tokens are. Raising them needs an AWS Support case |
+| Candidates | gpt-oss-120b ($0.155 / $0.618 per 1M in/out, Flex and Batch half), gpt-oss-20b, Nova Lite (apac), Nova 2 Lite (global), Claude Haiku 4.5 (`in.`), DeepSeek V3.2. Qwen3-235B: quota 0 and not adjustable |
+| Known limits | Bedrock has no web-search tool: `web_search_links` returns nothing on that path and issuer-site leads come from the IR crawl only. Embeddings move to Titan v2 (`amazon.titan-embed-text-v2:0`). Bedrock Flex needs a `boto3` newer than the pinned 1.35.90 (no `serviceTier` on Converse); Batch needs an S3 prefix and a Bedrock service role |
+| Price check at list | About 9,500 in and 1,500 out a piece: Gemini 3.8 Flash Flex ≈ $0.0064 (≈ $0.013 from 1 Jan 2027); gpt-oss-120b standard ≈ $0.0024, Flex or Batch ≈ $0.0012. Output tokens to be replaced by the measured figure |
+
+Estimates (to replace with the WS5.5 measurement): 35,000–50,000 model calls since Jan 2024, about $0.007 each on Flex now (about $0.014 from 1 Jan 2027), so $250–350; on gpt-oss-120b Batch about $40–60 if it passes WS5.7. XBRL actuals avoid about 60,000 results-PDF reads; 40,000–50,000 filing fetches; about 100 GB of raw files (`doc_raw/`), EFS Infrequent Access after 30 days; about 20,000 calls a year in steady state.
+
+Open: Tata Motors demerger (seeded `tatamotors` predates it; NSE lists `TMPV`, now in the Nifty 50, as `nse_tmpv`), a methodology question. Sensex membership stays in code because BSE's list is refused. Gemini prepaid credit (blocks production reads and the WS5.7 baseline) and the Bedrock Support case are owner actions.
+
 ---
 
 ## 5. Gates
@@ -154,6 +194,7 @@ Public Snapshot continues to rank `established` and `deep` only. Provisional row
 | **WS-B** | WS2 | Golden match file: opening band, revision, later actual. Zero wrong-metric and wrong-unit accepts. Quiet-drop enqueues and does not move GCI |
 | **WS-C** | WS3 | ≥ 8 Sensex names `established`. Ledger and changelog current. Scoreboard reprinted in §8 |
 | **WS-D** | WS4 | Dossier thread has both quotes and both links. Guest walk has no extract controls |
+| **WS-E** | WS5 | India lists refreshed within 7 days and AMFI on its latest half-year. Every main-board listing has a coverage sentence. Backfill read before 1 Jan 2027. No published level moved |
 
 Order: WS0 → WS1 → WS2 → WS3 → WS4, then WS0 again. WS4 can start once one matched Sensex dossier exists; it does not wait for all eight names.
 
@@ -193,6 +234,8 @@ No test fetches NSE, BSE, EDGAR, or a model. Pass `fixture_text` or a stored doc
 | Date | What | Tests | Score impact |
 |---|---|---|---|
 | 2026-10-23 | Plan written. No code. Baseline remains the 2026-10-03 coverage measure (2/50 Nifty, 1/30 Sensex with a guidance-side citation) until WS0.1 is run. | — | none |
+| 2026-11-11 | WS5 planned and spiked; WS5.0–WS5.1 built. `refresh_index_lists --india`: NSE 2,645 (was 2,364), 6 renamed symbols keep their ids, Nifty 50 / Nifty Bank (14) from NSE, AMFI 30 Jun 2026 (5,427). Universe 4,374 main-board rows (was 5,557 with SME and unranked BSE scrips); `IN1000` is now the top 1,000 by AMFI rank. `doc_store` lookups indexed. Nifty 50 filter follows NSE: UltraTech, BSE Ltd and TMPV in; Wipro, Hero MotoCorp, Tata Motors out | `test_refresh_index_lists`, `test_india_listings`, `test_doc_store_external_text`, `test_citation_universe_audit` | none |
+| 2026-11-11 | WS5.7 Bedrock path in `llm_client` (Converse, `last_usage` tokens for both providers, Titan embeddings, no web search) and `jobs/extract_model_compare` (34-piece sample saved). Comparison not run: Gemini key HTTP 402 (prepaid credit used up, production reads affected) and Bedrock on-demand quotas 0 in ap-south-1 | `test_llm_rate_limit` (Bedrock request, cut-off, throttle → 429, no web search) | none |
 | 2026-10-24 | WS0–WS2, WS3.1–WS3.2, WS4. `disclosures.process_company` is the only India writer. Reconcile refuses a lookalike metric and a basis-point / million scale clash, and proposes a numeric quiet-drop without setting `dropped`. The job reviewer does not promote. Dossier evidence panel shows the promise, revisions, and the later actual. | `test_disclosures`, `test_guidance_coverage`, `test_labeling_governance`, `test_coverage_india` (writer branches), `test_public_copy_hygiene` | none |
 
 ```text

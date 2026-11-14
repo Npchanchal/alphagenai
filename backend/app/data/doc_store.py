@@ -22,6 +22,9 @@ from app.data.store_lock import locked
 _PACKAGED = Path(__file__).with_name("documents.json")
 _PATH = _PACKAGED
 _DOCS: Optional[Dict[str, Any]] = None
+# Lookups by url_key, content hash and (hash, company). Rebuilt when the document
+# list is replaced or changes length behind our back; upserts keep them current.
+_INDEX: Dict[str, Any] = {"of": None, "len": -1}
 
 
 def _overlay_path() -> Optional[Path]:
@@ -42,6 +45,20 @@ _TEXT_CACHE_MAX = 64
 def _text_dir() -> Optional[Path]:
     overlay = _overlay_path()
     return overlay.parent / "doc_text" if overlay else None
+
+
+def _keep_raw(raw_sha: str, raw_bytes: bytes) -> None:
+    """Keep the file as served under ``doc_raw/<sha256>`` on a data volume (synced to object storage)."""
+    overlay = _overlay_path()
+    if overlay is None or os.environ.get("INTELLENS_KEEP_RAW", "1").strip() == "0":
+        return
+    root = overlay.parent / "doc_raw"
+    root.mkdir(parents=True, exist_ok=True)
+    target = root / raw_sha
+    if not target.exists():
+        tmp = target.with_suffix(".tmp")
+        tmp.write_bytes(raw_bytes)
+        os.replace(tmp, target)
 
 
 def _externalise(doc: Dict[str, Any]) -> bool:
@@ -105,6 +122,30 @@ def _load() -> Dict[str, Any]:
     return _DOCS
 
 
+def _index_doc(idx: Dict[str, Any], d: Dict[str, Any]) -> None:
+    if d.get("url"):
+        idx["url"].setdefault(url_key(d["url"]), d)
+    h = d.get("content_hash")
+    if h:
+        idx["hash"].setdefault(h, d)
+        idx["hash_co"].setdefault((h, d.get("company_id")), d)
+
+
+@locked
+def _index() -> Dict[str, Any]:
+    docs = _load()["documents"]
+    if _INDEX["of"] is not docs or _INDEX["len"] != len(docs):
+        _INDEX.update(of=docs, len=0, url={}, hash={}, hash_co={})
+        for d in docs:
+            _index_doc(_INDEX, d)
+        _INDEX["len"] = len(docs)
+    return _INDEX
+
+
+def _drop_index() -> None:
+    _INDEX.update(of=None, len=-1)
+
+
 @locked
 def save() -> None:
     data = _load()
@@ -144,16 +185,26 @@ def upsert_document(
     source_type: Optional[str] = None,
     period: Optional[str] = None,
     persist: bool = True,
+    raw_bytes: Optional[bytes] = None,
+    public_available_at: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """``persist=False`` defers the index write; the caller must call ``save()``."""
+    """``persist=False`` defers the index write; the caller must call ``save()``.
+
+    ``raw_bytes`` (the file as served) is hashed into ``raw_sha256`` so a later
+    re-download can be checked byte for byte; ``public_available_at`` is when the
+    exchange or regulator disseminated it (filing date when nothing finer is known).
+    """
     from app.data.source_policy import resolve_source_type
 
     store = _load()
     h = content_hash(text)
-    for d in store["documents"]:
-        if d.get("content_hash") == h and d.get("company_id") == company_id:
-            return _hydrate(d)  # dedupe
+    held = _index()["hash_co"].get((h, company_id))
+    if held is not None:
+        return _hydrate(held)  # dedupe
     st = source_type or resolve_source_type(doc_type=doc_type, source=source)
+    raw_sha = hashlib.sha256(raw_bytes).hexdigest() if raw_bytes else None
+    if raw_bytes:
+        _keep_raw(raw_sha, raw_bytes)
     doc = {
         "doc_id": str(uuid4()),
         "company_id": company_id,
@@ -171,8 +222,13 @@ def upsert_document(
         # Knowledge time. ``date`` is the filing date; a score may only use a
         # document from the moment we held it.
         "ingested_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "raw_sha256": raw_sha,
+        "public_available_at": public_available_at or (date or None),
     }
+    idx = _index()
     store["documents"].append(doc)
+    _index_doc(idx, doc)
+    idx["len"] = len(store["documents"])
     store["versions"].append({"doc_id": doc["doc_id"], "version": 1, "hash": h})
     if _externalise(doc):
         _TEXT_CACHE[doc["text_file"]] = text
@@ -195,6 +251,7 @@ def get_document(doc_id: str) -> Optional[Dict[str, Any]]:
 _META_KEYS = (
     "doc_id", "company_id", "doc_type", "title", "url", "date", "source_type",
     "period", "content_hash", "review_status", "version", "ingested_at",
+    "raw_sha256", "public_available_at",
 )
 
 
@@ -214,7 +271,8 @@ def find_by_hash(content_hash: str) -> Optional[Dict[str, Any]]:
     want = (content_hash or "").strip().lower()
     if len(want) != 64:
         return None
-    return next((_meta(d) for d in _load()["documents"] if d.get("content_hash") == want), None)
+    held = _index()["hash"].get(want)
+    return _meta(held) if held is not None else None
 
 
 _HOST_ALIASES = {
@@ -246,10 +304,15 @@ def find_by_url(url: Optional[str]) -> Optional[Dict[str, Any]]:
     key = url_key(url)
     if not key:
         return None
-    for d in _load()["documents"]:
-        if d.get("url") and url_key(d["url"]) == key:
-            return _hydrate(d)
-    return None
+    return _hydrate(_index()["url"].get(key))
+
+
+def stored_preview(url: Optional[str]) -> Optional[str]:
+    """None when the URL is not stored; the inline text otherwise ("" when the body lives in ``doc_text/``)."""
+    held = _index()["url"].get(url_key(url)) if url else None
+    if held is None:
+        return None
+    return "" if held.get("text_file") else str(held.get("text") or "")
 
 
 _FILING_RANK = {"results": 0, "filing": 1, "ir_guidance": 2, "transcript": 3}
@@ -316,6 +379,8 @@ def patch_document(doc_id: str, **fields: Any) -> Dict[str, Any]:
             for k, v in fields.items():
                 if v is not None:
                     d[k] = v
+            if fields.get("url") is not None or fields.get("content_hash") is not None:
+                _drop_index()
             save()
             return _hydrate(d)
     raise KeyError(doc_id)

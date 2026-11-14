@@ -446,6 +446,7 @@ def ingest_url(
     if url and not host_allowed(url, company_id) and text is None:
         raise ValueError(f"Host not allowlisted: {urlparse(url).hostname}")
     body = text
+    payload: Optional[bytes] = None
     if body is None:
         payload = fetch_bytes(url, company_id)
         body = text_from_payload(payload, url, category)
@@ -472,6 +473,7 @@ def ingest_url(
         source="exchange_filing",
         review_status=review_status,
         persist=persist,
+        raw_bytes=payload,
     )
     return {
         "ok": True,
@@ -853,15 +855,6 @@ def discover_via_web_search(
     return picked[:max_docs]
 
 
-def _stored_texts() -> Dict[str, str]:
-    """URL key → stored text, every company. Long documents keep only a preview inline; they map to ""."""
-    return {
-        doc_store.url_key(d["url"]): "" if d.get("text_file") else str(d.get("text") or "")
-        for d in doc_store.list_documents(include_rejected=True, hydrate=False)
-        if d.get("url")
-    }
-
-
 def ingest_company_urls(
     company_id: str,
     *,
@@ -920,10 +913,9 @@ def ingest_company_urls(
             except Exception as exc:  # noqa: BLE001 — the site walk must not stop the cohort
                 results.append({"ok": False, "reason": f"ir_crawl_{type(exc).__name__}"})
         targets.extend(discovered)
-    stored = _stored_texts()
     queued = {doc_store.url_key(t["url"]) for t in targets}
     try:
-        _ingest_targets(company_id, targets, stored, queued, results, dry_run)
+        _ingest_targets(company_id, targets, queued, results, dry_run)
     finally:
         # One index write per company: the index holds every filing, so a write per filing is costly.
         if any(r.get("action") == "upserted" for r in results):
@@ -939,7 +931,6 @@ def ingest_company_urls(
 def _ingest_targets(
     company_id: str,
     targets: List[Dict[str, Any]],
-    stored: Dict[str, str],
     queued: set,
     results: List[Dict[str, Any]],
     dry_run: bool,
@@ -954,10 +945,10 @@ def _ingest_targets(
 
     for target in targets:
         url = target["url"]
-        key = doc_store.url_key(url)
-        if key in stored:
+        held = doc_store.stored_preview(url)
+        if held is not None:
             results.append({"ok": True, "url": url, "action": "already_stored"})
-            follow(target, linked_filing_urls(stored[key], company_id, exclude=url))
+            follow(target, linked_filing_urls(held, company_id, exclude=url))
             continue
         if not host_allowed(url, company_id):
             results.append({"ok": False, "url": url, "reason": "host_not_allowlisted"})

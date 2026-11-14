@@ -5943,5 +5943,2890 @@
       "pending_new": 2,
       "extract_batches": 0
     }
+  },
+  {
+    "ts": "2026-11-10T20:41:29.868097+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "ae90b6c0-f2ad-46fd-a9a5-cb0e533be7b2",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:41:29.960360+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:26.513582+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:28.393376+00:00",
+    "action": "doc_dated",
+    "org": "onestop-demo",
+    "actor": "intellens-onestop",
+    "role": "admin",
+    "detail": {
+      "doc_id": "18358d23-6357-482b-ad2a-5e7bbc9f06e8",
+      "date": "2026-07-16",
+      "previous_date": "",
+      "rows_dated": 0,
+      "basis": "call_or_meeting_date",
+      "evidence": "July 16, 2026",
+      "reviewer": "navin"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:29.354904+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "fb320058-2a62-424f-b399-33926a6e45c8",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:32.276020+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:32.517967+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "bf0b3675-ec6b-4c61-a373-b3beb97339ff",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:32.967803+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:38.040092+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "e8af850e-cd3c-4045-a418-a6385c90b755"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:38.129776+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "e8af850e-cd3c-4045-a418-a6385c90b755"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:42:38.227718+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:03.784920+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "methodology"
+      ],
+      "companies": [
+        "x"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:03.822723+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "data_correction"
+      ],
+      "companies": [
+        "axisbank"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:08.787991+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:10.508626+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-0e77e602",
+    "actor": "owner-24da6f99@isolation.test",
+    "role": "owner",
+    "detail": {
+      "member": "seat-c1ddde73@isolation.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:10.873991+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-0e77e602",
+    "actor": "seat-c1ddde73@isolation.test",
+    "role": "admin",
+    "detail": {
+      "member": "peer-2c1e7353@isolation.test",
+      "from": "viewer",
+      "to": "analyst",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:13.582234+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "294c1d9c-052f-404d-87f7-c420e7a51d06",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:33.105399+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:33.312414+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "5eb6a4e2-03a3-45fa-9d07-1eb782563410"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:34.626975+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "e1a9c706-76bf-41c1-8f11-f0c86e1e464b"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:34.807332+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-10T20:43:34.826734+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-10T20:43:34.979139+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "c90a0eaf-95fe-4a75-a6f4-6307b0f73bb6"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:35.594745+00:00",
+    "action": "seat_change",
+    "org": "ladder-desk-f4d8115b",
+    "actor": "owner.ladder@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "analyst.ladder@desk.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:36.387510+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:38.309069+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "0dd6bbac-5d11-4c92-b9d8-4edc55d781a3"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:38.413121+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "bce6b19c-3ce1-47c4-85fc-320c5f2a9e16"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:38.526196+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "3b6347f6-7004-45e6-b5a5-24fab611bd28"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:38.643952+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "13286d3a-a30f-4d72-a5be-98c9fd798282"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:38.908392+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "labeler",
+    "detail": {
+      "user_id": "a10fd5ed-186e-4280-9253-980222c5d1b3"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:39.005913+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "0178a04e-959c-4cd1-ab8a-0be8c6aeb047"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:39.103781+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "dk@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "df9b4c5e-c985-4372-bacb-8ee0377b6621"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:39.901432+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "0b4259d2-21f1-4240-9013-b130b8ded24d"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:39.979867+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:40.220759+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "a4a651be-2f50-4ba6-bf9a-f62dc60f33d3"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:40.343359+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "23685dc5-ecd7-4b54-ba51-85abd3765b9d"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:40.442247+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "09569087-fab3-41ce-9501-2d28f5922127"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:40.778949+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "eb064617-1705-419f-9fbe-92aa8eff3e2c"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:40.965573+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "c122dfaa-6ed2-4bbe-8341-746d2227449b"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:41.319859+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "d9ae3a0b-2957-4ece-9f3d-fecc5b301060"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:43.612090+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:45.925046+00:00",
+    "action": "review_accept",
+    "org": "accept-desk-7eb93f33",
+    "actor": "reviewer.accept@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:46.981304+00:00",
+    "action": "seat_change",
+    "org": "ir-desk-599abf4c",
+    "actor": "owner.ir@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.pack@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:47.294377+00:00",
+    "action": "pack_export",
+    "org": "ir-desk-599abf4c",
+    "actor": "ir.pack@desk.test",
+    "role": "ir",
+    "detail": {
+      "company_id": "infy",
+      "run_id": "run_4a84dc7e8b14",
+      "format": "md"
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:47.630856+00:00",
+    "action": "seat_change",
+    "org": "ir-empty-desk-e894ee04",
+    "actor": "owner.irempty@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.empty@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:47.949152+00:00",
+    "action": "seat_change",
+    "org": "scope-desk-46e31abb",
+    "actor": "owner.scope@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "pm.scope@desk.test",
+      "from": "pm",
+      "to": "pm",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:48.327439+00:00",
+    "action": "seat_change",
+    "org": "ir-project-desk-a5a9b44f",
+    "actor": "owner.irproj@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.proj@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:52.407069+00:00",
+    "action": "review_accept",
+    "org": "audit-accept-desk-0f92ab2c",
+    "actor": "reviewer.audit@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T20:43:53.607575+00:00",
+    "action": "seat_change",
+    "org": "seat-trail-desk-e6dbd6ae",
+    "actor": "owner.seat@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.seat@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T20:44:10.308418+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:13.822585+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "6725dce5-8440-4334-a011-0541b45f8ee5",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:13.869295+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:37.925679+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:38.957700+00:00",
+    "action": "doc_dated",
+    "org": "onestop-demo",
+    "actor": "intellens-onestop",
+    "role": "admin",
+    "detail": {
+      "doc_id": "f6642a93-a446-49ae-adde-43346807b329",
+      "date": "2026-07-16",
+      "previous_date": "",
+      "rows_dated": 0,
+      "basis": "call_or_meeting_date",
+      "evidence": "July 16, 2026",
+      "reviewer": "navin"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:39.184179+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "dbbf52f8-abe6-4e74-9b88-38868a0fb20e",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:40.482588+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:40.574419+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "21104acd-67e5-4b36-9382-1d9c08931599",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:40.846255+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:42.926418+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "eb63ea20-3853-41ef-b296-4a4db15c641c"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:42.982023+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "eb63ea20-3853-41ef-b296-4a4db15c641c"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:04:43.034385+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:01.766014+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "methodology"
+      ],
+      "companies": [
+        "x"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:01.780138+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "data_correction"
+      ],
+      "companies": [
+        "axisbank"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:02.693379+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:03.543551+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-a190f2e2",
+    "actor": "owner-5445ebb7@isolation.test",
+    "role": "owner",
+    "detail": {
+      "member": "seat-ceb9e616@isolation.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:03.669225+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-a190f2e2",
+    "actor": "seat-ceb9e616@isolation.test",
+    "role": "admin",
+    "detail": {
+      "member": "peer-d1c9e8f4@isolation.test",
+      "from": "viewer",
+      "to": "analyst",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:04.989430+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "df308922-7ac8-4503-8c9c-4ec83ec396b2",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:15.154025+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:15.245358+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "a982c653-5d3d-40ef-8bcb-2e5306588dc8"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:16.130638+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "75de576c-ddb9-4fff-b3c8-854c3519504b"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:16.275630+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-10T21:05:16.289767+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-10T21:05:16.415335+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "c7ce7c73-cbce-4cda-a6c3-ca5f9b1922f2"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:16.827714+00:00",
+    "action": "seat_change",
+    "org": "ladder-desk-08c3b54f",
+    "actor": "owner.ladder@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "analyst.ladder@desk.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:17.260944+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:18.666016+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "a01e1471-c2f5-4c5a-a75f-2f28a23e91fb"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:18.739130+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "980c7247-ad1a-4274-9e89-db3f55b21467"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:18.816750+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "82d3f5a4-0c51-4d3e-a0d0-83e939c681f8"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:18.906538+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "12bdce83-27ad-4826-ada4-9dee2dc6040a"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:18.975719+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "labeler",
+    "detail": {
+      "user_id": "9fc33673-8539-4b9b-b2fb-74a00397dfb1"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.048900+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "a470e0da-835f-4892-8945-6398c77e1294"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.121550+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "dk@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "e55ae95a-77c9-4b9f-9fb1-878ca67f1c1f"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.381013+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "ec6f55f5-4355-40c4-8e31-b8e0a1acfe5a"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.445858+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.608354+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "854763da-ead4-4853-b379-421ff9f660b5"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.714864+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "b4c67894-4855-495e-bbf6-1be913420063"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.796983+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "f551072b-618d-4a8f-a3cf-7a4b23509141"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:19.978038+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "0706e606-a8bc-484a-9c63-2ef7b939876c"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:20.084575+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "23a6f465-df97-497f-a6dd-c067109ba226"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:20.501936+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "31646783-dfa7-461c-9bcf-46a0348957eb"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:21.816968+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:23.154442+00:00",
+    "action": "review_accept",
+    "org": "accept-desk-13c20746",
+    "actor": "reviewer.accept@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:23.596693+00:00",
+    "action": "seat_change",
+    "org": "ir-desk-a65fbfde",
+    "actor": "owner.ir@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.pack@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:23.706428+00:00",
+    "action": "pack_export",
+    "org": "ir-desk-a65fbfde",
+    "actor": "ir.pack@desk.test",
+    "role": "ir",
+    "detail": {
+      "company_id": "infy",
+      "run_id": "run_b7289e6df334",
+      "format": "md"
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:23.886686+00:00",
+    "action": "seat_change",
+    "org": "ir-empty-desk-84497997",
+    "actor": "owner.irempty@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.empty@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:24.072986+00:00",
+    "action": "seat_change",
+    "org": "scope-desk-423389b7",
+    "actor": "owner.scope@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "pm.scope@desk.test",
+      "from": "pm",
+      "to": "pm",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:24.276701+00:00",
+    "action": "seat_change",
+    "org": "ir-project-desk-1c502848",
+    "actor": "owner.irproj@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.proj@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:25.803319+00:00",
+    "action": "review_accept",
+    "org": "audit-accept-desk-faf5a624",
+    "actor": "reviewer.audit@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:26.238143+00:00",
+    "action": "seat_change",
+    "org": "seat-trail-desk-21d012ae",
+    "actor": "owner.seat@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.seat@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-10T21:05:33.533118+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T03:49:00.089651+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "lab-check-1794455261@ocotillo.test",
+    "role": "user",
+    "detail": {
+      "reason": "unknown"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:25.058395+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "cd223b8e-cb87-4001-9b5f-c238dbfea012",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:25.083872+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:37.675434+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:38.370294+00:00",
+    "action": "doc_dated",
+    "org": "onestop-demo",
+    "actor": "intellens-onestop",
+    "role": "admin",
+    "detail": {
+      "doc_id": "461f830f-c401-4b7b-b2a8-10fd3d8168d5",
+      "date": "2026-07-16",
+      "previous_date": "",
+      "rows_dated": 0,
+      "basis": "call_or_meeting_date",
+      "evidence": "July 16, 2026",
+      "reviewer": "navin"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:38.578728+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "8b8305c9-621e-45a9-97fe-f1063074a2aa",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:40.592182+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:42.014875+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "2d1438f6-e816-4a71-aa36-8b865b7de091",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:42.574950+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:45.884349+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "c76d5ec8-aa7c-47be-9530-3192fd5c87eb"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:45.926033+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "c76d5ec8-aa7c-47be-9530-3192fd5c87eb"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:57:45.965118+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:16.362994+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "methodology"
+      ],
+      "companies": [
+        "x"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:16.376597+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "data_correction"
+      ],
+      "companies": [
+        "axisbank"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:17.074682+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:17.606812+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-ae046b60",
+    "actor": "owner-63461da9@isolation.test",
+    "role": "owner",
+    "detail": {
+      "member": "seat-f69e8a51@isolation.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:17.687575+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-ae046b60",
+    "actor": "seat-f69e8a51@isolation.test",
+    "role": "admin",
+    "detail": {
+      "member": "peer-556354b9@isolation.test",
+      "from": "viewer",
+      "to": "analyst",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:18.491922+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "45b1c649-2eec-4453-9d61-673d3815f195",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:27.795502+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:27.834185+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "ecfef7ad-ef60-47e1-8123-1a382dbe2c20"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:28.313748+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "51a1ddc8-93c9-46d0-945a-2ecae49ec509"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:28.404065+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-12T04:58:28.422313+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-12T04:58:28.508939+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "98ab1c38-e03f-480a-8699-e8d9ca0383ce"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:28.719259+00:00",
+    "action": "seat_change",
+    "org": "ladder-desk-8322079a",
+    "actor": "owner.ladder@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "analyst.ladder@desk.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:28.934948+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.009216+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "4766ee28-3c53-40aa-a94e-03abf6b35fbb"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.053945+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "b8fd2b10-72cb-4a61-aa7f-d5e3a82393ec"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.107317+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "a665d2d6-403b-4e13-977b-67840fc07386"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.160676+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "a1b5b14d-5481-4dac-a735-c0940fbe8f16"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.202136+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "labeler",
+    "detail": {
+      "user_id": "ada0bdd6-82e2-421a-bad8-7e1034719dc6"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.245271+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "d72bd735-0195-4667-9c41-fc4f22472511"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.288234+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "dk@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "d8891fc4-7512-421e-babf-6fbe4696362a"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.468390+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "c18ba907-a3b6-4bdf-b7b7-69a121b44d37"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.507851+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.594457+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "14ede029-60a3-4206-8035-a16c492cfb6d"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.647645+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "b50966c8-b578-402e-b846-76668f150727"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.691782+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "ad9bb125-265b-4bed-89a4-eb0315717148"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.796807+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "5737c856-0478-448a-814a-3094d273aaee"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.858504+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "e2aff967-d6b6-44b0-a934-4a0efb5b87f3"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:30.975589+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "aa5fde18-a65c-49a1-899b-9213ba0ed9a3"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:32.673166+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:33.336911+00:00",
+    "action": "review_accept",
+    "org": "accept-desk-c5f089fe",
+    "actor": "reviewer.accept@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:33.656793+00:00",
+    "action": "seat_change",
+    "org": "ir-desk-fc96535c",
+    "actor": "owner.ir@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.pack@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:33.753032+00:00",
+    "action": "pack_export",
+    "org": "ir-desk-fc96535c",
+    "actor": "ir.pack@desk.test",
+    "role": "ir",
+    "detail": {
+      "company_id": "infy",
+      "run_id": "run_3f54d6a6003d",
+      "format": "md"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:33.877641+00:00",
+    "action": "seat_change",
+    "org": "ir-empty-desk-6d853f08",
+    "actor": "owner.irempty@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.empty@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:34.000846+00:00",
+    "action": "seat_change",
+    "org": "scope-desk-4528074a",
+    "actor": "owner.scope@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "pm.scope@desk.test",
+      "from": "pm",
+      "to": "pm",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:34.122962+00:00",
+    "action": "seat_change",
+    "org": "ir-project-desk-c5239d72",
+    "actor": "owner.irproj@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.proj@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:35.033333+00:00",
+    "action": "review_accept",
+    "org": "audit-accept-desk-811b8994",
+    "actor": "reviewer.audit@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:35.334306+00:00",
+    "action": "seat_change",
+    "org": "seat-trail-desk-3ef7e1e6",
+    "actor": "owner.seat@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.seat@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:58:39.907707+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:12.167816+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "5c2cc46e-40a0-4839-88f1-41858128aabe",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:12.192798+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:24.145056+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:24.916104+00:00",
+    "action": "doc_dated",
+    "org": "onestop-demo",
+    "actor": "intellens-onestop",
+    "role": "admin",
+    "detail": {
+      "doc_id": "68634870-078d-4b75-ac32-a4324076d86a",
+      "date": "2026-07-16",
+      "previous_date": "",
+      "rows_dated": 0,
+      "basis": "call_or_meeting_date",
+      "evidence": "July 16, 2026",
+      "reviewer": "navin"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:25.069021+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "4797d42f-1fff-4b20-9d37-2128ceed6937",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:25.774961+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:25.832140+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "9633d332-7b15-42d5-86bb-717bbfa3df06",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:25.995965+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:27.880835+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "22020d56-a461-45e4-8a94-f4ae13340d77"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:27.922416+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "22020d56-a461-45e4-8a94-f4ae13340d77"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:27.961161+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:49.671706+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "methodology"
+      ],
+      "companies": [
+        "x"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:49.689943+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "data_correction"
+      ],
+      "companies": [
+        "axisbank"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:50.476137+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:51.013128+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-be0df917",
+    "actor": "owner-8aa4b167@isolation.test",
+    "role": "owner",
+    "detail": {
+      "member": "seat-09004992@isolation.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:51.089935+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-be0df917",
+    "actor": "seat-09004992@isolation.test",
+    "role": "admin",
+    "detail": {
+      "member": "peer-2ada035f@isolation.test",
+      "from": "viewer",
+      "to": "analyst",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T04:59:51.939064+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "83ef73d1-39be-4967-a9d0-d486cf1773bb",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:01.092604+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:01.132164+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "dbf9312c-41de-440d-aa99-81063909a45f"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:01.712007+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "24c7724a-ae46-4b27-847f-de9b5ede982d"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:01.788913+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-12T05:00:01.806754+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-12T05:00:01.890959+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "3ace7ceb-d67f-4119-b9c6-3fc7abca5480"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:02.131216+00:00",
+    "action": "seat_change",
+    "org": "ladder-desk-b7576a86",
+    "actor": "owner.ladder@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "analyst.ladder@desk.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:02.382755+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.068427+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "c370e843-6064-4cb8-8243-5cca32498b14"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.107070+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "2b770660-0f15-407c-b2d0-c90d0d5ff6e7"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.147460+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "aa1fc9d5-1e97-4f95-834e-b9084060ce9d"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.188047+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "45a979ec-6699-4f13-a7c6-3d437c03794d"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.228575+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "labeler",
+    "detail": {
+      "user_id": "84d7e850-e57b-4cc2-b8e8-31c9f06448a6"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.268810+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "f560593f-64cd-4bd3-ab7b-3f9d380cd170"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.309123+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "dk@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "e74b940e-9ef9-499e-862f-beab6318e08f"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.444574+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "b7bcd54e-fc95-4331-a0b4-006b394a5c99"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.482536+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.564321+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "c764ee91-0407-4d16-b831-4568b9234794"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.615317+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "31ebd5d4-545b-4939-8689-ae3b25201b48"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.658229+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "eb2b2aea-3d25-414a-9e61-70701d18d7f6"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.764101+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "3ec9b85f-bd76-462d-8fd6-157c88b3ccbc"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.826175+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "c918e40a-5559-452f-bc2f-10131757cad0"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:03.936684+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "07058ea4-7b5a-40f0-b4e9-6a11761df05e"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:04.590205+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:05.177401+00:00",
+    "action": "review_accept",
+    "org": "accept-desk-708f8f3c",
+    "actor": "reviewer.accept@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:05.464016+00:00",
+    "action": "seat_change",
+    "org": "ir-desk-6b2e697a",
+    "actor": "owner.ir@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.pack@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:05.533463+00:00",
+    "action": "pack_export",
+    "org": "ir-desk-6b2e697a",
+    "actor": "ir.pack@desk.test",
+    "role": "ir",
+    "detail": {
+      "company_id": "infy",
+      "run_id": "run_0c2ed0aaa697",
+      "format": "md"
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:05.712096+00:00",
+    "action": "seat_change",
+    "org": "ir-empty-desk-d6b21f25",
+    "actor": "owner.irempty@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.empty@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:05.836239+00:00",
+    "action": "seat_change",
+    "org": "scope-desk-d94949b8",
+    "actor": "owner.scope@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "pm.scope@desk.test",
+      "from": "pm",
+      "to": "pm",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:05.957357+00:00",
+    "action": "seat_change",
+    "org": "ir-project-desk-40d11d8b",
+    "actor": "owner.irproj@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.proj@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:06.816736+00:00",
+    "action": "review_accept",
+    "org": "audit-accept-desk-5c1e3ef2",
+    "actor": "reviewer.audit@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:07.098778+00:00",
+    "action": "seat_change",
+    "org": "seat-trail-desk-ffe3b50b",
+    "actor": "owner.seat@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.seat@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-12T05:00:11.672830+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:30.206276+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "51096574-1b09-4335-9628-3f9db4fae0a5",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:30.231347+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:42.924916+00:00",
+    "action": "ingest_crawl",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "targets": 2,
+      "pending_new": 2,
+      "failed": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:43.790701+00:00",
+    "action": "doc_dated",
+    "org": "onestop-demo",
+    "actor": "intellens-onestop",
+    "role": "admin",
+    "detail": {
+      "doc_id": "9b850f46-fc7c-4ecd-a4ef-867edcbe9ba9",
+      "date": "2026-07-16",
+      "previous_date": "",
+      "rows_dated": 0,
+      "basis": "call_or_meeting_date",
+      "evidence": "July 16, 2026",
+      "reviewer": "navin"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:43.926462+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "8738bdca-c4fe-496a-9027-f1b876d28f72",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:44.612837+00:00",
+    "action": "consensus_import",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "count": 4,
+      "demo": true
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:44.669027+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "081f430c-2156-436a-bb62-a592ada39e39",
+      "count": 3,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:44.826481+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:46.889851+00:00",
+    "action": "auth_logout",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "4103d99a-931f-4cd2-9055-d3fcd3de214e"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:46.930918+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "4103d99a-931f-4cd2-9055-d3fcd3de214e"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:10:46.968398+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "desk@intellens.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:14.647690+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "methodology"
+      ],
+      "companies": [
+        "x"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:14.661844+00:00",
+    "action": "ledger_publish",
+    "org": "demo",
+    "actor": "job:methodology_release",
+    "role": "system",
+    "detail": {
+      "rows": 1,
+      "reasons": [
+        "data_correction"
+      ],
+      "companies": [
+        "axisbank"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:15.437921+00:00",
+    "action": "ingest_media_stub",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "media_type": "audio"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:16.151250+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-cbc26a2f",
+    "actor": "owner-28975836@isolation.test",
+    "role": "owner",
+    "detail": {
+      "member": "seat-46ef2925@isolation.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:16.254617+00:00",
+    "action": "seat_change",
+    "org": "hierarchy-desk-cbc26a2f",
+    "actor": "seat-46ef2925@isolation.test",
+    "role": "admin",
+    "detail": {
+      "member": "peer-4f9b1140@isolation.test",
+      "from": "viewer",
+      "to": "analyst",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:17.369871+00:00",
+    "action": "extract",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "extract_id": "fb1b3657-7923-4193-815e-52c26375c9bd",
+      "count": 2,
+      "engines": [
+        "heuristic_v1"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:28.421082+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:28.464844+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "verify@ocotillo.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "b6e17d15-dcb4-4a23-83f5-9229abdc28b2"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:29.009690+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "ttl@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "61f63e6c-4042-48e2-a738-5a505efbdf90"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:29.082097+00:00",
+    "action": "auth_mfa_enroll_start",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-14T10:11:29.106238+00:00",
+    "action": "auth_mfa_enable",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {}
+  },
+  {
+    "ts": "2026-11-14T10:11:29.202979+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "mfa@desk.test",
+    "role": "owner",
+    "detail": {
+      "user_id": "8cd98f7e-cf28-429b-90bc-c4d04ac4b9bb"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:29.431810+00:00",
+    "action": "seat_change",
+    "org": "ladder-desk-6712a153",
+    "actor": "owner.ladder@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "analyst.ladder@desk.test",
+      "from": "analyst",
+      "to": "admin",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:29.673537+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.394557+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "5cbe1be4-5783-4601-b0d9-6724cd0d58a1"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.436303+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "57882708-ced1-49e4-9f4a-2357b62d3e89"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.476299+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "1f901360-4d53-40ac-a3cb-147ff33d28a3"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.516070+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "387b8a95-6274-4fbe-ab6a-8b7f0a9586a6"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.558016+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "labeler",
+    "detail": {
+      "user_id": "08920ac5-5010-4988-abf0-3c0bbc51b89d"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.599133+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "d58ad0e7-dd99-4868-b25f-5b094b0cf444"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.642756+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "dk@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "221be021-adb0-4037-a73d-3091f6a8b4ce"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.793371+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "user_id": "440c5cf7-729c-4096-9885-f3b7fe6232f1"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.831042+00:00",
+    "action": "auth_login_fail",
+    "org": "demo",
+    "actor": "analyst.team@citealpha.com",
+    "role": "analyst",
+    "detail": {
+      "reason": "bad_password"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.924906+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "reviewer.team@citealpha.com",
+    "role": "reviewer",
+    "detail": {
+      "user_id": "776e7125-31d1-4898-9381-ba5a4bd7b033"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:30.979635+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "05b361a7-7b04-4730-9539-1cc8249cfcbf"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:31.023361+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "viewer.team@citealpha.com",
+    "role": "viewer",
+    "detail": {
+      "user_id": "e9e9f0c6-c1da-4f65-92f4-98c4719609d3"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:31.122441+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "labeler.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "e09a54c7-52c4-4319-8020-465b3f078d7a"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:31.186372+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "owner.team@citealpha.com",
+    "role": "owner",
+    "detail": {
+      "user_id": "ec77c42a-df22-4e72-b012-b88b2dae1b49"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:31.350615+00:00",
+    "action": "auth_login",
+    "org": "demo",
+    "actor": "admin.team@citealpha.com",
+    "role": "admin",
+    "detail": {
+      "user_id": "8079a640-8726-40a3-9d24-f1ab5f0d6c2c"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:32.348379+00:00",
+    "action": "ingest_refresh",
+    "org": "demo",
+    "actor": "intellens-demo",
+    "role": "reviewer",
+    "detail": {
+      "live": false,
+      "pending_new": 2,
+      "extract_batches": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:33.104298+00:00",
+    "action": "review_accept",
+    "org": "accept-desk-be9bde16",
+    "actor": "reviewer.accept@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:33.469209+00:00",
+    "action": "seat_change",
+    "org": "ir-desk-6e6fa373",
+    "actor": "owner.ir@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.pack@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:33.587131+00:00",
+    "action": "pack_export",
+    "org": "ir-desk-6e6fa373",
+    "actor": "ir.pack@desk.test",
+    "role": "ir",
+    "detail": {
+      "company_id": "infy",
+      "run_id": "run_e5917e5dac42",
+      "format": "md"
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:33.705082+00:00",
+    "action": "seat_change",
+    "org": "ir-empty-desk-43eb87c7",
+    "actor": "owner.irempty@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.empty@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:33.892490+00:00",
+    "action": "seat_change",
+    "org": "scope-desk-b93d3a1f",
+    "actor": "owner.scope@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "pm.scope@desk.test",
+      "from": "pm",
+      "to": "pm",
+      "company_scope": []
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:34.075000+00:00",
+    "action": "seat_change",
+    "org": "ir-project-desk-12e685c6",
+    "actor": "owner.irproj@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.proj@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:35.339397+00:00",
+    "action": "review_accept",
+    "org": "audit-accept-desk-59739f35",
+    "actor": "reviewer.audit@desk.test",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:35.675799+00:00",
+    "action": "seat_change",
+    "org": "seat-trail-desk-18835151",
+    "actor": "owner.seat@desk.test",
+    "role": "owner",
+    "detail": {
+      "member": "ir.seat@desk.test",
+      "from": "ir",
+      "to": "ir",
+      "company_scope": [
+        "infy"
+      ]
+    }
+  },
+  {
+    "ts": "2026-11-14T10:11:42.522850+00:00",
+    "action": "review_accept",
+    "org": "demo",
+    "actor": "api_key:f032f085e7",
+    "role": "reviewer",
+    "detail": {
+      "company_id": "infy",
+      "outcome_index": 0
+    }
   }
 ]

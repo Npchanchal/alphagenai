@@ -116,6 +116,72 @@ def test_cut_off_answer_raises(monkeypatch):
         llm_client.chat_completion([{"role": "user", "content": "x"}])
 
 
+def test_openai_usage_recorded(monkeypatch):
+    monkeypatch.setenv("INTELLENS_LLM_BASE_URL", "https://api.openai.com/v1")
+    _capture_post(monkeypatch, {"choices": [{"message": {"content": "ok"}}], "usage": {"prompt_tokens": 9, "completion_tokens": 2}})
+    llm_client.chat_completion([{"role": "user", "content": "x"}])
+    assert llm_client.last_usage() == {"input": 9, "output": 2}
+
+
+class FakeBedrock:
+    def __init__(self, reply=None, error=None):
+        self.sent = []
+        self.reply = reply
+        self.error = error
+
+    def converse(self, **request):
+        self.sent.append(request)
+        if self.error:
+            raise self.error
+        return self.reply
+
+
+def _bedrock(monkeypatch, **kw):
+    monkeypatch.setenv("INTELLENS_LLM_PROVIDER", "bedrock")
+    monkeypatch.setenv("INTELLENS_LLM_MODEL", "openai.gpt-oss-120b-1:0")
+    fake = FakeBedrock(**kw)
+    monkeypatch.setattr(llm_client, "_bedrock", lambda timeout: fake)
+    monkeypatch.setattr(llm_client, "_post_json", lambda *a, **k: pytest.fail("HTTP path used under bedrock"))
+    return fake
+
+
+def _converse_reply(content, stop="end_turn"):
+    return {"output": {"message": {"content": content}}, "stopReason": stop, "usage": {"inputTokens": 50, "outputTokens": 7}}
+
+
+def test_bedrock_converse_request_and_answer(monkeypatch):
+    fake = _bedrock(monkeypatch, reply=_converse_reply([{"reasoningContent": {"reasoningText": {"text": "hmm"}}}, {"text": " ok "}]))
+    assert llm_client.llm_configured() and not llm_client.is_gemini()
+    out = llm_client.chat_completion(
+        [{"role": "system", "content": "s"}, {"role": "user", "content": "u"}], max_tokens=300, reasoning="low", service_tier="flex"
+    )
+    assert out == "ok"
+    req = fake.sent[0]
+    assert req["system"] == [{"text": "s"}]
+    assert req["messages"] == [{"role": "user", "content": [{"text": "u"}]}]
+    assert req["inferenceConfig"]["maxTokens"] == 300
+    assert req["additionalModelRequestFields"] == {"reasoning_effort": "low"}
+    assert req["serviceTier"] == {"type": "flex"}
+    assert llm_client.last_usage() == {"input": 50, "output": 7}
+
+
+def test_bedrock_cut_off_and_throttle_read_like_http(monkeypatch):
+    from botocore.exceptions import ClientError
+
+    _bedrock(monkeypatch, reply=_converse_reply([{"text": "[{"}], stop="max_tokens"))
+    with pytest.raises(RuntimeError, match="cut off"):
+        llm_client.chat_completion([{"role": "user", "content": "x"}])
+    throttled = ClientError({"Error": {"Code": "ThrottlingException", "Message": "slow down"}}, "Converse")
+    _bedrock(monkeypatch, error=throttled)
+    with pytest.raises(RuntimeError, match="LLM HTTP 429"):
+        llm_client.chat_completion([{"role": "user", "content": "x"}])
+
+
+def test_bedrock_has_no_web_search(monkeypatch):
+    _bedrock(monkeypatch)
+    assert llm_client.web_search_links("infosys investor relations") == []
+
+
 def test_extract_drops_unknown_metrics_and_keeps_the_rest(monkeypatch):
     reply = (
         '[{"metric": "capex_guidance", "guided_value": 26000, "quote_span": "capex of INR26,000 crore"},'

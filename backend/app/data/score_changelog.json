@@ -2,6 +2,12 @@
   "note": "Public GCI changelog. Mirrors the Methodology changelog table in docs/kb/03-scoring.md. Every entry that moves a published number has matching rows in score_ledger.jsonl.",
   "entries": [
     {
+      "date": "2026-11-10",
+      "reason": "methodology",
+      "companies": [],
+      "change": "A second calculation, following methodology version 2.4 as written, now runs beside the published GCI for review. Each result loses one point for every 1% it lands away from the guided figure: the range midpoint for a range, the stated figure for an 'at least' or 'at most' promise, in either direction. The original promise counts for more than later revisions. Each revision made during the guided period reduces the score (20% for the first, 50% at five in a year, never more than 90%), and guidance given early earns more credit than guidance given late (from 0.8 times under 30 days before period end to 1.1 times at 180 days or more, capped at 100). Reviewed dated commitments, such as a plant start-up or a debt reduction, form a second part worth 20% of the combined figure; a commitment with no evidence of its outcome yet widens the range and is not counted as missed. The 80/20 split is not yet calibrated. Proposed changes to these rules are recorded separately and are not in use. Published levels are unchanged."
+    },
+    {
       "date": "2026-10-24",
       "reason": "new_filing",
       "companies": ["infy"],

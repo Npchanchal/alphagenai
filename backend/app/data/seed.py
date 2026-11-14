@@ -415,6 +415,13 @@ def outcome_from_dict(d: Dict[str, Any]) -> GuidanceOutcome:
         actual_unit=d.get("actual_unit"),
         scope=d.get("scope"),
         actual_scope=d.get("actual_scope"),
+        bound=d.get("bound"),
+        prior_value=None if d.get("prior_value") is None else float(d["prior_value"]),
+        zero_reference=None if d.get("zero_reference") is None else float(d["zero_reference"]),
+        condition_state=d.get("condition_state"),
+        restated_actual_value=None
+        if d.get("restated_actual_value") is None
+        else float(d["restated_actual_value"]),
     )
 
 

@@ -4,8 +4,10 @@ A commitment is a dated, checkable forward-looking statement by a company that i
 *not* numeric guidance on a GCI metric: a plant commissioning date, a capex
 programme, a deleveraging target, a launch count, a scheme closing date.
 
-Commitments never feed the GCI (plan `docs/PLAN_CITEALPHA_ANALYST.md` D2). The
-company-level summary is a plain count, never an index level.
+Commitments never feed the published GCI (plan `docs/PLAN_CITEALPHA_ANALYST.md` D2).
+The company-level summary is a plain count. GCI Core v2.4 (shadow) scores accepted
+commitments as its Qual branch through ``qual_family`` (methodology §10; plan
+`docs/PLAN_GCI_CORE.md`); an unresolved commitment widens the range instead of scoring zero.
 """
 
 from __future__ import annotations
@@ -259,6 +261,81 @@ def delivery_summary(commitments: Iterable[Dict[str, Any]], *, as_of: str) -> Di
         "open_not_yet_due": open_future,
         "sentence": summary_sentence(len(due), delivered, counts),
     }
+
+
+# ── GCI Core Qual branch (methodology §10) ───────────────────────────────────
+
+_QUAL_EXCLUDED = {"withdrawn_with_reason": "WITHDRAWN", "superseded": "SUPERSEDED"}
+_QUAL_CONDITION = {"not_activated": "CONDITION_NOT_ACTIVATED", "unknown": "CONDITION_UNKNOWN"}
+
+
+def _components_range(components: Sequence[Dict[str, Any]]) -> Optional[tuple]:
+    """``(low, high)`` fulfilment from weighted components; an unknown component spans 0–1."""
+    total = sum(float(c.get("weight") or 0) for c in components)
+    if total <= 0:
+        return None
+    low = sum(float(c.get("weight") or 0) for c in components if c.get("fulfilled") is True)
+    unknown = sum(float(c.get("weight") or 0) for c in components if c.get("fulfilled") is None)
+    return low / total, (low + unknown) / total
+
+
+def commitment_fulfilment(c: Dict[str, Any]) -> Dict[str, Any]:
+    """Fulfilment range of one accepted, due commitment: ``{low, high, reason}`` (0–1).
+
+    §10.3 credits a scope unit only when fulfilled by the deadline, so a late delivery is unfulfilled.
+    """
+    condition = _QUAL_CONDITION.get(str(c.get("condition_state") or "").strip().lower())
+    if condition:
+        return {"low": None, "high": None, "reason": condition}
+    state = c.get("state", OPEN)
+    if state in _QUAL_EXCLUDED:
+        return {"low": None, "high": None, "reason": _QUAL_EXCLUDED[state]}
+    proof = c.get("proof") or {}
+    if state == "delivered":
+        return {"low": 1.0, "high": 1.0, "reason": None}
+    if state in ("delivered_late", "missed", "quietly_dropped"):
+        return {"low": 0.0, "high": 0.0, "reason": None}
+    if state == "partially_delivered":
+        comps = proof.get("components")
+        span = _components_range(comps) if isinstance(comps, list) else None
+        if span is None and proof.get("fulfilled_fraction") is not None:
+            frac = min(1.0, max(0.0, float(proof["fulfilled_fraction"])))
+            span = (frac, frac)
+        if span is None:
+            return {"low": 0.0, "high": 1.0, "reason": "OUTCOME_UNRESOLVED"}
+        return {"low": span[0], "high": span[1], "reason": None}
+    return {"low": 0.0, "high": 1.0, "reason": "OUTCOME_UNRESOLVED"}
+
+
+def qual_family(c: Dict[str, Any], *, as_of: str) -> Optional[Dict[str, Any]]:
+    """One accepted commitment as a Qual family; None when it is not reviewed.
+
+    The scope contract (§10.2) maps onto the record: subject = action, outcome =
+    acceptance predicate, due_period = deadline, quote + source = evidence. A
+    family is scored only once due; ``low``/``high`` stay None with a reason otherwise.
+    """
+    if c.get("review_status") != "accepted":
+        return None
+    comps = (c.get("proof") or {}).get("components")
+    end = period_end(str(c.get("due_period") or ""))
+    row: Dict[str, Any] = {
+        "id": c.get("id"),
+        "parameter": c.get("type"),
+        "subject": c.get("subject"),
+        "outcome": c.get("outcome"),
+        "deadline": end,
+        "state": c.get("state", OPEN),
+        "source_url": c.get("source_url"),
+        "decomposition": "APPROVED_SCOPE_UNITS" if isinstance(comps, list) and comps else "INDIVISIBLE",
+        "low": None,
+        "high": None,
+        "reason": None,
+    }
+    if end is None:
+        return {**row, "reason": "AMBIGUOUS_ACCEPTANCE_EVENT"}
+    if end > as_of:
+        return {**row, "reason": "OUTCOME_NOT_DUE"}
+    return {**row, **commitment_fulfilment(c)}
 
 
 def summary_sentence(due: int, delivered: int, counts: Dict[str, int]) -> str:

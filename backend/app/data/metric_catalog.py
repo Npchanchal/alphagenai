@@ -451,6 +451,20 @@ def metric_is_rate(metric_id: str) -> bool:
     return str(metric_id).lower().endswith(("_pct", "_percent"))
 
 
+def metric_is_growth(metric_id: str) -> bool:
+    """A percentage change on a prior-period base (revenue growth, SSSG, volume growth).
+
+    Locked v2.4 scores them as stated. The v2.5 proposal D-02 scores the implied
+    level ``1 + g``; the delivery ruleset reads the miss against a points floor;
+    the Growth Accuracy companion index reports it in percentage points.
+    """
+    if not metric_is_rate(metric_id):
+        return False
+    row = get_metric(metric_id) or {}
+    mid = str(row.get("id") or metric_id).lower()
+    return row.get("family") == "growth" or "growth" in mid or mid == "same_store_sales_pct"
+
+
 def list_metrics(sector: Optional[str] = None) -> List[Dict[str, Any]]:
     if not sector:
         return list(METRICS)

@@ -72,3 +72,22 @@ def test_short_text_stays_inline(_data_dir):
     doc_store.upsert_document(company_id="fix_d", doc_type="note", title="t", text="short note text")
     meta = json.loads((_data_dir / "documents.json").read_text())["documents"][0]
     assert "text_file" not in meta and meta["text"] == "short note text"
+
+
+def test_lookups_follow_upserts_patches_and_a_replaced_store():
+    url = "https://www.bseindia.com/xml-data/corpfiling/AttachLive/q4.pdf"
+    assert doc_store.find_by_url(url) is None and doc_store.stored_preview(url) is None
+    doc = doc_store.upsert_document(company_id="fix_e", doc_type="concall", title="t", text="cover letter", url=url)
+    again = doc_store.upsert_document(company_id="fix_e", doc_type="concall", title="t", text="cover letter")
+    assert again["doc_id"] == doc["doc_id"]
+    assert doc_store.find_by_url("http://bseindia.com/xml-data/corpfiling/AttachLive/q4.pdf?utm_source=x")["doc_id"] == doc["doc_id"]
+    assert doc_store.find_by_hash(doc["content_hash"])["doc_id"] == doc["doc_id"]
+    assert doc_store.stored_preview(url) == "cover letter"
+    long_url = "https://www.nseindia.com/long.pdf"
+    doc_store.upsert_document(company_id="fix_e", doc_type="concall", title="t", text=_long("Delta"), url=long_url)
+    assert doc_store.stored_preview(long_url) == ""
+    moved = "https://www.bseindia.com/xml-data/corpfiling/AttachLive/moved.pdf"
+    doc_store.patch_document(doc["doc_id"], url=moved)
+    assert doc_store.find_by_url(moved)["doc_id"] == doc["doc_id"]
+    doc_store._DOCS = {"documents": [], "versions": []}
+    assert doc_store.find_by_url(moved) is None and doc_store.find_by_hash(doc["content_hash"]) is None

@@ -18,6 +18,7 @@ FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
 PUBLIC_COPY_FILES = [
     FRONTEND / "src/i18n/locales/en.json",
     FRONTEND / "src/lib/seoRoutes.json",
+    FRONTEND / "src/lib/seo-structured-data.json",
     FRONTEND / "src/lib/glossary.ts",
     FRONTEND / "src/lib/tours.ts",
     FRONTEND / "src/lib/blogPosts.ts",

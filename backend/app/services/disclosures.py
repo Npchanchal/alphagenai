@@ -88,12 +88,16 @@ def _last_day(year: int, month: int) -> date:
 
 
 def period_bounds(period: str, market_id: str, fy_end_mmdd: Optional[str] = None) -> Optional[Tuple[date, date]]:
-    """(start, end) of a canonical period. India: April–March. US: the company's fiscal year end."""
-    m = re.match(r"^(?:Q([1-4]) )?FY(\d{2}|\d{4})$", period or "")
-    if not m:
+    """(start, end) of a canonical period. India: April–March. Elsewhere: the company's fiscal year end.
+
+    ``H1 FY25`` / ``H2 FY25`` (half-yearly markets) map to quarters 2 and 4 with a six-month start.
+    """
+    m = re.match(r"^(?:([QH])([1-4]) )?FY(\d{2}|\d{4})$", period or "")
+    if not m or (m.group(1) == "H" and m.group(2) not in ("1", "2")):
         return None
-    quarter = int(m.group(1)) if m.group(1) else None
-    year = _year4(m.group(2))
+    half = m.group(1) == "H"
+    quarter = (int(m.group(2)) * 2 if half else int(m.group(2))) if m.group(1) else None
+    year = _year4(m.group(3))
     end_month = 3
     if market_id != "IN":
         mmdd = (fy_end_mmdd or "1231").strip()
@@ -109,7 +113,7 @@ def period_bounds(period: str, market_id: str, fy_end_mmdd: Optional[str] = None
         q_month += 12
         q_year -= 1
     q_end = _last_day(q_year, q_month)
-    s_month, s_year = q_month - 2, q_year
+    s_month, s_year = q_month - (5 if half else 2), q_year
     if s_month <= 0:
         s_month += 12
         s_year -= 1
@@ -363,6 +367,19 @@ def _chunk_key(chunk: str) -> str:
 _NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 
 
+def _read_provenance(market_id: str, fy_end_mmdd: Optional[str], *, custom: bool) -> Dict[str, Any]:
+    """Which engine, model and prompt produced a chunk's extract (methodology: log every model call)."""
+    from app.services.llm_client import llm_chat_model
+
+    prompt = build_prompt(market_id, fy_end_mmdd)
+    return {
+        "engine": ENGINE,
+        "model": "custom_extractor" if custom else llm_chat_model(),
+        "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:16],
+        "read_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
 def _worth_reading(chunk: str) -> bool:
     """Skip boilerplate: a chunk with almost no figures cannot hold a promise or a result."""
     return len(_NUMBER.findall(chunk)) >= 3
@@ -423,6 +440,7 @@ def read_documents(
         except Exception as exc:  # noqa: BLE001 — retried on a later run
             return exc
 
+    provenance = _read_provenance(market_id, fy_end_mmdd, custom=extractor is not None)
     workers = read_workers()
     pool = ThreadPoolExecutor(max_workers=workers) if workers > 1 else None
     try:
@@ -443,7 +461,7 @@ def read_documents(
                     streak += 1
                     model_down = model_down or streak >= MAX_FAILURE_STREAK
                 else:
-                    entry["chunks"][key] = found
+                    entry["chunks"][key] = {**found, "provenance": provenance}
                     streak = 0
             if budget_out or model_down:
                 break
@@ -576,12 +594,28 @@ def _statements(
                     "url": str(doc.get("url") or entry.get("url") or ""),
                     "title": str(doc.get("title") or entry.get("title") or ""),
                     "date": doc_date,
+                    "doc_type": str(doc.get("doc_type") or entry.get("doc_type") or ""),
                 }
                 if kind == "guidance":
                     guidance.append({**row, "low": checked["low"], "high": checked["high"]})
                 else:
                     results.append({**row, "value": checked["numbers"][0]})
     return guidance, results, dropped
+
+
+#: GAP-17: which of two same-day statements on one metric and period stands. Lower wins.
+STATEMENT_SOURCE_RANK = {"results": 0, "filing": 1, "ir_guidance": 2, "guidance": 2, "transcript": 3}
+
+
+def statement_precedence(s: Dict[str, Any]) -> Tuple[Any, ...]:
+    """Results release over exchange filing over presentation over call transcript; then the
+    narrower (more specific) band; then document id, so the choice never depends on read order."""
+    return (
+        STATEMENT_SOURCE_RANK.get(str(s.get("doc_type") or ""), len(STATEMENT_SOURCE_RANK)),
+        abs(float(s["high"]) - float(s["low"])),
+        str(s.get("doc_id") or ""),
+        float(s["low"]),
+    )
 
 
 def _stem(metric_id: str) -> str:
@@ -708,13 +742,30 @@ def reconcile(
         conflicts.append(item)
 
     rows: List[Dict[str, Any]] = []
-    for (period, metric), stmts in sorted(by_key.items()):
-        stmts.sort(key=lambda x: (x["date"], x["doc_id"], x["low"], x["high"]))
+    for (period, metric), all_stmts in sorted(by_key.items()):
+        stmts = []
+        for day in sorted({s["date"] for s in all_stmts}):
+            same_day = sorted((s for s in all_stmts if s["date"] == day), key=statement_precedence)
+            stmts.append(same_day[0])
+            for other in same_day[1:]:
+                if (other["low"], other["high"]) != (same_day[0]["low"], same_day[0]["high"]):
+                    _add_conflict(
+                        {
+                            "period": period,
+                            "promise_metric": metric,
+                            "result_metric": metric,
+                            "promise_doc_id": same_day[0]["doc_id"],
+                            "result_doc_id": other["doc_id"],
+                            "promise_quote": same_day[0]["quote"],
+                            "result_quote": other["quote"],
+                            "reason": "same_day_statements",
+                        }
+                    )
         opening = stmts[0]
         revisions: List[Dict[str, Any]] = []
         band = (opening["low"], opening["high"])
         for s in stmts[1:]:
-            if s["date"] == opening["date"] or (s["low"], s["high"]) == band:
+            if (s["low"], s["high"]) == band:
                 continue
             band = (s["low"], s["high"])
             revisions.append(

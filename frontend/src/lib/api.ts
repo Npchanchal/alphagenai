@@ -131,6 +131,7 @@ export type CompanyGCIDetail = {
   as_of?: string | null;
   reviewed_at?: string | null;
   algorithm_id?: string | null;
+  method_label?: string | null;
   coverage_status?: CoverageStatus | null;
   coverage_reason?: string | null;
   gci_change_pct?: number | null;
@@ -860,6 +861,7 @@ export type ScoreLedgerRow = {
   reason: string;
   note: string;
   by: string;
+  snapshot_id?: string;
 };
 
 export function fetchScoreLedger(
@@ -884,6 +886,573 @@ export function fetchScoreChangelog(
 ): Promise<{ company_id: string | null; count: number; entries: ChangelogEntry[] }> {
   const qs = companyId ? `?company_id=${encodeURIComponent(companyId)}` : "";
   return getJson(`/api/v1/index/changelog${qs}`);
+}
+
+export type GciMethodCode = "classic" | "core" | "range" | "delivery" | "draft";
+
+export type GciMethodStatus = "published" | "shadow" | "pending_ruling" | "alternative" | "change_control" | "retired";
+
+/** One entry of the method catalogue: a stable display name per algorithm id. */
+export type GciMethod = {
+  code: GciMethodCode;
+  name: string;
+  version: string;
+  algorithm_id: string;
+  ruleset: CoreRuleset | null;
+  status: GciMethodStatus;
+  summary: string;
+  label: string;
+};
+
+export type IndexMethodology = {
+  methods: GciMethod[];
+  published: { algorithm_id: string; revision: string; method_label: string };
+  shadow: {
+    algorithm_id: string;
+    methodology_version: string;
+    ruleset: CoreRuleset;
+    revision: string;
+    approved: boolean;
+    composite_weights: { quant: string; qual: string };
+  };
+  default_ruleset: CoreRuleset;
+  r2: CoreR2Constants & { algorithm_id: string; ruleset: CoreRuleset; status: "shadow_pending_owner_ruling" };
+  delivery: {
+    algorithm_id: string;
+    ruleset: CoreRuleset;
+    status: "alternative";
+    excludes: CoreExcludedElement[];
+    growth_floor_pp: string;
+  };
+  proposals: { algorithm_id: string; ruleset: CoreRuleset; status: "change_control" };
+  companions: Array<{ id: CompanionId; algorithm_id: string; status: "preview" }>;
+};
+
+export type CoreRuleset = "v2.4" | "v2.4-R2" | "delivery" | "v2.5-proposal";
+
+export type CoreR2Constants = {
+  revision_weights: Record<string, string>;
+  growth_floor_pp: string;
+  scale_rule: string;
+  met_bound_scores_full: boolean;
+  lead_time: { base: string; slope: string; method: "LINEAR_NORMALISED" };
+  headline_gate: { min_commitments: number; min_coverage: string; unresolved_allowed: number };
+  calibration: { protocol_id: string; status: string; parameters: string[] };
+  amendments: string;
+};
+
+export type CoreHeadlineRule = "COMPOSITE" | "QUANT_ONLY" | "QUANT_DOMINANT" | "COMPOSITE_PUBLISHED";
+
+export type CoreExcludedElement = { element: string; section: string; companion: CompanionId };
+
+export function fetchIndexMethodology(): Promise<IndexMethodology> {
+  return getJson("/api/v1/index/methodology");
+}
+
+export type CoreMarketProfile = {
+  market_id: string;
+  name: string;
+  regimes: string[];
+  unsupported_regimes?: string[];
+  reporting_cadence: "Q" | "H";
+  fy_end_mmdd: string;
+  core_status: "publish" | "shadow" | "diagnostic_only";
+  numeric_guidance: string;
+  history_from: string;
+  sources: string[];
+  language: string;
+  practice: string;
+  modifications: string[];
+  typical_unscorable: string[];
+};
+
+export function fetchCoreMarketProfiles(): Promise<{ count: number; markets: CoreMarketProfile[] }> {
+  return getJson("/api/v1/index/markets");
+}
+
+export function fetchIndexUpdates(since: string): Promise<{
+  since: string;
+  count: number;
+  rows: ScoreLedgerRow[];
+  changelog: ChangelogEntry[];
+}> {
+  return getJson(`/api/v1/index/updates?since=${encodeURIComponent(since)}`);
+}
+
+export type CoreVintage = {
+  vintage_id: string;
+  index: number;
+  as_of: string | null;
+  stated_as_of?: string | null;
+  time_basis?: "public_available_at" | "statement_date";
+  low: number;
+  high: number;
+  source_url?: string | null;
+  quote?: string | null;
+  same_day_conflicts?: number;
+  literal_outcome: string;
+  eligible: boolean;
+  reason_code: string | null;
+  score?: number;
+  weight?: number;
+  z?: number;
+  direction?: number;
+  revision_magnitude?: number;
+  revision_kind?: string;
+  revision_weight?: string;
+  metric_kind?: "growth_pct" | "level";
+  target_type?: "range" | "point" | "floor" | "ceiling";
+  endpoint_flags?: "inclusive";
+  target_met?: boolean;
+  deviation?: number;
+  side?: "over" | "under" | null;
+  natural_scale?: number;
+  scale_floor_pp?: number | null;
+  effective_scale?: number;
+  scale_floor_applied?: boolean;
+};
+
+export type CoreRecordState =
+  | "DOCUMENT_AVAILABLE"
+  | "EXTRACTED"
+  | "REVIEWER_ACCEPTED"
+  | "SCORE_COMPUTED"
+  | "PUBLISHED";
+
+export type CoreFamily = {
+  family_id: string;
+  parameter: string;
+  period: string;
+  cadence: "Q" | "H" | "FY";
+  unit?: string | null;
+  currency?: string | null;
+  reporting_basis?: string | null;
+  scope?: string | null;
+  record_state?: CoreRecordState;
+  route: string;
+  reason_code: string | null;
+  flags: string[];
+  score: number | null;
+  calculation_status: string;
+  actual_value: number | null;
+  actual_as_of: string | null;
+  restated_actual_value: number | null;
+  period_start: string | null;
+  period_end: string | null;
+  lead_time_days?: number | null;
+  lead_time_factor?: number | null;
+  delivery_score?: number;
+  revisions_counted?: number;
+  revisions_weighted?: string | null;
+  frequency_penalty?: number;
+  lead_time?: { horizon_type: string; h_days: number; l_days: number; r: number; factor: number; interpolation_method: string };
+  vintages: CoreVintage[];
+};
+
+export type CoreQualFamily = {
+  id: string;
+  parameter: string;
+  subject: string;
+  outcome: string;
+  deadline: string | null;
+  state: string;
+  source_url: string | null;
+  decomposition: "INDIVISIBLE" | "APPROVED_SCOPE_UNITS";
+  low: number | null;
+  high: number | null;
+  reason: string | null;
+  evidence_status?: "AVAILABLE" | "UNAVAILABLE" | "PENDING" | null;
+};
+
+export type CoreDetail = {
+  company_id: string;
+  name?: string;
+  algorithm_id: string;
+  method: { code: GciMethodCode; name: string; version: string; status: GciMethodStatus };
+  method_label: string;
+  methodology_version: string;
+  ruleset: CoreRuleset;
+  revision: string;
+  market_id: string;
+  publication_status: "PUBLISHABLE" | "SHADOW" | "NOT_ELIGIBLE";
+  publication_reason: string | null;
+  composite_basis: "quant_and_qual" | "quant_only" | "qual_only" | null;
+  composite_gci: number | null;
+  composite_low: number | null;
+  composite_high: number | null;
+  quant_gci: number | null;
+  quant_gci_exact: string | null;
+  qual_gci: number | null;
+  qual_low: number | null;
+  qual_high: number | null;
+  calculation_status: string;
+  confidence_tier: ConfidenceTier | null;
+  closed_periods: number;
+  parameters: Array<{ parameter: string; score: number; families_computable: number; included: boolean }>;
+  families: CoreFamily[];
+  qual: {
+    as_of: string;
+    parameters: Array<{ parameter: string; families: number; low: number; high: number }>;
+    families: CoreQualFamily[];
+    coverage: {
+      qual_commitment_count: number;
+      expected_family_count: number;
+      coverage_ratio: number | null;
+      unresolved: number;
+      pending: number;
+    };
+  };
+  reason_counts: Record<string, number>;
+  company_flags: string[];
+  coverage: {
+    families_total: number;
+    families_quant: number;
+    families_computable: number;
+    computable_share: number | null;
+    parameters_computable: number;
+    closed_periods: number;
+  };
+  uncertainty: {
+    headline_low: number | null;
+    headline_high: number | null;
+    width: number | null;
+    source: string | null;
+  };
+  headline: "composite" | "quant";
+  headline_rule: CoreHeadlineRule;
+  headline_gci: number | null;
+  headline_exact: string | null;
+  comparability: { regime: string | null; flag: string } | null;
+  excluded_elements: CoreExcludedElement[];
+  input_digest: string;
+};
+
+export function fetchCoreDetail(companyId: string, ruleset?: CoreRuleset): Promise<CoreDetail> {
+  const q = ruleset ? `?ruleset=${encodeURIComponent(ruleset)}` : "";
+  return getJson(`/api/v1/index/core/${encodeURIComponent(companyId)}${q}`, { headers: authHeaders() });
+}
+
+export type CoreEvidence = {
+  source_url: string | null;
+  quote: string | null;
+  stored: boolean;
+  doc_id?: string;
+  doc_type?: string;
+  content_hash?: string | null;
+  raw_sha256?: string | null;
+  filing_date?: string | null;
+  public_available_at?: string | null;
+  ingested_at?: string | null;
+  quote_start?: number | null;
+  quote_end?: number | null;
+};
+
+export type CoreFamilyEvidence = {
+  company_id: string;
+  algorithm_id: string;
+  ruleset: CoreRuleset;
+  family: CoreFamily;
+  evidence: {
+    vintages: Array<CoreEvidence & { vintage_id: string }>;
+    actual: CoreEvidence | null;
+    reviewed_by: string | null;
+    reviewed_at: string | null;
+  };
+};
+
+export function fetchCoreFamily(companyId: string, familyId: string, ruleset?: CoreRuleset): Promise<CoreFamilyEvidence> {
+  const q = ruleset ? `?ruleset=${encodeURIComponent(ruleset)}` : "";
+  return getJson(
+    `/api/v1/index/core/${encodeURIComponent(companyId)}/families/${encodeURIComponent(familyId)}${q}`,
+    { headers: authHeaders() },
+  );
+}
+
+export type CompanionId =
+  | "revision_discipline"
+  | "guidance_visibility"
+  | "commitment_delivery"
+  | "guidance_setting"
+  | "growth_accuracy_pp"
+  | "guidance_bias";
+
+export type CompanionIndex = {
+  id: CompanionId;
+  algorithm_id: string;
+  name: string;
+  question: string;
+  replaces: string;
+  value: number | null;
+  low?: number | null;
+  high?: number | null;
+  rows: number;
+  min_rows: number;
+  status: "preview";
+  part_of_gci: false;
+  rankable: false;
+  sentence: string;
+  parameters: Record<string, unknown>;
+  items: Array<Record<string, unknown>>;
+};
+
+export type GuidanceDiagnostics = {
+  withdrawals: Array<{ parameter: string; period: string; source_url: string | null }>;
+  reinstatements: Array<{ parameter: string; withdrawn: string; reinstated: string }>;
+  deadline_extensions: Array<{
+    commitment_id: string;
+    replaced_by: string;
+    subject: string;
+    old_deadline: string | null;
+    new_deadline: string | null;
+  }>;
+  basis_switches: Array<{ parameter: string; from_period: string; from_basis: string; to_period: string; to_basis: string }>;
+  thin_history: {
+    closed_periods: number;
+    threshold: number;
+    thin: boolean;
+    single_family_parameters: string[];
+    policy: string;
+  };
+  note: string;
+};
+
+export type CompanionIndexes = {
+  company_id: string;
+  name?: string;
+  as_of: string;
+  closed_figures: number;
+  indexes: CompanionIndex[];
+  diagnostics: GuidanceDiagnostics;
+  note: string;
+};
+
+export function fetchCompanionIndexes(companyId: string): Promise<CompanionIndexes> {
+  return getJson(`/api/v1/index/companions/${encodeURIComponent(companyId)}`, { headers: authHeaders() });
+}
+
+export type CoreReleaseGates = {
+  company_id: string;
+  ruleset: CoreRuleset;
+  algorithm_id: string;
+  level: number | null;
+  passed: boolean;
+  failed: string[];
+  gates: Array<{ id: string; name: string; passed: boolean; manual?: boolean; detail: unknown }>;
+};
+
+export function fetchCoreReadiness(companyId: string, ruleset?: CoreRuleset): Promise<CoreReleaseGates> {
+  const q = ruleset ? `?ruleset=${encodeURIComponent(ruleset)}` : "";
+  return getJson(`/api/v1/index/core/${encodeURIComponent(companyId)}/readiness${q}`, { headers: authHeaders() });
+}
+
+export type CoreShadowRow = {
+  company_id: string;
+  market_id: string;
+  v4_gci: number | null;
+  core_gci: number | null;
+  core_basis: CoreDetail["composite_basis"];
+  core_quant_gci: number | null;
+  core_qual_low: number | null;
+  core_qual_high: number | null;
+  r2_gci: number | null;
+  r2_headline_rule: CoreHeadlineRule;
+  delivery_gci: number | null;
+  proposal_gci: number | null;
+  difference: number | null;
+  core_tier: ConfidenceTier | null;
+  core_status: string;
+  publication_status: string;
+  reason_counts: Record<string, number>;
+  deterministic: boolean;
+};
+
+export function fetchCoreShadow(): Promise<{
+  gate: number;
+  compared: number;
+  mean_abs_difference: number | null;
+  nondeterministic: string[];
+  future_source: string[];
+  rows: CoreShadowRow[];
+  passed: false | null;
+  note: string;
+}> {
+  return getJson("/api/v1/index/core", { headers: authHeaders() });
+}
+
+/** GCI method lab (Workbench research calculator). Nothing it returns is a published level. */
+export type LabParamValue = number | boolean | string;
+
+export type LabParamSpec = {
+  key: string;
+  label: string;
+  kind: "number" | "toggle" | "choice";
+  default: LabParamValue;
+  unit: string;
+  help: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: { value: string; label: string }[];
+};
+
+export type LabMethodKind = "accuracy" | "direction" | "hit";
+
+export type LabMethod = {
+  code: string;
+  name: string;
+  version: string;
+  gci_method: GciMethodCode | null;
+  kind: LabMethodKind;
+  status: GciMethodStatus | "research";
+  formula: string;
+  summary: string;
+  params: LabParamSpec[];
+  presets: { id: string; label: string; params: Record<string, LabParamValue> }[];
+  rollup_defaults: Record<string, LabParamValue>;
+};
+
+export type LabActorView = {
+  id: string;
+  label: string;
+  question: string;
+  comparisons: { method: string; preset: string }[];
+};
+
+export type LabCatalogue = {
+  base_method: string;
+  max_comparisons: number;
+  row_scopes: { value: LabRowScope; label: string }[];
+  methods: LabMethod[];
+  rollup_params: LabParamSpec[];
+  actor_views: LabActorView[];
+  checks: Record<string, string | number>;
+};
+
+export type LabRowScope = "published" | "all_closed";
+
+export type LabComparisonInput = {
+  id?: string;
+  label?: string;
+  method: string;
+  preset?: string;
+  params?: Record<string, LabParamValue>;
+  rollup?: Record<string, LabParamValue>;
+};
+
+export type LabComparison = {
+  id: string;
+  method: string;
+  method_name: string;
+  method_version: string;
+  kind: LabMethodKind;
+  status: string;
+  gci_method: GciMethodCode | null;
+  preset: string;
+  preset_label: string;
+  label: string;
+  params: Record<string, LabParamValue>;
+  params_changed: string[];
+  rollup: Record<string, LabParamValue>;
+};
+
+export type LabTag = "beat" | "in_line" | "miss" | "outside_range";
+
+export type LabRow = {
+  period: string;
+  metric: string;
+  bound: "floor" | "ceiling" | null;
+  actual: number;
+  low: number;
+  high: number;
+  tag: LabTag;
+  revisions: number;
+  published_eligible: boolean;
+  scores: Record<string, number | null>;
+  bands: Record<string, [number, number]>;
+  tags: Record<string, LabTag>;
+  reasons: Record<string, string>;
+};
+
+export type LabLevel = {
+  level: number | null;
+  by_metric: Record<string, number>;
+  context_metrics: Record<string, number>;
+  weights: Record<string, number>;
+  audit_deduction: number;
+  engine_level?: number | null;
+};
+
+export type LabRun = {
+  rows: LabRow[];
+  levels: Record<string, LabLevel>;
+  rows_scored: number;
+  row_scope: LabRowScope;
+};
+
+export type LabBehaviour = {
+  gain_from_guiding_low: number;
+  gain_shift_pp: number;
+  best_half_width_pp: number | null;
+  honest_half_width_pp: number;
+  width_ignored: boolean;
+  one_pp_miss_at_2: number | null;
+  one_pp_miss_at_20: number | null;
+  alternating_record: number | null;
+  steady_record: number | null;
+  low_growth_beat: number | null;
+};
+
+export type LabRunResult = {
+  status: "research";
+  note: string;
+  base_method: string;
+  row_scope: LabRowScope;
+  comparisons: LabComparison[];
+  companies: (LabRun & { company_id: string; name: string | null; engine_levels: Record<string, number | null> })[];
+  hypothetical: LabRun | null;
+  behaviour: Record<string, LabBehaviour> | null;
+};
+
+export type LabHypotheticalRow = {
+  period?: string;
+  metric: string;
+  low: number;
+  high: number;
+  actual: number;
+  bound?: "floor" | "ceiling" | null;
+};
+
+export function fetchMethodLab(): Promise<LabCatalogue> {
+  return getJson("/api/v1/index/lab", { headers: authHeaders() });
+}
+
+export function runMethodLab(body: {
+  company_ids?: string[];
+  comparisons: LabComparisonInput[];
+  row_scope?: LabRowScope;
+  hypothetical_rows?: LabHypotheticalRow[];
+  behaviour?: boolean;
+}): Promise<LabRunResult> {
+  return getJson("/api/v1/index/lab/run", {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchSnapshotReplay(snapshotId: string): Promise<{
+  replay: {
+    snapshot_id: string;
+    algorithm_id: string;
+    algorithm_revision: string;
+    current_revision: string;
+    recorded_gci: number | null;
+    replayed_gci: number | null;
+    content_intact: boolean;
+    matches: boolean;
+  };
+}> {
+  return getJson(`/api/v1/index/snapshots/${encodeURIComponent(snapshotId)}`);
 }
 
 export function fetchPitContract(): Promise<Record<string, unknown>> {

@@ -33,6 +33,38 @@
     {
       "question": "Who is CiteAlpha built for?",
       "answer": "Indian equity desks — buy-side and sell-side research teams that need evidence-linked management delivery history beside their market terminal. Pilots start with Sensex-depth hand-labeled evidence."
+    },
+    {
+      "question": "How do I read a GCI level?",
+      "answer": "GCI runs from 0 to 100, and higher means guidance was delivered more reliably. A result inside the guided range scores 100 for that row. Results outside the range lose points with distance, measured in half-widths of the range: beats decay toward a floor of 60, and misses lose points 1.4 times as fast and can reach 0. The company level is an evidence-weighted average across metrics, shown with its confidence tier and as-of date. The scale is not centred on 50; the delivery record beside each level says how many results came in above, inside or below guidance."
+    },
+    {
+      "question": "Does beating guidance raise the GCI?",
+      "answer": "No. GCI measures how reliable the promise was, not how much upside was delivered, so a result above the range scores below 100 but never below 60. Infosys guided FY22 revenue growth of 12%–14% and grew 19.7%; that row scores about 62. Whether results tend to land above or below guidance is shown in the delivery record, separately from the level."
+    },
+    {
+      "question": "Does a wider guidance range make the GCI easier to earn?",
+      "answer": "Somewhat. Distance outside the range is measured in the range's own half-width, so a wide range reaches 100 more easily than a tight one. Every row on a company page shows the range as guided, so a reader can judge its width. Any change to how ranges are scored is a method change, listed on the public changelog with the levels before and after."
+    },
+    {
+      "question": "How does GCI treat guidance that is raised or cut during the year?",
+      "answer": "The score uses the opening guidance, the number management gave at the start of the period, because that is the promise investors priced in. Each later revision is shown beside it with its own date and source, together with the result against the final range for context. A revision is not treated as withdrawn guidance."
+    },
+    {
+      "question": "How often is a GCI level updated?",
+      "answer": "After the results filing that closes a guided period, once both the guidance quote and the reported figure are cited and reviewed. The target is publication within five business days of the filing. Every change to a published level is written to an append-only score ledger and listed on the public changelog the same day, with its reason."
+    },
+    {
+      "question": "Who uses GCI, and for what?",
+      "answer": "Portfolio managers and heads of research read management's delivery record beside fundamentals. Sell-side analysts use it when preparing results previews. Investor relations teams check how their own guidance record reads to the market. Corporate development teams review whether an acquisition target delivered on past guidance. GCI describes a delivery record; it is not a rating or a recommendation."
+    },
+    {
+      "question": "How is GCI delivered?",
+      "answer": "On the web through the GCI Screener, company pages and the Public Snapshot, which can be downloaded as CSV. Desk seats add the Analyst Workbench. Point-in-time GCI history is available through the REST API under /api/v1 with an API key."
+    },
+    {
+      "question": "Is the GCI method published?",
+      "answer": "Yes. The scoring rule, its constants and the roll-up to a company level are on the Methodology page, so any level can be recomputed from its cited rows. For a walkthrough with your team, write to sales@citealpha.com."
     }
   ],
   "howTo": {

@@ -116,6 +116,30 @@ def test_opening_band_revision_and_actual_after_period_end():
     assert row["period_end"] == "2025-03-31"
 
 
+def test_same_day_statements_follow_source_hierarchy_and_are_reported():
+    """GAP-17: a results release outranks a call transcript on the same day, whatever the doc ids."""
+    g_call = "On the call we said revenue growth of 8% to 10% for FY25."
+    docs = _india_docs() + [
+        {"doc_id": "a0", "url": "https://nse/0", "title": "Q4 FY24 transcript", "date": "2024-05-10",
+         "doc_type": "transcript", "text": g_call},
+    ]
+    docs[0]["doc_type"] = "results"
+    blob = _blob()
+    blob["docs"]["a0"] = {"date": "2024-05-10", "chunks": {"a": {"guidance": [
+        {"metric": "revenue_growth_pct", "period": "FY25", "low": 8, "high": 10, "quote": g_call}], "results": []}}}
+    out = disclosures.reconcile("acme", docs, blob, market_id="IN", today="2025-06-01")
+    (row,) = out["rows"]
+    assert (row["guided_low"], row["guided_high"]) == (10, 12)
+    same_day = [c for c in out["conflicts"] if c["reason"] == "same_day_statements"]
+    assert same_day and same_day[0]["promise_doc_id"] == "d1" and same_day[0]["result_doc_id"] == "a0"
+
+
+def test_statement_precedence_prefers_narrower_band_within_one_source_type():
+    wide = {"doc_type": "transcript", "low": 8, "high": 12, "doc_id": "a"}
+    narrow = {"doc_type": "transcript", "low": 9, "high": 10, "doc_id": "b"}
+    assert sorted([wide, narrow], key=disclosures.statement_precedence)[0] is narrow
+
+
 def test_guidance_after_period_end_is_ignored():
     blob = _blob()
     blob["docs"]["d3"]["chunks"]["a"]["guidance"] = [

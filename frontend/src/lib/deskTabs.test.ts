@@ -26,6 +26,12 @@ describe("deskTabVisible", () => {
     expect(deskTabVisible("labeling", analyst)).toBe(false);
   });
 
+  it("opens the method lab only to reviewer or experimental-analytics seats", () => {
+    expect(deskTabVisible("lab", labeler)).toBe(true);
+    expect(deskTabVisible("lab", analyst)).toBe(false);
+    expect(deskTabVisible("lab", allow("desk", "analytics_experimental"))).toBe(true);
+  });
+
   it("opens vernacular only when the plan includes it", () => {
     expect(deskTabVisible("vernacular", allow("desk", "vernacular"))).toBe(true);
   });

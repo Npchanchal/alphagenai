@@ -4,6 +4,9 @@ export function deskTabVisible(id: string, has: (feature: string) => boolean): b
   switch (id) {
     case "labeling":
       return has("labeling");
+    case "core":
+    case "lab":
+      return has("labeling") || has("analytics_experimental");
     case "feedback":
       return has("feedback");
     case "import":

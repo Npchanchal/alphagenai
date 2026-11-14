@@ -9,6 +9,7 @@ Gates (methodology page, docs/kb/03-scoring.md):
   3  Floor sensitivity  published levels under a grid of width floors; reported, judged by a person
   4  Extraction audit   double review of >= 200 stratified rows, >= 95% exact (human; read from file)
   7  Point in time      promise dated before result, revisions in between, review after (hard gate)
+  8  GCI Core shadow    v4 level beside the Core level per company; Core must replay identically
 
 Gates 5 and 6 (event study, out-of-sample lift for advanced models) wait until the
 established tier covers enough companies to power them.
@@ -185,6 +186,199 @@ def gate_point_in_time(companies: Dict[str, List[GuidanceOutcome]]) -> Dict[str,
     }
 
 
+def issuance_times(rows: Sequence[GuidanceOutcome]) -> Dict[str, str]:
+    """Stored public-availability date per guidance source URL. Reads the store; never fetches."""
+    from app.data import doc_store
+
+    urls = {o.guidance_source_url for o in rows} | {
+        r.get("source_url") for o in rows for r in (o.revisions or ())
+    }
+    out: Dict[str, str] = {}
+    for url in sorted(u for u in urls if u):
+        held = doc_store.find_by_url(url)
+        if held and held.get("public_available_at"):
+            out[url] = str(held["public_available_at"])[:10]
+    return out
+
+
+def core_inputs(
+    company_id: str,
+    rows: Optional[Sequence[GuidanceOutcome]] = None,
+    *,
+    as_of: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Keyword arguments for ``compute_core_detail`` — the one place Core inputs are gathered."""
+    from datetime import date
+
+    from app.data.markets import company_market_id
+    from app.data.seed import get_outcomes, list_companies
+    from app.services.commitment_store import list_commitments
+    from app.services.guidance_flags import applied_audit_flags
+
+    company = next((c for c in list_companies() if c["id"] == company_id), None) or {}
+    outcomes = list(rows if rows is not None else get_outcomes(company_id))
+    return {
+        "outcomes": outcomes,
+        "company_id": company_id,
+        "market_id": company_market_id(company or None),
+        "regime": company.get("accounting_regime"),
+        "fy_end_mmdd": company.get("fy_end_mmdd"),
+        "audit_flags": applied_audit_flags(company_id),
+        "commitments": list_commitments(company_id, include_unreviewed=False),
+        "as_of": as_of or date.today().isoformat(),
+        "issuance_times": issuance_times(outcomes),
+    }
+
+
+def core_shadow_rows(companies: Dict[str, List[GuidanceOutcome]]) -> List[Dict[str, Any]]:
+    """Published v4 level beside GCI Core (locked v2.4), v2.4-R2, the delivery ruleset and the v2.5 proposals."""
+    out: List[Dict[str, Any]] = []
+    for cid, rows in sorted(companies.items()):
+        kw = core_inputs(cid, rows)
+        outcomes = kw.pop("outcomes")
+        market = kw["market_id"]
+        v4 = gci_scoring.compute_gci_v3_detail(outcomes, audit_flags=kw["audit_flags"], version="v4").gci
+        core = gci_scoring.compute_core_detail(outcomes, ruleset=gci_scoring.CORE_RULESET_LOCKED, **kw)
+        again = gci_scoring.compute_core_detail(outcomes, ruleset=gci_scoring.CORE_RULESET_LOCKED, **kw)
+        r2 = gci_scoring.compute_core_detail(outcomes, ruleset=gci_scoring.CORE_RULESET_R2, **kw)
+        delivery = gci_scoring.compute_core_detail(outcomes, ruleset=gci_scoring.CORE_RULESET_DELIVERY, **kw)
+        proposal = gci_scoring.compute_core_detail(outcomes, ruleset=gci_scoring.CORE_RULESET_PROPOSAL, **kw)
+        level = core["composite_gci"]
+        diff = None if v4 is None or level is None else round(level - v4, 1)
+        out.append(
+            {
+                "company_id": cid,
+                "market_id": market,
+                "v4_gci": v4,
+                "core_gci": level,
+                "core_basis": core["composite_basis"],
+                "core_quant_gci": core["quant_gci"],
+                "core_qual_low": core["qual_low"],
+                "core_qual_high": core["qual_high"],
+                "r2_gci": r2["headline_gci"],
+                "r2_headline_rule": r2["headline_rule"],
+                "delivery_gci": delivery["composite_gci"],
+                "proposal_gci": proposal["composite_gci"],
+                "difference": diff,
+                "core_tier": core["confidence_tier"],
+                "core_status": core["calculation_status"],
+                "publication_status": core["publication_status"],
+                "reason_counts": core["reason_counts"],
+                "deterministic": core["input_digest"] == again["input_digest"]
+                and core["composite_exact"] == again["composite_exact"]
+                and core["quant_gci_exact"] == again["quant_gci_exact"],
+            }
+        )
+    return out
+
+
+#: O-02: share of quant-routed families that must compute before a Core level may publish.
+CORE_MIN_COMPUTABLE_SHARE = 0.6
+#: Gates a person signs off outside the code; each points at its checklist section.
+CORE_MANUAL_GATES = (
+    ("G-05", "Security review, backups and restore test", "security"),
+    ("G-06", "Legal and compliance review: terminology, disclaimers, data licences", "legal"),
+    ("G-07", "API documentation for every Core route", "api-docs"),
+    ("G-08", "Support process for data-correction requests", "support"),
+)
+CORE_CHECKLIST = "docs/review/GCI_Core_Release_Checklist.md"
+
+
+def core_release_gates(company_id: str, *, ruleset: Optional[str] = None, signed_off: Sequence[str] = ()) -> Dict[str, Any]:
+    """WF-06: every gate a Core level must pass before a publication request can be approved."""
+    from app.services import score_ledger
+    from app.services.score_policy import RANKABLE_TIERS
+
+    kw = core_inputs(company_id)
+    outcomes = kw.pop("outcomes")
+    rs = ruleset or gci_scoring.CORE_DEFAULT_RULESET
+    first = gci_scoring.compute_core_detail(outcomes, ruleset=rs, **kw)
+    again = gci_scoring.compute_core_detail(outcomes, ruleset=rs, **kw)
+    # Replay from the serialised snapshot, as a licensee would, not from the objects in memory.
+    replay = score_ledger.replay_payload(score_ledger.snapshot_payload(
+        company_id,
+        as_of=kw["as_of"],
+        algorithm_id=first["algorithm_id"],
+        dataset_version="pending",
+        gci=first["headline_gci"],
+        confidence_tier=first["confidence_tier"],
+    ))
+    share = first["coverage"]["computable_share"]
+    pending = {c: n for c, n in first["reason_counts"].items() if c in ("UNREVIEWED", "PENDING_GUIDANCE_CITE", "QUOTE_OFFSET_MISMATCH")}
+    gates: List[Dict[str, Any]] = [
+        {
+            "id": "G-01",
+            "name": "Methodology version approved for publication",
+            "passed": gci_scoring.CORE_ENGINE_APPROVED,
+            "detail": f"{first['algorithm_id']} ({gci_scoring.CORE_REVISION})",
+        },
+        {
+            "id": "G-02",
+            "name": "Calculation replays identically",
+            "passed": first["input_digest"] == again["input_digest"]
+            and first["headline_exact"] == again["headline_exact"]
+            and replay["matches"],
+            "detail": f"{first['input_digest']}; snapshot replay {replay['replayed_gci']} vs {first['headline_gci']}",
+        },
+        {
+            "id": "G-03",
+            "name": "Coverage and confidence tier",
+            "passed": first["headline_gci"] is not None
+            and share is not None
+            and share >= CORE_MIN_COMPUTABLE_SHARE
+            and first["confidence_tier"] in RANKABLE_TIERS,
+            "detail": f"computable share {share}, minimum {CORE_MIN_COMPUTABLE_SHARE}; tier {first['confidence_tier']}",
+        },
+        {
+            "id": "G-04",
+            "name": "Every guidance row reviewed and dual-cited",
+            "passed": not pending,
+            "detail": pending or "none pending",
+        },
+    ]
+    for gid, name, section in CORE_MANUAL_GATES:
+        gates.append({
+            "id": gid,
+            "name": name,
+            "passed": gid in signed_off,
+            "manual": True,
+            "detail": f"{CORE_CHECKLIST}#{section}",
+        })
+    return {
+        "company_id": company_id,
+        "ruleset": rs,
+        "algorithm_id": first["algorithm_id"],
+        "level": first["headline_gci"],
+        "passed": all(g["passed"] for g in gates),
+        "failed": [g["id"] for g in gates if not g["passed"]],
+        "gates": gates,
+    }
+
+
+def gate_core_shadow(companies: Dict[str, List[GuidanceOutcome]]) -> Dict[str, Any]:
+    rows = core_shadow_rows(companies)
+    compared = [r for r in rows if r["difference"] is not None]
+    nondeterministic = [r["company_id"] for r in rows if not r["deterministic"]]
+    future = [r["company_id"] for r in rows if r["reason_counts"].get("FUTURE_SOURCE")]
+    return {
+        "gate": 8,
+        "name": "GCI Core shadow",
+        "compared": len(compared),
+        "mean_abs_difference": round(sum(abs(r["difference"]) for r in compared) / len(compared), 1)
+        if compared
+        else None,
+        "nondeterministic": nondeterministic,
+        "future_source": future,
+        "rows": rows,
+        # Hard failures block promotion; otherwise a person decides from the table.
+        "passed": False if nondeterministic else None,
+        "note": (
+            "Core is shadow. Promotion needs this table reviewed, a ledger snapshot, and a "
+            "methodology changelog entry (docs/PLAN_GCI_CORE.md)."
+        ),
+    }
+
+
 def run() -> Dict[str, Any]:
     companies = _scored_companies()
     gates = [
@@ -192,8 +386,10 @@ def run() -> Dict[str, Any]:
         gate_floor_sensitivity(companies),
         gate_extraction_audit(),
         gate_point_in_time(companies),
+        gate_core_shadow(companies),
     ]
-    return {"gates": gates, "hard_fail": any(g["gate"] == 7 and g["passed"] is False for g in gates)}
+    hard = any(g["gate"] in (7, 8) and g["passed"] is False for g in gates)
+    return {"gates": gates, "hard_fail": hard}
 
 
 def _summary(report: Dict[str, Any]) -> str:
@@ -209,6 +405,10 @@ def _summary(report: Dict[str, Any]) -> str:
         if g["gate"] == 7 and g["violations"]:
             for cid, problems in g["rows"].items():
                 lines.extend(f"  {cid}: {p}" for p in problems)
+        if g["gate"] == 8:
+            for r in g["rows"]:
+                if r["v4_gci"] is not None or r["core_gci"] is not None:
+                    lines.append(f"  {r['company_id']}: v4 {r['v4_gci']} · Core {r['core_gci']}")
     return "\n".join(lines)
 
 
