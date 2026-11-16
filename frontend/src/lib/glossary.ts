@@ -86,6 +86,11 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
     term: "Pending guidance cite",
     tip: "The reported actual is cited, but the original guidance filing (URL, quote, date) is not yet on the row. Excluded from the company GCI until both sides are cited.",
   },
+  not_prior_promise: {
+    id: "not_prior_promise",
+    term: "Not a prior promise",
+    tip: "The promise date is after the result, or the promise and the result are the same filing. The row stays out of the score and out of the met, exceeded, and missed counts.",
+  },
   confidence: {
     id: "confidence",
     term: "Match confidence",
@@ -372,7 +377,7 @@ export const HELP_SECTIONS: { title: string; ids: string[] }[] = [
   },
   {
     title: "Outcome labels",
-    ids: ["met", "exceeded", "missed", "dropped", "pending", "pending_guidance_cite", "basis_mismatch"],
+    ids: ["met", "exceeded", "missed", "dropped", "pending", "pending_guidance_cite", "not_prior_promise", "basis_mismatch"],
   },
   {
     title: "How the score is built",

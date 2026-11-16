@@ -3,6 +3,12 @@
   "entries": [
     {
       "date": "2026-11-16",
+      "reason": "data_correction",
+      "companies": [],
+      "change": "A closed row now stays out of the score, and out of the met, exceeded, and missed counts, when the promise date is after the result date or the promise and the result cite the same filing. The row remains on the company page, labelled as not a prior promise. Packaged levels are unchanged: Infosys 76.5 and Cipla 65.5. A published level that rested on such a row will move when this rule is applied, and that move is appended to the ledger as a data correction."
+    },
+    {
+      "date": "2026-11-16",
       "reason": "methodology",
       "companies": [],
       "change": "The India filing walk now stores guidance-relevant filings (earnings-call transcripts, results, presentations, AGM records and annual reports) back to 1 January 2019 for every active NSE and BSE equity in the listing masters (about 2,645 NSE names and every BSE equity with an INE ISIN, including SME boards; dual-listed companies share one record). Model reading of those newly stored filings is paused while the store catch-up runs, so published and provisional scores do not move from the new text. Turning model reading back on will be recorded as a separate methodology change. Published hand-labeled levels are unchanged."

@@ -378,6 +378,8 @@ def revision_timeline(
         prev: Optional[GuidanceOutcome] = None
         for o in ordered:
             label = classify_outcome(o).value
+            if label == "not_prior_promise":
+                continue
             kind = "stated"
             if prev is not None:
                 d = _mid(o) - _mid(prev)
@@ -423,6 +425,8 @@ def revision_timeline(
 
     for o in sorted(singles, key=_sort_key):
         label = classify_outcome(o).value
+        if label == "not_prior_promise":
+            continue
         kind = "stated"
         if o.dropped or label == "dropped":
             kind = "withdrawn"

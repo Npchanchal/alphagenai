@@ -281,8 +281,8 @@ def company_gci_history(company_id: str) -> List[PitPoint]:
 
 
 @router.get("/api/alerts", response_model=List[AlertItem])
-def alerts() -> List[AlertItem]:
-    return repository.list_alerts()
+def alerts(market: Optional[str] = None) -> List[AlertItem]:
+    return repository.list_alerts(market=market)
 
 
 @router.get("/api/products")
@@ -3542,6 +3542,13 @@ def public_gci_rankings(
 # --- Index integrity: score ledger + public changelog (W1.6 / W1.7) ---
 
 
+def _india_company_ids() -> set:
+    """Companies on the India index. The public changelog does not list other markets."""
+    from app.data.seed import list_companies
+
+    return {c["id"] for c in list_companies() if str(c.get("market_id") or "IN").upper() == "IN"}
+
+
 def _as_of_param(as_of: Optional[str]) -> Optional[str]:
     if as_of is None:
         return None
@@ -3560,6 +3567,8 @@ def index_ledger(
 
     cutoff = _as_of_param(as_of)
     rows = score_ledger.rows_for(company_id) if company_id else score_ledger.read_all()
+    india = _india_company_ids()
+    rows = [r for r in rows if not r.get("company_id") or r.get("company_id") in india]
     if cutoff:
         rows = [r for r in rows if str(r.get("as_of") or "") <= cutoff]
     lim = max(1, min(int(limit), 1000))
@@ -3614,6 +3623,17 @@ def index_changelog(company_id: Optional[str] = None) -> Dict[str, Any]:
     from app.services.guidance_review import changelog_entries
 
     entries = changelog_entries()
+    india = _india_company_ids()
+    kept = []
+    for entry in entries:
+        named = list(entry.get("companies") or [])
+        public = [cid for cid in named if cid in india]
+        if named and not public:
+            continue
+        if public != named:
+            entry = {**entry, "companies": public}
+        kept.append(entry)
+    entries = kept
     if company_id:
         entries = [e for e in entries if company_id in (e.get("companies") or [])]
     entries.sort(key=lambda e: e.get("date") or "", reverse=True)

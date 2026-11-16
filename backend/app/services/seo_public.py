@@ -29,21 +29,29 @@ def _dual_cited(o) -> bool:
     return not is_pending_guidance_cite(o) and not is_source_verify_fail(o)
 
 
-def record_sentence(outcomes) -> str:
+def record_sentence(outcomes, metrics=None) -> str:
     return _sentence(
-        [(o, classify_outcome(o).value) for o in outcomes if o.actual_value is not None and _dual_cited(o)]
+        [(o, classify_outcome(o).value) for o in outcomes if o.actual_value is not None and _dual_cited(o)],
+        metrics=metrics,
     )
 
 
-def record_sentence_from_views(views) -> str:
+def record_sentence_from_views(views, metrics=None) -> str:
     """Same sentence from dossier ``OutcomeView`` rows, whose ``label`` already excludes uncited rows."""
-    return _sentence([(o, o.label) for o in views if o.actual_value is not None])
+    return _sentence([(o, o.label) for o in views if o.actual_value is not None], metrics=metrics)
 
 
-def _sentence(labelled) -> str:
+def _sentence(labelled, metrics=None) -> str:
     closed_rows = [(o, lab) for o, lab in labelled if lab in CLOSED]
-    revenue = [r for r in closed_rows if "revenue" in (r[0].metric or "")]
-    focus = revenue or closed_rows
+    wanted = {m for m in (metrics or []) if m}
+    scored = [r for r in closed_rows if r[0].metric in wanted] if wanted else []
+    if scored:
+        focus = scored
+    elif wanted:
+        focus = closed_rows
+    else:
+        revenue = [r for r in closed_rows if "revenue" in (r[0].metric or "")]
+        focus = revenue or closed_rows
     if not focus:
         return "No closed, dual-cited results yet."
     missed = sorted({r[0].period for r in focus if r[1] == OutcomeLabel.MISSED.value})
@@ -131,7 +139,7 @@ def list_indexable_dossiers() -> List[Dict[str, Any]]:
         gci = meta.get("gci_score")
         if gci is None:
             continue
-        sentence = record_sentence(outcomes)
+        sentence = record_sentence(outcomes, metrics=list(meta.get("by_metric") or {}))
         as_of = meta.get("as_of")
         tier = meta.get("confidence_tier")
         rows.append(

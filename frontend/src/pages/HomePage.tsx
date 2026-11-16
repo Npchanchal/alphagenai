@@ -230,7 +230,7 @@ export default function HomePage() {
         fetchCompanies({ market, index, limit: PAGE_SIZE, offset }),
         fetchCompaniesCount({ market, index }),
       ]),
-      fetchAlerts(),
+      fetchAlerts(market),
     ]).then(([universe, a]) => {
       if (cancelled) return;
       if (universe.status === "fulfilled") {
@@ -647,12 +647,12 @@ export default function HomePage() {
                           </td>
                           <td>
                             <ChangeTriple
-                              wow={c.wow_pct}
-                              mom={c.mom_pct}
-                              qoq={c.qoq_pct}
-                              yoy={c.yoy_pct}
-                              pop={c.gci_change_pct}
-                              popHorizon={c.gci_change_horizon}
+                              wow={c.series_kind === "citeable_pit" ? c.wow_pct : null}
+                              mom={c.series_kind === "citeable_pit" ? c.mom_pct : null}
+                              qoq={c.series_kind === "citeable_pit" ? c.qoq_pct : null}
+                              yoy={c.series_kind === "citeable_pit" ? c.yoy_pct : null}
+                              pop={c.series_kind === "citeable_pit" ? c.gci_change_pct : null}
+                              popHorizon={c.series_kind === "citeable_pit" ? c.gci_change_horizon : null}
                             />
                           </td>
                           <td>

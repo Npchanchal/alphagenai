@@ -23,7 +23,7 @@ function useCompanyFocus() {
   const [focusError, setFocusError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    fetchCompanies({ limit: 20 })
+    fetchCompanies({ market: "IN", limit: 30 })
       .then((rows) => {
         if (cancelled) return;
         setCompanies(rows);
@@ -43,7 +43,7 @@ function useCompanyFocus() {
 export function SightsGridPage() {
   const { t } = useI18n();
   const { companies, companyId, focusError } = useCompanyFocus();
-  const [prompt, setPrompt] = useState("margin guidance");
+  const [prompt, setPrompt] = useState("");
   const [rows, setRows] = useState<
     { prompt: string; cells: { company_id: string; answer?: string; refused: boolean }[] }[]
   >([]);
@@ -51,12 +51,14 @@ export function SightsGridPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function run() {
+    const question = prompt.trim();
+    if (!question) return;
     setBusy(true);
     setError(null);
     try {
       const ids = companies.slice(0, 3).map((c) => c.id);
       const res = await postSightsGrid({
-        prompts: [prompt],
+        prompts: [question],
         company_ids: ids.length ? ids : companyId ? [companyId] : undefined,
       });
       setRows(res.rows || []);
@@ -72,8 +74,14 @@ export function SightsGridPage() {
       <h2>{t("ui.SightsAdvancedPages.grid.title")}</h2>
       <p className="muted">{t("ui.SightsAdvancedPages.grid.subtitle")}</p>
       <div className="row gap">
-        <input className="input" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
-        <button type="button" className="btn" disabled={busy} onClick={() => void run()}>
+        <input
+          className="input"
+          value={prompt}
+          aria-label={t("ui.SightsAdvancedPages.grid.question")}
+          placeholder={t("ui.SightsAdvancedPages.grid.question")}
+          onChange={(e) => setPrompt(e.target.value)}
+        />
+        <button type="button" className="btn" disabled={busy || !prompt.trim()} onClick={() => void run()}>
           {busy ? t("ui.SightsAdvancedPages.grid.running") : t("ui.SightsAdvancedPages.grid.run")}
         </button>
       </div>

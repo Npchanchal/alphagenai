@@ -57,7 +57,7 @@ export default function ChangelogPage() {
   }, []);
 
   const nameOf = useMemo(
-    () => (id: string) => names[id] || id.toUpperCase(),
+    () => (id: string) => names[id] || "",
     [names],
   );
 
@@ -103,15 +103,17 @@ export default function ChangelogPage() {
                   </span>
                   {e.companies.length > 0 ? (
                     <span className="changelog-companies">
-                      {e.companies.map((cid) => (
-                        <Link
-                          key={cid}
-                          to={`/companies/${cid}`}
-                          className="inline-link"
-                        >
-                          {nameOf(cid)}
-                        </Link>
-                      ))}
+                      {e.companies.map((cid) =>
+                        nameOf(cid) ? (
+                          <Link
+                            key={cid}
+                            to={`/companies/${cid}`}
+                            className="inline-link"
+                          >
+                            {nameOf(cid)}
+                          </Link>
+                        ) : null,
+                      )}
                     </span>
                   ) : null}
                 </div>
@@ -153,7 +155,11 @@ export default function ChangelogPage() {
                       </div>
                     </td>
                     <td>
-                      <Link to={`/companies/${r.company_id}`}>{nameOf(r.company_id)}</Link>
+                      {nameOf(r.company_id) ? (
+                        <Link to={`/companies/${r.company_id}`}>{nameOf(r.company_id)}</Link>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td>{r.prior_gci == null ? "—" : formatCompanyScore(r.prior_gci)}</td>
                     <td>

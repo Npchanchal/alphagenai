@@ -40,6 +40,9 @@ export function SightsThemesPage() {
       <h2>{t("ui.SightsEvidencePages.themes.title")}</h2>
       <p className="muted">{t("ui.SightsEvidencePages.themes.subtitle")}</p>
       {error && <p className="error">{error}</p>}
+      {!error && themes.length === 0 ? (
+        <p className="muted">{t("ui.SightsEvidencePages.themes.empty")}</p>
+      ) : (
       <table className="table">
         <thead>
           <tr>
@@ -56,6 +59,7 @@ export function SightsThemesPage() {
           ))}
         </tbody>
       </table>
+      )}
     </section>
   );
 }
@@ -67,7 +71,7 @@ function useCompanyFocus() {
   const [focusError, setFocusError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    fetchCompanies({ limit: 20 })
+    fetchCompanies({ market: "IN", limit: 30 })
       .then((rows) => {
         if (cancelled) return;
         setCompanies(rows);
@@ -117,6 +121,9 @@ export function SightsStreetPage() {
       <CompanyPicker companies={companies} value={companyId} onChange={setCompanyId} />
       <p className="muted">{note}</p>
       {(error || focusError) && <p className="error">{error || focusError}</p>}
+      {!error && !focusError && companyId && snippets.length === 0 ? (
+        <p className="muted">{t("ui.SightsEvidencePages.street.empty")}</p>
+      ) : null}
       <ul className="doc-list">
         {[...snippets]
           .sort((a, b) => (b.date || "").localeCompare(a.date || ""))

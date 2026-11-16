@@ -20,6 +20,7 @@ class CompanySummary(BaseModel):
     mom_pct: Optional[float] = None
     qoq_pct: Optional[float] = None
     yoy_pct: Optional[float] = None
+    series_kind: Optional[str] = None
     market_id: Optional[str] = None
     index_ids: Optional[List[str]] = None
     exchange: Optional[str] = Field(

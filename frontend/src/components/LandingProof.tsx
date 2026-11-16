@@ -33,7 +33,8 @@ function pickOutcome(detail: CompanyGCIDetail): OutcomeView | null {
       o.source_url &&
       o.actual_value != null &&
       o.label !== "pending" &&
-      o.label !== "pending_guidance_cite",
+      o.label !== "pending_guidance_cite" &&
+      o.label !== "not_prior_promise",
   );
   rows.sort(compareEvidenceLatestFirst);
   return rows[0] ?? null;

@@ -191,6 +191,19 @@ describe("score helpers (W3)", () => {
     expect(parts.missedClause).toBe("; missed FY24");
     expect(englishRecordSentence(parts)).toMatch(/Met or beat/);
   });
+
+  it("describes the metric that produced the score, not the first revenue row", () => {
+    const parts = buildRecordParts(
+      [
+        { metric: "revenue_growth_cc_pct", period: "FY25", label: "missed", actual_value: 4 },
+        { metric: "ebitda_margin_pct", period: "FY25", label: "met", actual_value: 25.9 },
+      ],
+      ["ebitda_margin_pct"],
+    );
+    expect(parts.metricLabel.toLowerCase()).toContain("ebitda");
+    expect(parts.closed).toBe(1);
+    expect(englishRecordSentence(parts)).toMatch(/EBITDA/);
+  });
 });
 
 describe("dossier SEO (W5.1)", () => {

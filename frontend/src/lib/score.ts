@@ -455,12 +455,15 @@ export function buildRecordParts(
     label: string;
     actual_value: number | null;
   }>,
+  metrics?: string[],
 ): RecordParts {
   const closedRows = outcomes.filter(
     (o) => o.actual_value != null && CLOSED_LABELS.has(o.label),
   );
+  const wanted = new Set((metrics || []).filter(Boolean));
+  const scored = wanted.size ? closedRows.filter((o) => wanted.has(o.metric)) : [];
   const revenue = closedRows.filter((o) => o.metric.includes("revenue"));
-  const focus = revenue.length ? revenue : closedRows;
+  const focus = scored.length ? scored : wanted.size ? closedRows : revenue.length ? revenue : closedRows;
   const missed = [...new Set(focus.filter((o) => o.label === "missed").map((o) => o.period))].sort();
   const metOrBeat = focus.filter((o) => o.label === "met" || o.label === "exceeded").length;
   const metricId = focus[0]?.metric || "";

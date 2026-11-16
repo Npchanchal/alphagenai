@@ -30,7 +30,7 @@ DEFAULT_PREFS: Dict[str, Any] = {
     "default_market": "IN",
     "default_index": "SENSEX",
     "watchlist": [],
-    "show_demo_tape": True,
+    "show_demo_tape": False,
     "density": "comfortable",
     "saved_queries": [],
     "analytics_consent": None,

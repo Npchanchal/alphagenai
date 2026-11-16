@@ -137,6 +137,44 @@ def _token(value: object) -> Optional[str]:
     return text or None
 
 
+def _day(value: object) -> str:
+    text = str(value or "").strip()
+    return text[:10] if len(text) >= 10 else ""
+
+
+def _filing_key(value: object) -> str:
+    """Same document after scheme, www, query, and fragment are ignored."""
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+    text = text.split("#", 1)[0].split("?", 1)[0]
+    for prefix in ("https://", "http://"):
+        if text.startswith(prefix):
+            text = text[len(prefix) :]
+            break
+    if text.startswith("www."):
+        text = text[4:]
+    return text.rstrip("/")
+
+
+def is_promise_after_result(outcome: object) -> bool:
+    """Promise date is later than the result date — the cite is not a prior promise."""
+    g = outcome.get if isinstance(outcome, dict) else lambda k, d=None: getattr(outcome, k, d)
+    promise, result = _day(g("guidance_as_of")), _day(g("as_of"))
+    return bool(promise and result and promise > result)
+
+
+def is_same_filing_promise(outcome: object) -> bool:
+    """Promise and result cite the same document. That document is the result, not an earlier promise."""
+    g = outcome.get if isinstance(outcome, dict) else lambda k, d=None: getattr(outcome, k, d)
+    promise, result = _filing_key(g("guidance_source_url")), _filing_key(g("source_url"))
+    return bool(promise and result and promise == result)
+
+
+def is_not_prior_promise(outcome: object) -> bool:
+    return is_promise_after_result(outcome) or is_same_filing_promise(outcome)
+
+
 def is_basis_mismatch(outcome: object) -> bool:
     """Promise and actual both name a basis, unit, or scope, and they differ.
 
@@ -160,6 +198,7 @@ def excluded_from_score(outcome: object) -> bool:
     """Production-shaped closed row that must not enter the composite."""
     return (
         is_pending_guidance_cite(outcome)
+        or is_not_prior_promise(outcome)
         or is_unreviewed(outcome)
         or is_source_verify_fail(outcome)
         or is_basis_mismatch(outcome)

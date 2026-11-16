@@ -99,6 +99,8 @@ def build_documents() -> List[Dict[str, Any]]:
     cos = {c["id"]: c for c in get_data()["companies"]}
     docs = []
     for d in doc_store.list_documents():
+        if d.get("source") in {"sample_transcript", "ir_catalog"}:
+            continue
         c = cos.get(d["company_id"], {})
         docs.append(
             {

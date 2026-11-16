@@ -13,6 +13,8 @@ export type CompanySummary = {
   mom_pct?: number | null;
   qoq_pct?: number | null;
   yoy_pct?: number | null;
+  /** citeable_pit when a year-over-year change may be shown. */
+  series_kind?: string | null;
   market_id?: string | null;
   index_ids?: string[] | null;
   /** Listing venue: NSE, BSE, NSE+BSE, or US. */
@@ -1504,8 +1506,9 @@ export function fetchSectorBenchmark(sector: string): Promise<{
   return getJson(`/api/sectors/${encodeURIComponent(sector)}/benchmark`);
 }
 
-export function fetchAlerts(): Promise<AlertItem[]> {
-  return getJson("/api/alerts");
+export function fetchAlerts(market?: string): Promise<AlertItem[]> {
+  const qs = market ? `?market=${encodeURIComponent(market)}` : "";
+  return getJson(`/api/alerts${qs}`);
 }
 
 export type PortfolioProduct = {

@@ -8,6 +8,18 @@ type StatusPayload = {
   index_file?: { name?: string; sha256?: string } | null;
 };
 
+function indexFileDate(name?: string): string | null {
+  const match = name?.match(/(20\d{2})(\d{2})(\d{2})/);
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export default function StatusPage() {
   const { t } = useI18n();
   const [data, setData] = useState<StatusPayload | null>(null);
@@ -43,20 +55,8 @@ export default function StatusPage() {
               API: <strong>{data.ok ? "up" : "down"}</strong> ({data.api})
             </li>
             <li>
-              Latest index file:{" "}
-              {data.index_file?.name ? (
-                <>
-                  <code>{data.index_file.name}</code>
-                  {data.index_file.sha256 ? (
-                    <>
-                      {" "}
-                      · sha256 <code>{data.index_file.sha256.slice(0, 12)}…</code>
-                    </>
-                  ) : null}
-                </>
-              ) : (
-                "—"
-              )}
+              Index file date:{" "}
+              <strong>{indexFileDate(data.index_file?.name) || "—"}</strong>
             </li>
           </ul>
         </div>

@@ -62,7 +62,7 @@ export default function PlanAccessGate({
   const body = (
     <>
       {kicker && variant === "page" && <p className="page-kicker">{kicker}</p>}
-      <h2 style={variant === "panel" ? { marginTop: 0 } : undefined}>{title}</h2>
+      {variant === "page" ? <h1>{title}</h1> : <h2 style={{ marginTop: 0 }}>{title}</h2>}
       <p className="muted lede">{description}</p>
       <p className="muted">{t("ui.PlanAccessGate.currentAccess")}</p>
       {guestOrSignedOut ? (
@@ -96,8 +96,7 @@ export default function PlanAccessGate({
       )}
       {guestOrSignedOut && (
         <p className="muted" style={{ fontSize: 13, marginTop: "0.75rem" }}>
-          {t("ui.PlanAccessGate.unlockHint")}{" "}
-          <Link to="/products#plans">{t("nav.package_plans")}</Link>
+          {t("ui.PlanAccessGate.unlockHint")}
         </p>
       )}
     </>

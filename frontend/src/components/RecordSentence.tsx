@@ -4,14 +4,16 @@ import { buildRecordParts } from "../lib/score";
 
 type Props = {
   outcomes: OutcomeView[];
+  /** Metric ids that produced the published score. The sentence follows these, not a revenue row. */
+  metrics?: string[];
   coverageReason?: string | null;
   testId?: string;
 };
 
 /** One-sentence delivery record for the dossier header (plan W3.1). */
-export default function RecordSentence({ outcomes, coverageReason, testId = "dossier-record" }: Props) {
+export default function RecordSentence({ outcomes, metrics, coverageReason, testId = "dossier-record" }: Props) {
   const { t } = useI18n();
-  const parts = buildRecordParts(outcomes);
+  const parts = buildRecordParts(outcomes, metrics);
   if (parts.closed === 0) {
     return (
       <p className="dossier-record" data-testid={testId}>

@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             default_market: "IN",
             default_index: "SENSEX",
             watchlist: [],
-            show_demo_tape: true,
+            show_demo_tape: false,
             density: "compact",
             ...local,
           } as UserPreferences);

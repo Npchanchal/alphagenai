@@ -229,34 +229,46 @@ def count_companies(
 
 
 def list_published_companies() -> List[CompanySummary]:
-    """Companies that carry a published GCI. The reading room searches this list."""
-    from app.data.gci_score_cache import load_cache
-    from app.data.india_listings import find_listing
-    from app.data.us_listings import find_world_listing
+    """Indian companies with a published GCI. The reading room searches this list.
 
-    seed = {c["id"]: c for c in list_companies()}
+    The score is the live dossier number, not a cache row. A stale cache was
+    returning only the names it happened to hold.
+    """
+    from app.data.india_listings import find_listing
+    from app.services.guidance_flags import score_meta
+    from app.services.score_policy import is_scoreable
+
     rows: List[CompanySummary] = []
-    for cid, cached in (load_cache().get("scores") or {}).items():
-        if not isinstance(cached, dict) or cached.get("gci_score") is None:
+    for c in list_companies():
+        if str(c.get("market_id") or "IN").upper() != "IN":
             continue
-        seeded = seed.get(cid) or {}
-        listing = find_listing(cid) or find_world_listing(cid) or {}
-        ticker = seeded.get("ticker") or listing.get("ticker") or cached.get("ticker") or cid
+        if not is_scoreable(c.get("data_quality")):
+            continue
+        outcomes = get_outcomes(c["id"])
+        meta = score_meta(
+            outcomes,
+            scoreable=True,
+            company_id=c["id"],
+            data_quality=c.get("data_quality"),
+        )
+        if meta.get("gci_score") is None:
+            continue
+        listing = find_listing(c["id"]) or {}
         rows.append(
             CompanySummary(
-                id=cid,
-                name=seeded.get("name") or listing.get("name") or str(ticker),
-                ticker=str(ticker),
-                sector=seeded.get("sector") or listing.get("sector") or cached.get("sector") or "Equity",
-                gci_score=cached.get("gci_score"),
-                data_quality=cached.get("data_quality") or seeded.get("data_quality") or "hand_labeled",
-                confidence_tier=cached.get("confidence_tier"),
-                closed_periods=int(cached.get("closed_periods") or 0),
-                metrics_scored=int(cached.get("metrics_scored") or 0),
-                as_of=cached.get("as_of"),
-                algorithm_id=cached.get("algorithm_id"),
-                coverage_status=cached.get("coverage_status"),
-                market_id=(listing.get("market_id") or seeded.get("market_id") or "IN"),
+                id=c["id"],
+                name=c["name"],
+                ticker=c["ticker"],
+                sector=c.get("sector") or "Equity",
+                gci_score=meta["gci_score"],
+                data_quality=c.get("data_quality") or "hand_labeled",
+                confidence_tier=meta.get("confidence_tier"),
+                closed_periods=int(meta.get("closed_periods") or 0),
+                metrics_scored=int(meta.get("metrics_scored") or 0),
+                as_of=meta.get("as_of"),
+                algorithm_id=meta.get("algorithm_id"),
+                coverage_status="scored",
+                market_id="IN",
                 index_ids=listing.get("index_ids"),
                 exchange=listing.get("exchange"),
             )
@@ -318,17 +330,23 @@ def list_company_summaries(
                 "qoq_pct": cached.get("qoq_pct"),
                 "yoy_pct": cached.get("yoy_pct"),
             }
-            if all(v is None for v in hz.values()) and score is not None:
+            series_kind = cached.get("series_kind")
+            if series_kind != "citeable_pit" and score is not None:
                 try:
                     b = gci_change_bundle_for(c["id"])
-                    hz = {
-                        "wow_pct": b.get("wow_pct"),
-                        "mom_pct": b.get("mom_pct"),
-                        "qoq_pct": b.get("qoq_pct"),
-                        "yoy_pct": b.get("yoy_pct"),
-                    }
+                    series_kind = b.get("series_kind")
+                    if series_kind == "citeable_pit":
+                        hz = {
+                            "wow_pct": b.get("wow_pct"),
+                            "mom_pct": b.get("mom_pct"),
+                            "qoq_pct": b.get("qoq_pct"),
+                            "yoy_pct": b.get("yoy_pct"),
+                        }
                 except Exception:
                     pass
+            if series_kind != "citeable_pit":
+                ch_pct, ch_h = None, None
+                hz = {key: None for key in hz}
             rows.append(
                 CompanySummary(
                     id=c["id"],
@@ -341,6 +359,7 @@ def list_company_summaries(
                     sector_avg_gci=avg,
                     gci_change_pct=ch_pct,
                     gci_change_horizon=ch_h,
+                    series_kind=series_kind,
                     market_id=c.get("market_id") or "IN",
                     index_ids=(find_listing(c["id"]) or find_world_listing(c["id"]) or {}).get("index_ids"),
                     exchange=(find_listing(c["id"]) or find_world_listing(c["id"]) or {}).get("exchange"),
@@ -417,6 +436,16 @@ def list_company_summaries(
                 else:
                     avg = avg_map.get(sector)
                     rank = rank_map.get(cid)
+                kind = (cached or {}).get("series_kind")
+                horizons = {
+                    "wow_pct": (cached or {}).get("wow_pct"),
+                    "mom_pct": (cached or {}).get("mom_pct"),
+                    "qoq_pct": (cached or {}).get("qoq_pct"),
+                    "yoy_pct": (cached or {}).get("yoy_pct"),
+                }
+                if kind != "citeable_pit":
+                    ch_pct, ch_h = None, None
+                    horizons = {key: None for key in horizons}
                 rows.append(
                     CompanySummary(
                         id=seeded["id"],
@@ -429,10 +458,8 @@ def list_company_summaries(
                         sector_avg_gci=avg,
                         gci_change_pct=ch_pct,
                         gci_change_horizon=ch_h,
-                        wow_pct=(cached or {}).get("wow_pct"),
-                        mom_pct=(cached or {}).get("mom_pct"),
-                        qoq_pct=(cached or {}).get("qoq_pct"),
-                        yoy_pct=(cached or {}).get("yoy_pct"),
+                        series_kind=kind,
+                        **horizons,
                         market_id=s.get("market_id", "IN"),
                         index_ids=s.get("index_ids"),
                         exchange=s.get("exchange"),
@@ -451,6 +478,8 @@ def list_company_summaries(
                 )
                 continue
         score = cached.get("gci_score") if cached else None
+        kind = (cached or {}).get("series_kind")
+        citeable = kind == "citeable_pit"
         quality = (cached or {}).get("data_quality") or s.get("data_quality") or "listing_master"
         sector = s.get("sector") or (cached or {}).get("sector") or "Equity"
         if seeded and not cached:
@@ -466,12 +495,13 @@ def list_company_summaries(
                 data_quality=quality,
                 peer_rank_in_sector=rank_map.get(cid),
                 sector_avg_gci=avg_map.get(sector),
-                gci_change_pct=(cached or {}).get("gci_change_pct"),
-                gci_change_horizon=(cached or {}).get("gci_change_horizon"),
-                wow_pct=(cached or {}).get("wow_pct"),
-                mom_pct=(cached or {}).get("mom_pct"),
-                qoq_pct=(cached or {}).get("qoq_pct"),
-                yoy_pct=(cached or {}).get("yoy_pct"),
+                gci_change_pct=(cached or {}).get("gci_change_pct") if citeable else None,
+                gci_change_horizon=(cached or {}).get("gci_change_horizon") if citeable else None,
+                wow_pct=(cached or {}).get("wow_pct") if citeable else None,
+                mom_pct=(cached or {}).get("mom_pct") if citeable else None,
+                qoq_pct=(cached or {}).get("qoq_pct") if citeable else None,
+                yoy_pct=(cached or {}).get("yoy_pct") if citeable else None,
+                series_kind=kind,
                 market_id=s.get("market_id"),
                 index_ids=s.get("index_ids"),
                 exchange=s.get("exchange"),
@@ -707,12 +737,18 @@ def _short_name(company: Dict[str, Any]) -> str:
     return name
 
 
-def list_alerts() -> List[AlertItem]:
+def list_alerts(market: Optional[str] = None) -> List[AlertItem]:
     from app.services.guidance_profile import guided_text, human_date, metric_phrase, value_text
     from app.services.guidance_flags import collect_audit_flags, AUDIT_LABELS, AUDIT_SEVERITY
     from app.services.gci_scoring import AUDIT_PENALTY_PTS
 
     alerts: List[AlertItem] = []
+    want = (market or "").strip().upper() or None
+
+    def _in_market(company: Dict[str, Any]) -> bool:
+        if not want:
+            return True
+        return str(company.get("market_id") or "IN").upper() == want
 
     # Pending IR / transcript docs awaiting analyst review (crawl + ingest)
     try:
@@ -725,7 +761,7 @@ def list_alerts() -> List[AlertItem]:
         cos = {c["id"]: c for c in list_companies()}
         for cid, n in sorted(pending_by.items(), key=lambda x: -x[1]):
             c = cos.get(cid)
-            if not c:
+            if not c or not _in_market(c):
                 continue
             alerts.append(
                 AlertItem(
@@ -743,6 +779,8 @@ def list_alerts() -> List[AlertItem]:
         pass
 
     for c in list_companies():
+        if not _in_market(c):
+            continue
         outs = get_outcomes(c["id"])
 
         # Audit flags → red rail (withdrawal / restatement / definition shift)

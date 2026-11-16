@@ -122,7 +122,13 @@ export default function LandingWorkedExample() {
 
   const example = EXAMPLES.find((e) => e.id === active) ?? EXAMPLES[0];
   const detail = details[active];
-  const closed = (detail?.outcomes ?? []).filter((o) => o.actual_value != null);
+  const closed = (detail?.outcomes ?? []).filter(
+    (o) =>
+      o.actual_value != null &&
+      o.label !== "not_prior_promise" &&
+      o.label !== "pending_guidance_cite" &&
+      o.label !== "basis_mismatch",
+  );
   const metricCounts = closed.reduce<Record<string, number>>((acc, o) => {
     acc[o.metric] = (acc[o.metric] ?? 0) + 1;
     return acc;

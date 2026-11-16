@@ -144,9 +144,20 @@ def gate_extraction_audit(path: Path = EXTRACTION_AUDIT_PATH) -> Dict[str, Any]:
 
 
 def pit_violations(rows: Sequence[GuidanceOutcome]) -> List[str]:
-    """Problems that would mean a score used information before it existed."""
+    """Problems that would mean a score used information before it existed.
+
+    Rows labelled ``not_prior_promise`` are already out of the score. The gate
+    still reports them so a later-dated or same-filing promise is not silent.
+    """
+    from app.services.score_policy import is_not_prior_promise
+
     out: List[str] = []
-    for o in closed_rows(rows):
+    checked = list(closed_rows(rows))
+    seen = {id(o) for o in checked}
+    for o in rows:
+        if id(o) not in seen and o.actual_value is not None and is_not_prior_promise(o):
+            checked.append(o)
+    for o in checked:
         tag = f"{o.period} {o.metric}"
         promise, result = o.guidance_as_of, o.as_of
         if promise and result and promise > result:

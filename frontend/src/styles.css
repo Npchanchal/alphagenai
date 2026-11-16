@@ -4236,7 +4236,8 @@ h2 .info-tip {
   z-index: 70;
   display: grid;
   place-items: center;
-  padding: 16px;
+  /* Leave the bottom clear so the consent banner does not cover the card actions. */
+  padding: 16px 16px 148px;
   background: rgba(14, 26, 22, 0.4);
 }
 

@@ -53,6 +53,7 @@ class OutcomeLabel(str, Enum):
     PENDING = "pending"
     UNMAPPED = "unmapped"
     PENDING_GUIDANCE_CITE = "pending_guidance_cite"
+    NOT_PRIOR_PROMISE = "not_prior_promise"
     BASIS_MISMATCH = "basis_mismatch"
 
 
@@ -188,7 +189,10 @@ def classify_outcome(outcome: GuidanceOutcome) -> OutcomeLabel:
         return OutcomeLabel.PENDING
     if is_pending_guidance_cite(outcome):
         return OutcomeLabel.PENDING_GUIDANCE_CITE
-    from app.services.score_policy import is_basis_mismatch
+    from app.services.score_policy import is_basis_mismatch, is_not_prior_promise
+
+    if is_not_prior_promise(outcome):
+        return OutcomeLabel.NOT_PRIOR_PROMISE
 
     if is_basis_mismatch(outcome):
         return OutcomeLabel.BASIS_MISMATCH
@@ -638,8 +642,9 @@ def label_counts(outcomes: List[GuidanceOutcome]) -> Dict[str, int]:
     counts = {label.value: 0 for label in OutcomeLabel}
     for o in outcomes:
         counts[classify_outcome(o).value] += 1
-    if counts.get(OutcomeLabel.BASIS_MISMATCH.value) == 0:
-        counts.pop(OutcomeLabel.BASIS_MISMATCH.value, None)
+    for label in (OutcomeLabel.BASIS_MISMATCH, OutcomeLabel.NOT_PRIOR_PROMISE):
+        if counts.get(label.value) == 0:
+            counts.pop(label.value, None)
     return counts
 
 

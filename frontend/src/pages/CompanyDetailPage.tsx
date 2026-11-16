@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import NotFoundPage from "./NotFoundPage";
 import ChangeChip, { ChangeTriple } from "../components/ChangeChip";
 import AuditBadges from "../components/AuditBadges";
 import { BarChart, CompareBars, DualLineChart, LineChart } from "../components/Charts";
@@ -116,6 +117,7 @@ export default function CompanyDetailPage() {
     setLang(uiLang);
   }, [uiLang]);
   const [error, setError] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [packBusy, setPackBusy] = useState(false);
   const [changes, setChanges] = useState<{
@@ -212,6 +214,7 @@ export default function CompanyDetailPage() {
   const reload = useCallback(() => {
     if (!id) return;
     setError(null);
+    setMissing(false);
     setPaywall(null);
     const nothing = <T,>(): Promise<T | null> => Promise.resolve(null);
     Promise.all([
@@ -302,6 +305,11 @@ export default function CompanyDetailPage() {
           setError(null);
           return;
         }
+        if (e instanceof ApiError && e.status === 404) {
+          setMissing(true);
+          setError(null);
+          return;
+        }
         setError(e.message);
       });
   }, [id, lang, creditOnly, canAnalytics, canWordmap, canNotes, canVernacular]);
@@ -346,6 +354,15 @@ export default function CompanyDetailPage() {
   }, [reload]);
 
   useEffect(() => {
+    if (missing && id) {
+      setSeoOverride({
+        path: `/companies/${id}`,
+        title: "Page not found — CiteAlpha",
+        description: "That company page is not on CiteAlpha.",
+        robots: "noindex,follow",
+      });
+      return () => setSeoOverride(null);
+    }
     if (!detail || !id) {
       setSeoOverride(null);
       return;
@@ -356,12 +373,14 @@ export default function CompanyDetailPage() {
       gci: detail.gci_score,
       asOf: detail.as_of,
       dataQuality: detail.data_quality,
-      recordSentence: englishRecordSentence(buildRecordParts(detail.outcomes)),
+      recordSentence: englishRecordSentence(
+        buildRecordParts(detail.outcomes, Object.keys(detail.by_metric || {})),
+      ),
       tier: detail.confidence_tier,
     });
     setSeoOverride(next);
     return () => setSeoOverride(null);
-  }, [detail, id]);
+  }, [detail, id, missing]);
 
   if (paywall) {
     return (
@@ -372,6 +391,10 @@ export default function CompanyDetailPage() {
         <GuestPaywallModal error={paywall} cap={15} />
       </section>
     );
+  }
+
+  if (missing) {
+    return <NotFoundPage path={`/companies/${id ?? ""}`} />;
   }
 
   if (error) {
@@ -488,7 +511,11 @@ export default function CompanyDetailPage() {
             deduction={detail.audit_deduction}
             note={detail.audit_note}
           />
-          <RecordSentence outcomes={detail.outcomes} coverageReason={detail.coverage_reason} />
+          <RecordSentence
+            outcomes={detail.outcomes}
+            metrics={Object.keys(detail.by_metric || {})}
+            coverageReason={detail.coverage_reason}
+          />
           <div style={{ marginTop: 6 }}>
             {hasCiteableDeltas ? (
               <ChangeTriple

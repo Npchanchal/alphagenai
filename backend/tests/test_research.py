@@ -9,6 +9,14 @@ def test_search_finds_guidance():
     assert any(r["doc_type"] in ("guidance", "transcript") for r in res["results"])
 
 
+def test_search_skips_sample_transcripts():
+    docs = research.build_documents()
+    assert docs
+    assert all(d.get("source") != "sample_transcript" for d in docs)
+    res = research.search_documents("constant currency", company_id="infy", limit=25)
+    assert all(r.get("source") != "sample_transcript" for r in res["results"])
+
+
 def test_chat_returns_citations_or_fallback():
     out = research.research_chat("What is margin guidance?", company_id="infy")
     assert "answer" in out
