@@ -123,6 +123,27 @@ def test_archive_is_off_without_buckets(monkeypatch):
     assert filing_archive.archive_pending(client=FakeS3())["status"] == "off"
 
 
+def test_status_includes_pending_and_coverage(monkeypatch):
+    _seed()
+    monkeypatch.setattr(
+        filing_archive,
+        "_coverage_snapshot",
+        lambda: {
+            "cohort": "all",
+            "cohort_size": 10,
+            "lookback_reached": 3,
+            "lookback_remaining": 7,
+            "discovery_since": "2019-01-01",
+            "extract_enabled": False,
+        },
+    )
+    st = filing_archive.status()
+    assert st["pending"] >= 1
+    assert st["cron_interval_sec"] >= 300
+    assert st["coverage"]["cohort"] == "all"
+    assert st["coverage"]["lookback_reached"] == 3
+
+
 def test_browse_filters_and_counts():
     docs = _seed()
     filing_archive.archive_pending(client=FakeS3(), limit=1)

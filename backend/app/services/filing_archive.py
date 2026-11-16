@@ -300,9 +300,44 @@ def start_background(limit: Optional[int] = None) -> Dict[str, Any]:
     return {"status": "started"}
 
 
+def _coverage_snapshot() -> Dict[str, Any]:
+    """India walk progress for the admin archive page (lookback, budgets, last roll)."""
+    try:
+        from app.services.india_coverage import coverage_progress
+
+        p = coverage_progress()
+        roll = p.get("roll") or {}
+        return {
+            "cohort": p.get("cohort"),
+            "cohort_size": p.get("cohort_size"),
+            "nse_count": p.get("nse_count"),
+            "bse_only_count": p.get("bse_only_count"),
+            "discovery_since": p.get("discovery_since"),
+            "lookback_reached": p.get("lookback_reached"),
+            "lookback_remaining": p.get("lookback_remaining"),
+            "extract_enabled": p.get("extract_enabled"),
+            "searched_today": p.get("searched_today"),
+            "roll_running": bool(roll.get("running")),
+            "roll_done": roll.get("done"),
+            "roll_total": roll.get("total"),
+            "roll_current": roll.get("current"),
+            "roll_finished_at": roll.get("finished_at"),
+            "roll_stopped": roll.get("stopped"),
+            "roll_started_at": roll.get("started_at"),
+            "budgets_today": p.get("budgets_today"),
+        }
+    except Exception:
+        return {}
+
+
 def status() -> Dict[str, Any]:
     led = _ledger()
     runs = led.get("runs") or []
+    interval = 7200
+    try:
+        interval = max(300, int(os.environ.get("INTELLENS_FILING_ARCHIVE_INTERVAL_SEC", "7200")))
+    except ValueError:
+        pass
     return {
         "configured": bool(buckets()),
         "buckets": [
@@ -313,6 +348,8 @@ def status() -> Dict[str, Any]:
         "running": bool(_STATE.get("running")),
         "progress": {k: _STATE.get(k) for k in ("started_at", "uploaded", "failed")} if _STATE.get("running") else None,
         "last_run": runs[-1] if runs else None,
+        "cron_interval_sec": interval,
+        "coverage": _coverage_snapshot(),
     }
 
 

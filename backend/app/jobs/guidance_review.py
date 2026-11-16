@@ -7,12 +7,18 @@
 Markets rotate by calendar day (India, United States, United Kingdom, …).
 The job copies a citation only when that sentence is already in an accepted filing.
 It does not invent a quote or an actual. Rows with no matching filing stay unscored.
+
+On AWS the API task runs ``serve()`` when ``INTELLENS_GUIDANCE_REVIEW=1``: each day it
+walks India and US filings, copies new stored filings to S3, then reviews one market.
+A separate archive timer also copies to S3 on an interval so a long walk does not leave
+a backlog until the next morning.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import threading
 import time
@@ -55,8 +61,24 @@ def _archive_walk() -> None:
         print(json.dumps({"filing_archive": "error", "detail": type(exc).__name__}), flush=True)
 
 
+def archive_interval_sec() -> int:
+    """How often the S3 copy runs while a long India walk is still open (default 2 hours)."""
+    try:
+        return max(300, int(os.environ.get("INTELLENS_FILING_ARCHIVE_INTERVAL_SEC", "7200")))
+    except ValueError:
+        return 7200
+
+
+def _archive_cron() -> None:
+    """Copy newly stored filings to S3 on a timer so the backlog does not wait for the walk to end."""
+    while True:
+        time.sleep(archive_interval_sec())
+        print(json.dumps({"filing_archive": "cron", "interval_sec": archive_interval_sec()}), flush=True)
+        _archive_walk()
+
+
 def serve() -> None:
-    """Walk India and US filings side by side, run today's market, then sleep until 02:30 IST each day."""
+    """Walk India and US filings side by side, archive to S3, run today's market, sleep until 02:30 IST."""
     try:
         from app.services.score_ledger import correct_release_withdrawals, record_methodology_release
 
@@ -64,6 +86,9 @@ def serve() -> None:
         print(json.dumps({"methodology_release": record_methodology_release()}), flush=True)
     except Exception as exc:  # noqa: BLE001 — the ledger step must not stop the walks
         print(json.dumps({"methodology_release": "error", "detail": type(exc).__name__}), flush=True)
+    threading.Thread(target=_archive_cron, name="filing-archive-cron", daemon=True).start()
+    # Clear any backlog left from the previous day before the walks start.
+    _archive_walk()
     while True:
         # The two walks run side by side; shared stores are guarded by app.data.store_lock.
         us_walk = threading.Thread(target=_us_walk, name="us-coverage", daemon=True)

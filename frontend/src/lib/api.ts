@@ -3578,13 +3578,42 @@ export type AdminFilingDetail = AdminFilingRow & {
   ingested_at: string | null;
 };
 
+export type FilingCoverageStatus = {
+  cohort?: string;
+  cohort_size?: number;
+  nse_count?: number;
+  bse_only_count?: number;
+  discovery_since?: string;
+  lookback_reached?: number;
+  lookback_remaining?: number;
+  extract_enabled?: boolean;
+  searched_today?: number;
+  roll_running?: boolean;
+  roll_done?: number;
+  roll_total?: number;
+  roll_current?: string | null;
+  roll_finished_at?: string;
+  roll_stopped?: string;
+  roll_started_at?: string;
+  budgets_today?: Record<string, { used?: number; cap?: number }>;
+};
+
 export type FilingArchiveStatus = {
   configured: boolean;
   buckets: { exchange: ArchiveExchange; label: string; bucket: string | null }[];
   archived: number;
+  pending?: number;
   running: boolean;
   progress: { started_at?: string; uploaded?: number; failed?: number } | null;
-  last_run: { started_at: string; finished_at: string; uploaded: number; failed: number } | null;
+  last_run: {
+    started_at: string;
+    finished_at: string;
+    uploaded: number;
+    failed: number;
+    no_bucket?: number;
+  } | null;
+  cron_interval_sec?: number;
+  coverage?: FilingCoverageStatus;
 };
 
 export type AdminFilingQuery = {

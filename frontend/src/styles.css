@@ -6219,6 +6219,41 @@ h2 .info-tip {
   margin-bottom: 1rem;
 }
 
+.filing-archive-last-status {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border, #d5dde3);
+  border-radius: 4px;
+  background: var(--surface-2, #f4f7f8);
+}
+
+.filing-archive-status-heading {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.filing-archive-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.65rem 1.25rem;
+  margin: 0;
+}
+
+.filing-archive-status-grid dt {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #5a6b73);
+}
+
+.filing-archive-status-grid dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
 .filing-archive-buckets {
   display: flex;
   flex-wrap: wrap;

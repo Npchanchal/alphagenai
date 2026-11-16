@@ -743,7 +743,8 @@ resource "aws_ecs_task_definition" "app" {
           { name = "MALLOC_ARENA_MAX", value = "2" },
           { name = "INTELLENS_WEB_SEARCH_DISCOVERY", value = "1" },
           { name = "INTELLENS_WEB_SEARCH_DAILY_CAP", value = "500" },
-          { name = "INTELLENS_IR_CRAWL_DISCOVERY", value = "1" }
+          { name = "INTELLENS_IR_CRAWL_DISCOVERY", value = "1" },
+          { name = "INTELLENS_FILING_ARCHIVE_INTERVAL_SEC", value = "7200" }
         ] : [],
         var.enable_index_bucket ? [
           { name = "INTELLENS_INDEX_S3_BUCKET", value = aws_s3_bucket.index[0].bucket },

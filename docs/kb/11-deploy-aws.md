@@ -41,7 +41,9 @@ Analyst stores (`analyst_*.json`, `analyst_house_style/`, `analyst_uploads/`) li
 | BSE | `intellens-gci-aws-filings-bse-884686184601` | BSE-hosted files and BSE-only issuers |
 | Other markets | `intellens-gci-aws-filings-intl-884686184601` | SEC exhibits and every non-India market |
 
-Keys: `text/<company>/<doc_type>/<date>_<hash16>.txt` (extracted body) and `raw/…/<date>_<sha16>.pdf|html` (file as served). Object metadata carries `doc-id`, `source-url`, `filing-date`, `public-available-at`, `content-sha256`. The task gets `INTELLENS_FILING_S3_NSE|BSE|INTL`; the copy runs after the daily India and US walks, from `/admin?section=filings` (system.ops), or `python -m app.jobs.archive_filings [--dry-run] [--limit N]`.
+Keys: `text/<company>/<doc_type>/<date>_<hash16>.txt` (extracted body) and `raw/…/<date>_<sha16>.pdf|html` (file as served). Object metadata carries `doc-id`, `source-url`, `filing-date`, `public-available-at`, `content-sha256`. The task gets `INTELLENS_FILING_S3_NSE|BSE|INTL`.
+
+Daily on AWS (`INTELLENS_GUIDANCE_REVIEW=1` in the API task): `jobs/guidance_review.serve()` walks India + US, then copies pending filings to S3, then reviews one market, then sleeps until 02:30 IST. A separate archive timer also copies every `INTELLENS_FILING_ARCHIVE_INTERVAL_SEC` (production `7200`, two hours) so a long India walk does not leave a backlog until the next morning. Manual: `/admin?section=filings` (system.ops) or `python -m app.jobs.archive_filings [--dry-run] [--limit N]`. The admin page shows last walk and S3 status (lookback reached, budgets, pending, last upload).
 
 ## Mail (SES)
 
