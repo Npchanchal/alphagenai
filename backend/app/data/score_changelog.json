@@ -2,6 +2,12 @@
   "note": "Public GCI changelog. Mirrors the Methodology changelog table in docs/kb/03-scoring.md. Every entry that moves a published number has matching rows in score_ledger.jsonl.",
   "entries": [
     {
+      "date": "2026-11-17",
+      "reason": "data_correction",
+      "companies": ["axisbank", "adani_ports", "apollohosp", "hdfclife"],
+      "change": "A promise cite that is the result filing, or is dated after the result, is not a prior promise. These levels are withdrawn: Axis Bank Ltd. 90.7 withdrawn; Adani Ports & SEZ Ltd. 58.7 withdrawn; Apollo Hospitals Enterprise Ltd. 60.4 withdrawn; HDFC Life Insurance Co. Ltd. 87.8 withdrawn."
+    },
+    {
       "date": "2026-11-16",
       "reason": "data_correction",
       "companies": [],
