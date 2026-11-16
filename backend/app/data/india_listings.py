@@ -6,10 +6,11 @@ One row per scrip. Every India index (SENSEX, NIFTY50, NIFTYBANK, NIFTY500,
 NSE_ALL, BSE_ALL, IN1000) is a membership tag on that row, never a separate record, so a
 dual-listed or multi-index name is stored, scored and walked exactly once.
 
-Main board only: BSE SME groups and non-equity ISINs are left out. With AMFI's
-half-yearly list on disk, a BSE-only scrip it does not rank (no market cap in six
-months) is left out, the walk runs in AMFI rank order, and IN1000 is the top 1,000
-by size.
+Every NSE equity and every BSE equity with an ``INE`` ISIN is included (including
+BSE SME groups), so the filing walk can store GCI-relevant documents for the full
+active lists (~2,600 NSE, ~4,900 BSE in the on-disk masters). Dual-listed names
+share one id. Walk order and ``IN1000`` still follow AMFI size rank when present;
+unranked and SME names sort after the ranked board.
 """
 
 from __future__ import annotations
@@ -97,8 +98,9 @@ def nse_index_symbols() -> Dict[str, frozenset]:
 
 
 def _main_board_bse(row: Dict[str, Any]) -> bool:
+    """True for a BSE equity ISIN (INE*). SME groups are included for filing coverage."""
     isin = str(row.get("isin") or "").strip().upper()
-    return isin.startswith("INE") and str(row.get("group") or "").upper() not in BSE_SME_GROUPS
+    return isin.startswith("INE")
 
 
 def _resolve_id_name_sector(
@@ -186,8 +188,9 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             continue
 
         cid = f"bse_{code or _slug(symbol)}"
-        if cid in by_id or (ranks and isin not in ranks):
+        if cid in by_id:
             continue
+        group = str(row.get("group") or "").strip().upper()
         by_id[cid] = {
             "id": cid,
             "market_id": "IN",
@@ -199,6 +202,7 @@ def india_equity_universe() -> Tuple[StockRow, ...]:
             "exchange": "BSE",
             "isin": isin or None,
             "bse_scrip_code": code or None,
+            "bse_group": group or None,
         }
         if symbol:
             ticker_to_id.setdefault(symbol, cid)

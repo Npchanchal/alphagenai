@@ -7,7 +7,7 @@ Every listed company in the active India cohort and the S&P 500 is checked for n
 | Market | List | Source | Refresh |
 |---|---|---|---|
 | India | Nifty 500 (`NIFTY500` index tag, cohort `nifty500`) | `archives.nseindia.com/content/indices/ind_nifty500list.csv` → `backend/app/data/listings/nifty500.json` | `python -m app.jobs.refresh_index_lists --nifty500` |
-| India, every main-board listing | NSE `EQUITY_L.csv` → `nse_equity.json`; Nifty 50 / Nifty Bank CSVs → `nse_indexes.json`; AMFI half-yearly average market cap → `amfi_mcap.json`; BSE `bse_equity.json` (August 2026 export, not refreshable by script) | SME groups and BSE-only scrips AMFI does not rank are left out; walk order and `IN1000` follow AMFI rank. Plan: `docs/PLAN_WHITESPACE.md` WS5 | `python -m app.jobs.refresh_index_lists --india` (weekly; AMFI twice a year) |
+| India, every active NSE/BSE equity | NSE `EQUITY_L.csv` → `nse_equity.json` (~2,645); Nifty 50 / Bank CSVs → `nse_indexes.json`; AMFI → `amfi_mcap.json`; BSE `bse_equity.json` (~4,928, Aug 2026 export, not refreshable by script) | Every `INE` BSE equity is kept (including SME). Dual-listed share one id. Walk order and `IN1000` follow AMFI rank when present. | `python -m app.jobs.refresh_index_lists --india` (weekly; AMFI twice a year) |
 | US | S&P 500 (`SPX`, ids `us_<ticker>`) | Wikipedia constituents table (ticker, GICS sector, CIK) → `backend/app/data/listings/us_equity.json` | `python -m app.jobs.refresh_index_lists --us` |
 | Other markets | Headline index per market (ids `<market>_<ticker>`, e.g. `gb_azn`, `jp_7203`); listing only, no filing walk yet | Nikkei weight CSV (N225), B3 portfolio (IBOV), Wikipedia constituent tables (the rest) → `backend/app/data/listings/<market>_equity.json` | `python -m app.jobs.refresh_index_lists --world [GB JP …]` |
 
@@ -56,7 +56,7 @@ Production (`deploy/aws/main.tf`):
 
 | Setting | Value | Notes |
 |---|---|---|
-| `INTELLENS_INDIA_COVERAGE_COHORT` | `nifty50,nifty500` | Phase 1. Widen to `in1000`, then `all` (NSE + BSE-only) once `lookback_reached` covers the active cohort back to 2019 |
+| `INTELLENS_INDIA_COVERAGE_COHORT` | `all` | Full NSE (~2,645) + BSE-only (~2,400 including SME). Nifty 500 2019 lookback completed first; store-first continues across the rest |
 | `INTELLENS_FILING_DISCOVERY_SINCE` | `2019-01-01` | Store lookback. Was `2024-01-01` (from 2026-10-19); earlier `2022-01-01` |
 | `INTELLENS_INDIA_COVERAGE_EXTRACT` | `0` | Store-first catch-up. Flip to `1` after the 2019 wave is largely stored (methodology + changelog when model reads reopen) |
 | `INTELLENS_WEB_SEARCH_DAILY_CAP` | `200` | Raised for BSE-only / issuer leads during backfill |

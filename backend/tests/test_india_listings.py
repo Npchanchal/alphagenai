@@ -158,22 +158,28 @@ def test_coverage_cohorts_are_disjoint_and_complete():
         assert {r["id"] for r in constituents_readonly(ix)} <= flagship
 
 
-def test_main_board_only_and_in1000_by_size():
+def test_full_bse_equity_and_in1000_by_size():
     import json
     from pathlib import Path
 
-    from app.data.india_listings import BSE_SME_GROUPS, amfi_rank_by_isin, india_equity_universe
+    from app.data.india_listings import BSE_SME_GROUPS, amfi_rank_by_isin, india_equity_universe, listing_counts
 
     universe = india_equity_universe()
-    bse_only = {r.get("isin") for r in universe if r.get("exchange") == "BSE"}
+    counts = listing_counts()
+    assert counts["nse"] >= 2500
+    assert counts["bse"] >= 4000
+    bse_only = [r for r in universe if r.get("exchange") == "BSE"]
     bse_rows = json.loads((Path(__file__).parents[1] / "app/data/listings/bse_equity.json").read_text())["rows"]
-    sme = [r for r in bse_rows if r.get("group") in BSE_SME_GROUPS]
-    assert sme and not any(r["isin"] in bse_only for r in sme)
+    sme_isins = {
+        r.get("isin")
+        for r in bse_rows
+        if r.get("group") in BSE_SME_GROUPS and str(r.get("isin") or "").startswith("INE")
+    }
+    assert sme_isins and any(r.get("isin") in sme_isins for r in bse_only)
     ranks = amfi_rank_by_isin()
     assert ranks, "amfi_mcap.json is part of the listing set"
-    for row in universe:
-        if row.get("exchange") == "BSE":
-            assert row["isin"] in ranks and row["isin"].startswith("INE")
+    for row in bse_only:
+        assert str(row.get("isin") or "").startswith("INE")
     in1000 = [r for r in universe if "IN1000" in r["index_ids"]]
     outside = [r.get("amfi_rank") for r in universe if "IN1000" not in r["index_ids"] and r.get("amfi_rank")]
     ranked_in = sorted(r["amfi_rank"] for r in in1000 if r.get("amfi_rank"))
