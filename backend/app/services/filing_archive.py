@@ -309,6 +309,7 @@ def status() -> Dict[str, Any]:
             {"exchange": ex, "label": EXCHANGE_LABELS[ex], "bucket": buckets().get(ex)} for ex in EXCHANGES
         ],
         "archived": len(led["docs"]),
+        "pending": len(pending()),
         "running": bool(_STATE.get("running")),
         "progress": {k: _STATE.get(k) for k in ("started_at", "uploaded", "failed")} if _STATE.get("running") else None,
         "last_run": runs[-1] if runs else None,

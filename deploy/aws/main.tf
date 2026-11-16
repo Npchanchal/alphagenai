@@ -732,7 +732,8 @@ resource "aws_ecs_task_definition" "app" {
           { name = "INTELLENS_FILING_FETCH_DAILY_CAP", value = "40000" },
           { name = "INTELLENS_FILING_DISCOVERY_DAILY_CAP", value = "10000" },
           { name = "INTELLENS_INDIA_COVERAGE_COHORT", value = "nifty50,nifty500" },
-          { name = "INTELLENS_FILING_DISCOVERY_SINCE", value = "2024-01-01" },
+          { name = "INTELLENS_FILING_DISCOVERY_SINCE", value = "2019-01-01" },
+          { name = "INTELLENS_INDIA_COVERAGE_EXTRACT", value = "0" },
           { name = "INTELLENS_US_COVERAGE", value = "1" },
           { name = "INTELLENS_SEC_USER_AGENT", value = "CiteAlpha filings research ops@citealpha.com" },
           { name = "INTELLENS_EXTRACT_LLM_DAILY_CAP", value = "100000" },
@@ -741,6 +742,7 @@ resource "aws_ecs_task_definition" "app" {
           { name = "INTELLENS_DISCLOSURE_SERVICE_TIER", value = "flex" },
           { name = "MALLOC_ARENA_MAX", value = "2" },
           { name = "INTELLENS_WEB_SEARCH_DISCOVERY", value = "1" },
+          { name = "INTELLENS_WEB_SEARCH_DAILY_CAP", value = "200" },
           { name = "INTELLENS_IR_CRAWL_DISCOVERY", value = "1" }
         ] : [],
         var.enable_index_bucket ? [

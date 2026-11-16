@@ -19,7 +19,7 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlparse
 from urllib.request import Request, urlopen
@@ -587,6 +587,13 @@ def discovery_docs_per_year() -> int:
     return int(os.environ.get("INTELLENS_FILING_DISCOVERY_DOCS_PER_YEAR", "6"))
 
 
+def discovery_annual_report_years() -> int:
+    """How many latest annual-report PDFs to keep, covering :func:`discovery_since`."""
+    start_y = int(discovery_since()[:4])
+    now_y = datetime.now(timezone.utc).year
+    return max(2, now_y - start_y + 1)
+
+
 def _india_fy(iso_date: Optional[str]) -> int:
     """Indian fiscal year a filing date falls in (Apr–Mar); 0 when undated."""
     try:
@@ -606,41 +613,26 @@ def _best_per_year(picked: List[Dict[str, Any]], per_year: int) -> List[Dict[str
     return out
 
 
-def discover_nse_filings(
-    company_id: str,
-    *,
-    months: Optional[int] = None,
-    max_docs: Optional[int] = None,
-    payload: Optional[List[Dict[str, Any]]] = None,
-) -> List[Dict[str, Any]]:
-    """Guidance-bearing NSE announcements (PDF links) for one company, best first.
+def _calendar_year_windows(
+    start: datetime, end: datetime
+) -> List[Tuple[datetime, datetime]]:
+    """Inclusive calendar-year slices so a multi-year NSE lookback does not truncate."""
+    if start > end:
+        return []
+    windows: List[Tuple[datetime, datetime]] = []
+    year = start.year
+    while year <= end.year:
+        win_start = start if year == start.year else datetime(year, 1, 1, tzinfo=timezone.utc)
+        win_end = end if year == end.year else datetime(year, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+        windows.append((win_start, win_end))
+        year += 1
+    return windows
 
-    Default: every filing since :func:`discovery_since`, the best few per fiscal
-    year, so a 2022 promise and the result that closed it are both read.
-    ``months`` / ``max_docs`` keep the older rolling window and flat cap.
-    ``payload`` is the NSE JSON list (tests); otherwise one live API call.
-    """
-    flat = months is not None or max_docs is not None
-    max_docs = discovery_max_docs() if max_docs is None else max_docs
-    if payload is None:
-        symbol = nse_symbol_for(company_id)
-        if not symbol:
-            return []
-        end = datetime.now(timezone.utc)
-        if months is not None:
-            start = end - timedelta(days=int(months * 30.5))
-        else:
-            start = datetime.strptime(discovery_since(), "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        url = NSE_ANNOUNCEMENTS.format(
-            symbol=quote(symbol, safe=""),
-            start=start.strftime("%d-%m-%Y"),
-            end=end.strftime("%d-%m-%Y"),
-        )
-        raw = fetch_bytes(url, company_id, bucket="discovery", accept="application/json")
-        payload = json.loads(raw.decode("utf-8", errors="ignore") or "[]")
+
+def _pick_nse_announcements(payload: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     picked: List[Dict[str, Any]] = []
     seen: Set[str] = set()
-    for ann in payload if isinstance(payload, list) else []:
+    for ann in payload:
         link = str(ann.get("attchmntFile") or "").strip()
         if not link.lower().endswith(".pdf") or link in seen or not is_exchange_host(link):
             continue
@@ -660,6 +652,55 @@ def discover_nse_filings(
             }
         )
     picked.sort(key=lambda r: (r["rank"], -(int((r["date"] or "0").replace("-", "")))))
+    return picked
+
+
+def _fetch_nse_announcement_window(
+    company_id: str, symbol: str, start: datetime, end: datetime
+) -> List[Dict[str, Any]]:
+    url = NSE_ANNOUNCEMENTS.format(
+        symbol=quote(symbol, safe=""),
+        start=start.strftime("%d-%m-%Y"),
+        end=end.strftime("%d-%m-%Y"),
+    )
+    raw = fetch_bytes(url, company_id, bucket="discovery", accept="application/json")
+    payload = json.loads(raw.decode("utf-8", errors="ignore") or "[]")
+    return payload if isinstance(payload, list) else []
+
+
+def discover_nse_filings(
+    company_id: str,
+    *,
+    months: Optional[int] = None,
+    max_docs: Optional[int] = None,
+    payload: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Guidance-bearing NSE announcements (PDF links) for one company, best first.
+
+    Default: every filing since :func:`discovery_since`, the best few per fiscal
+    year, so a 2022 promise and the result that closed it are both read.
+    Live lookbacks longer than one calendar year are fetched one year at a time.
+    ``months`` / ``max_docs`` keep the older rolling window and flat cap.
+    ``payload`` is the NSE JSON list (tests); otherwise live API call(s).
+    """
+    flat = months is not None or max_docs is not None
+    max_docs = discovery_max_docs() if max_docs is None else max_docs
+    if payload is None:
+        symbol = nse_symbol_for(company_id)
+        if not symbol:
+            return []
+        end = datetime.now(timezone.utc)
+        if months is not None:
+            start = end - timedelta(days=int(months * 30.5))
+            windows = [(start, end)]
+        else:
+            start = datetime.strptime(discovery_since(), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            windows = _calendar_year_windows(start, end)
+        rows: List[Dict[str, Any]] = []
+        for win_start, win_end in windows:
+            rows.extend(_fetch_nse_announcement_window(company_id, symbol, win_start, win_end))
+        payload = rows
+    picked = _pick_nse_announcements(payload if isinstance(payload, list) else [])
     top = picked[:max_docs] if flat else _best_per_year(picked, discovery_docs_per_year())
     # Transcripts fill the cap every quarter; the yearly AGM record would never make it.
     for kind in ("agm", "annual_report"):
@@ -672,10 +713,11 @@ def discover_nse_filings(
 def discover_nse_annual_reports(
     company_id: str,
     *,
-    years: int = 2,
+    years: Optional[int] = None,
     payload: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """Latest annual-report PDFs from NSE's annual-report list (older years are ZIPs; skipped)."""
+    depth = discovery_annual_report_years() if years is None else years
     if payload is None:
         symbol = nse_symbol_for(company_id)
         if not symbol:
@@ -701,7 +743,7 @@ def discover_nse_annual_reports(
             }
         )
     picked.sort(key=lambda r: r["to_year"], reverse=True)
-    return picked[:years]
+    return picked[:depth]
 
 
 # Web search finds where a filing sits (a transcript only on the issuer's site,

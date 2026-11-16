@@ -2,6 +2,12 @@
   "note": "Public GCI changelog. Mirrors the Methodology changelog table in docs/kb/03-scoring.md. Every entry that moves a published number has matching rows in score_ledger.jsonl.",
   "entries": [
     {
+      "date": "2026-11-16",
+      "reason": "methodology",
+      "companies": [],
+      "change": "The India filing walk now stores guidance-relevant filings (earnings-call transcripts, results, presentations, AGM records and annual reports) back to 1 January 2019 for the active cohort, starting with Nifty 50 and Nifty 500. Model reading of those newly stored filings is paused while the store catch-up runs, so published and provisional scores do not move from the new text. Turning model reading back on will be recorded as a separate methodology change. Published hand-labeled levels are unchanged."
+    },
+    {
       "date": "2026-11-10",
       "reason": "methodology",
       "companies": [],

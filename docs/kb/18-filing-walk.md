@@ -1,6 +1,6 @@
-# 18 — Filing walk: India and US, from January 2024 (production)
+# 18 — Filing walk: India and US (production)
 
-Every listed company in the Nifty 500 and S&P 500 is checked for numeric guidance since January 2022. A company either gets a GCI (provisional until a reviewer signs it) or one plain sentence saying why it has none. No number is ever shown without both quotes.
+Every listed company in the active India cohort and the S&P 500 is checked for numeric guidance. India **stores** GCI-relevant filings back to **2019-01-01**; model extract is gated during the store catch-up (`INTELLENS_INDIA_COVERAGE_EXTRACT=0`). A company either gets a GCI (provisional until a reviewer signs it) or one plain sentence saying why it has none. No number is ever shown without both quotes.
 
 ## Universe
 
@@ -11,11 +11,12 @@ Every listed company in the Nifty 500 and S&P 500 is checked for numeric guidanc
 | US | S&P 500 (`SPX`, ids `us_<ticker>`) | Wikipedia constituents table (ticker, GICS sector, CIK) → `backend/app/data/listings/us_equity.json` | `python -m app.jobs.refresh_index_lists --us` |
 | Other markets | Headline index per market (ids `<market>_<ticker>`, e.g. `gb_azn`, `jp_7203`); listing only, no filing walk yet | Nikkei weight CSV (N225), B3 portfolio (IBOV), Wikipedia constituent tables (the rest) → `backend/app/data/listings/<market>_equity.json` | `python -m app.jobs.refresh_index_lists --world [GB JP …]` |
 
-Both refreshes refuse a short list (India < 400, US < 450 rows). Walk order: names whose filings have not been read back to `INTELLENS_FILING_DISCOVERY_SINCE` (default `2022-01-01`) go first.
+Both refreshes refuse a short list (India < 400, US < 450 rows). Walk order: names whose `lookback_since` has not yet reached `INTELLENS_FILING_DISCOVERY_SINCE` (default `2022-01-01`; production `2019-01-01`) go first.
 
 ## Sources
 
-- **India:** exchange filings (NSE/BSE) and filed call transcripts, best documents per fiscal year (`INTELLENS_FILING_DISCOVERY_DOCS_PER_YEAR`, default 6). Audio and video are not transcribed.
+- **India:** GCI-relevant exchange filings only — concall transcripts, results, presentations, AGM records, annual reports (`GUIDANCE_DOC_TYPES`). Best few per fiscal year (`INTELLENS_FILING_DISCOVERY_DOCS_PER_YEAR`, default 6). NSE announcements are fetched **one calendar year at a time** so a 2019 lookback does not truncate. Annual-report PDF depth follows `discovery_since` (`discovery_annual_report_years`). Audio and video are not transcribed.
+- **BSE:** the BSE announcements API is not used (bot protection / licensed product). Dual-listed content arrives via NSE URLs and archives under the NSE bucket (source-once by URL). BSE-only names are walked via web search and issuer IR (`bse_only` cohort); any `bseindia.com` URL that lands archives into the BSE bucket.
 - **US:** SEC results 8-Ks (item 2.02) from the EDGAR submissions API; Ex 99.1 plus one CFO commentary or supplement exhibit per filing (`services/sec_filings.py`). `INTELLENS_SEC_USER_AGENT` must carry a contact address; requests are spaced 0.15 s.
 
 ## Reading (`services/disclosures.py`)
@@ -51,7 +52,17 @@ python -m app.jobs.classify_india_coverage --live --cohort nifty50,nifty500
 python -m app.jobs.us_coverage --limit 50                 # or --company us_nvda
 ```
 
-Production (`deploy/aws/main.tf`): `INTELLENS_INDIA_COVERAGE_COHORT=nifty50,nifty500`, `INTELLENS_US_COVERAGE=1`, `INTELLENS_SEC_USER_AGENT`, `INTELLENS_FILING_DISCOVERY_SINCE=2024-01-01` (was 2022-01-01 until 2026-10-19, briefly 2025-01-01 that day; filings before the start date are not sent to the model, extracts already read from them still reconcile). The daily jobs (`gci_refresh`, `guidance_review`) run both walks; in the `guidance_review` thread the India and US walks run side by side and the day's filing review starts once both finish. Shared stores (documents, coverage, extracted rows, ledger, dataset saves) are guarded by one process-wide lock (`app/data/store_lock.py`); network and model calls stay outside it (`tests/test_store_lock.py`). Progress: `GET /api/ops/coverage-progress` (`india`, `us`).
+Production (`deploy/aws/main.tf`):
+
+| Setting | Value | Notes |
+|---|---|---|
+| `INTELLENS_INDIA_COVERAGE_COHORT` | `nifty50,nifty500` | Phase 1. Widen to `in1000`, then `all` (NSE + BSE-only) once `lookback_reached` covers the active cohort back to 2019 |
+| `INTELLENS_FILING_DISCOVERY_SINCE` | `2019-01-01` | Store lookback. Was `2024-01-01` (from 2026-10-19); earlier `2022-01-01` |
+| `INTELLENS_INDIA_COVERAGE_EXTRACT` | `0` | Store-first catch-up. Flip to `1` after the 2019 wave is largely stored (methodology + changelog when model reads reopen) |
+| `INTELLENS_WEB_SEARCH_DAILY_CAP` | `200` | Raised for BSE-only / issuer leads during backfill |
+| Fetch / discovery caps | 40 000 / 10 000 per day | Unchanged |
+
+Also: `INTELLENS_US_COVERAGE=1`, `INTELLENS_SEC_USER_AGENT`. The daily jobs (`gci_refresh`, `guidance_review`) run both walks; in the `guidance_review` thread the India and US walks run side by side, then the filing archive copies new `doc_id`s to S3, then the day's filing review. Shared stores are guarded by `app/data/store_lock.py`; network and model calls stay outside it. Progress: `GET /api/ops/coverage-progress` (`india`, `us`) — includes `discovery_since`, `lookback_reached` / `lookback_remaining`, `nse_count`, `bse_only_count`, `extract_enabled`, `archive_pending`. Admin browse: `/admin?section=filings`.
 
 Model budget at 48k pieces: about 40 calls per Indian company (35–40 filings) and 20–40 per US company, roughly 20k calls for the Nifty 500 back to FY22 and 14k for the S&P 500; most filings fit in one piece. AI Studio project spend caps apply: a capped project returns 429 "exceeded its monthly spending cap" and the walk pauses the model for the day. On a 38k-character SEC release, one 48k call cost 28% less than four 12k calls and found the same guidance. Free-tier keys run out in minutes; a paid key is needed for full coverage. Production model: Gemini 3.8 Flash (`gemini_chat_model`), filing reads on the Flex tier (`INTELLENS_DISCLOSURE_SERVICE_TIER=flex`, half price, 10-minute timeout, last retry on standard). Introductory price $0.75 / $3.75 per 1M tokens (Flex $0.375 / $1.875) until 31 Dec 2026, doubling on 1 Jan 2027. Production pace: each walk sends `INTELLENS_DISCLOSURE_READ_WORKERS=16` pieces at once under `INTELLENS_LLM_RATE_PER_MIN=200` and `INTELLENS_EXTRACT_LLM_DAILY_CAP=100000`; India filing fetches are capped at 40,000 a day. A 429 or 503 from the model is retried after 5 s and 20 s before it counts as a failure. A prepaid AI Studio project with no credit left returns 402 "prepayment credits are depleted" (seen 11 Nov 2026); three failures in a row pause the model for the day. `INTELLENS_LLM_PROVIDER=bedrock` sends the same reads to Amazon Bedrock (Converse API, IAM role, `INTELLENS_LLM_MODEL` = a Bedrock model or profile id); that path has no web search. Model choice is WS5.7 in `docs/PLAN_WHITESPACE.md`, measured with `python -m app.jobs.extract_model_compare`.
 

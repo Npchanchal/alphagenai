@@ -10,6 +10,7 @@ a metric+number promise stamps ``no_quantified_guidance``. Unsearched names stay
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
@@ -39,6 +40,15 @@ from app.services.extract_pipeline import (
     llm_budget_used,
     maybe_promote_extracted,
 )
+
+
+def extract_enabled() -> bool:
+    """Store-first catch-up sets ``INTELLENS_INDIA_COVERAGE_EXTRACT=0``; default on."""
+    return os.environ.get("INTELLENS_INDIA_COVERAGE_EXTRACT", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
 
 COHORTS = ("nifty50", "nifty500", "in1000", "nse_all", "bse_only")
 
@@ -163,9 +173,13 @@ def process_company(
             extracted = {"budget_out": True, "model_unavailable": True}
     if has_docs:
         maybe_promote_extracted(company_id)
-    # A lookback is complete only when a con-call or presentation filing was searched
-    # and every chunk of it was read.
-    read_all = not extracted.get("budget_out") and not extracted.get("failed")
+    # A lookback is complete only when filings were searched and every chunk was read.
+    # Store-first rolls (extract=False) must not stamp lookback_complete.
+    read_all = (
+        bool(extract)
+        and not extracted.get("budget_out")
+        and not extracted.get("failed")
+    )
     status = (
         classify_company(
             company_id, lookback_complete=_has_exchange_filing(company_id) and read_all
@@ -222,19 +236,38 @@ def _nse_ids(cohort: str) -> List[str]:
     return [cid for cid in cohort_ids(cohort) if cid in nse]
 
 
+def _bse_only_ids(cohort: str) -> List[str]:
+    """Main-board names with no NSE listing; discovered via web search / issuer IR only."""
+    bse = {
+        r["id"]
+        for r in india_equity_universe()
+        if "NSE_ALL" not in (r.get("index_ids") or [])
+    }
+    return [cid for cid in cohort_ids(cohort) if cid in bse]
+
+
+def _walk_ids(cohort: str) -> List[str]:
+    """NSE symbols first (announcements API), then BSE-only (web search + issuer IR)."""
+    nse = _nse_ids(cohort)
+    nse_set = set(nse)
+    return nse + [cid for cid in _bse_only_ids(cohort) if cid not in nse_set]
+
+
 def roll_daily(
     cohort: str = "all",
     *,
     max_companies: Optional[int] = None,
-    extract: bool = True,
+    extract: Optional[bool] = None,
 ) -> Dict[str, Any]:
-    """Search NSE filings for the least recently searched names until today's budget is spent.
+    """Search filings for the least recently searched names until today's budget is spent.
 
-    Only names with an NSE symbol are walked; BSE-only names have no discovery
-    source yet and stay ``listed_only``.
+    NSE names use the announcements API. BSE-only names use web search and issuer IR
+    (BSE's announcement API is not used). Dual-listed content is stored under its
+    source URL host; the same PDF is not fetched twice.
     """
+    do_extract = extract_enabled() if extract is None else extract
     seen = load_coverage().get("companies") or {}
-    ids = _nse_ids(cohort)
+    ids = _walk_ids(cohort)
     order = {cid: i for i, cid in enumerate(ids)}
     since = discovery_since()
 
@@ -248,7 +281,7 @@ def roll_daily(
     stopped = "walked_all"
     _PROGRESS.update(
         running=True, cohort=cohort, started_at=_now(), total=len(ids), done=0,
-        current=None, current_started_at=None, recent=[],
+        current=None, current_started_at=None, recent=[], extract=do_extract,
     )
     try:
         for cid in ids:
@@ -259,10 +292,13 @@ def roll_daily(
                 stopped = "daily_budget"
                 break
             _PROGRESS.update(current=cid, current_started_at=_now())
-            out = process_company(cid, live=True, extract=extract, discover=True)
+            out = process_company(cid, live=True, extract=do_extract, discover=True)
             read = out.get("extract") or {}
-            budget_out = bool(read.get("budget_out"))
-            note_discovery(cid, since=None if budget_out or read.get("failed") else since)
+            # Store-first: discovery lookback still advances; extract catches up later.
+            budget_out = bool(do_extract) and (
+                bool(read.get("budget_out")) or bool(read.get("failed"))
+            )
+            note_discovery(cid, since=None if budget_out else since)
             row = {
                 "company_id": cid,
                 "coverage_status": out["coverage_status"],
@@ -280,7 +316,10 @@ def roll_daily(
                          stopped=stopped)
     ledger_rows = disclosures.log_moves(
         [p["company_id"] for p in processed],
-        lead="Filing walk read exchange filings since 2022 and matched promises to reported results.",
+        lead=(
+            f"Filing walk read exchange filings since {since} "
+            "and matched promises to reported results."
+        ),
     )
     counts = coverage_counts([p["company_id"] for p in processed])
     return {
@@ -289,6 +328,7 @@ def roll_daily(
         "processed": len(processed),
         "new_filings": sum(p["new_filings"] for p in processed),
         "stopped": stopped,
+        "extract": do_extract,
         "ledger_rows": ledger_rows,
         "coverage": counts,
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -305,8 +345,6 @@ _PROGRESS: Dict[str, Any] = {"running": False, "recent": []}
 
 def coverage_progress() -> Dict[str, Any]:
     """Where today's roll is, and how much of each daily budget is spent."""
-    import os
-
     from app.services import exchange_filings as ef
     from app.services import ir_discovery
     from app.services.extract_pipeline import llm_daily_cap
@@ -314,9 +352,22 @@ def coverage_progress() -> Dict[str, Any]:
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cohort = _PROGRESS.get("cohort") or os.environ.get("INTELLENS_INDIA_COVERAGE_COHORT", "all")
-    ids = _nse_ids(cohort)
+    ids = _walk_ids(cohort)
+    since = discovery_since()
     seen = load_coverage().get("companies") or {}
     searched_today = sum(1 for cid in ids if (seen.get(cid) or {}).get("last_discovery") == today)
+    lookback_reached = sum(
+        1
+        for cid in ids
+        if str((seen.get(cid) or {}).get("lookback_since") or "9999") <= since
+    )
+    archive_pending = 0
+    try:
+        from app.services import filing_archive
+
+        archive_pending = int(filing_archive.status().get("pending") or 0)
+    except Exception:
+        archive_pending = 0
 
     def spent(cap: int, remaining: int) -> Dict[str, int]:
         return {"used": cap - remaining, "cap": cap}
@@ -326,7 +377,14 @@ def coverage_progress() -> Dict[str, Any]:
         "roll": {k: v for k, v in _PROGRESS.items()},
         "cohort": cohort,
         "cohort_size": len(ids),
+        "nse_count": len(_nse_ids(cohort)),
+        "bse_only_count": len(_bse_only_ids(cohort)),
         "searched_today": searched_today,
+        "discovery_since": since,
+        "lookback_reached": lookback_reached,
+        "lookback_remaining": max(0, len(ids) - lookback_reached),
+        "extract_enabled": extract_enabled(),
+        "archive_pending": archive_pending,
         "budgets_today": {
             "filing_fetch": spent(ef.daily_fetch_cap(), budget_remaining("fetch")),
             "filing_discovery": spent(ef.daily_discovery_cap(), budget_remaining("discovery")),
@@ -340,7 +398,6 @@ def coverage_progress() -> Dict[str, Any]:
 
 def run_daily_from_env() -> Optional[Dict[str, Any]]:
     """Daily roll gated by INTELLENS_INDIA_COVERAGE; live fetch needs INTELLENS_FILING_LIVE."""
-    import os
 
     def _on(name: str) -> bool:
         return os.environ.get(name, "").strip().lower() in ("1", "true", "yes")
@@ -351,9 +408,9 @@ def run_daily_from_env() -> Optional[Dict[str, Any]]:
     raw_limit = os.environ.get("INTELLENS_INDIA_COVERAGE_LIMIT", "").strip()
     limit = int(raw_limit) if raw_limit else None
     if not _on("INTELLENS_FILING_LIVE"):
-        report = roll_cohort(cohort, limit=limit, live=False)
+        report = roll_cohort(cohort, limit=limit, live=False, extract=extract_enabled())
         return {k: v for k, v in report.items() if k != "results"}
-    report = roll_daily(cohort, max_companies=limit)
+    report = roll_daily(cohort, max_companies=limit, extract=extract_enabled())
     return {k: v for k, v in report.items() if k != "results"}
 
 

@@ -519,11 +519,108 @@ def test_discover_annual_reports_takes_latest_pdfs():
              "fileName": "https://example.com/AR_2023.pdf"},
         ]
     }
-    picked = discover_nse_annual_reports("tcs", payload=payload)
+    picked = discover_nse_annual_reports("tcs", payload=payload, years=2)
     assert [p["url"].rsplit("/", 1)[-1] for p in picked] == ["AR_2026.pdf", "AR_2025.pdf"]
     assert picked[0]["date"] == "2026-05-15"
     assert picked[0]["title"] == "Annual Report FY 2025-26"
     assert all(p["category"] == "annual_report" for p in picked)
+
+
+def test_discover_annual_reports_depth_follows_discovery_since(monkeypatch):
+    from app.services.exchange_filings import (
+        discovery_annual_report_years,
+        discover_nse_annual_reports,
+    )
+
+    monkeypatch.setenv("INTELLENS_FILING_DISCOVERY_SINCE", "2019-01-01")
+    assert discovery_annual_report_years() >= 7
+    payload = {
+        "data": [
+            {
+                "fromYr": str(y),
+                "toYr": str(y + 1),
+                "broadcast_dttm": f"15-MAY-{y + 1} 12:00:00",
+                "fileName": f"https://nsearchives.nseindia.com/annual_reports/AR_{y + 1}.pdf",
+            }
+            for y in range(2018, 2026)
+        ]
+    }
+    picked = discover_nse_annual_reports("tcs", payload=payload)
+    assert len(picked) == discovery_annual_report_years()
+    assert picked[0]["url"].endswith("AR_2026.pdf")
+    assert "AR_2024.zip" not in {p["url"] for p in picked}
+
+
+def test_calendar_year_windows_cover_2019_lookback():
+    from datetime import datetime, timezone
+
+    from app.services.exchange_filings import _calendar_year_windows
+
+    start = datetime(2019, 1, 1, tzinfo=timezone.utc)
+    end = datetime(2021, 6, 15, tzinfo=timezone.utc)
+    wins = _calendar_year_windows(start, end)
+    assert [(w[0].year, w[1].year, w[0].month, w[1].month) for w in wins] == [
+        (2019, 2019, 1, 12),
+        (2020, 2020, 1, 12),
+        (2021, 2021, 1, 6),
+    ]
+
+
+def test_discover_nse_year_chunks_and_best_per_year(monkeypatch):
+    from app.services import exchange_filings as ef
+
+    monkeypatch.setenv("INTELLENS_FILING_DISCOVERY_SINCE", "2019-01-01")
+    monkeypatch.setenv("INTELLENS_FILING_DISCOVERY_DOCS_PER_YEAR", "2")
+    monkeypatch.setattr(ef, "nse_symbol_for", lambda company_id: "INFY")
+    calls = []
+
+    def fake_window(company_id, symbol, start, end):
+        calls.append((start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")))
+        year = start.year
+        return [
+            {
+                "an_dt": f"12-May-{year} 19:00:00",
+                "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+                "attchmntText": "Transcript of earnings call",
+                "attchmntFile": f"https://nsearchives.nseindia.com/corporate/T_{year}_a.pdf",
+            },
+            {
+                "an_dt": f"20-Jul-{year} 19:00:00",
+                "desc": "Financial Result Updates",
+                "attchmntText": "Outcome of Board Meeting",
+                "attchmntFile": f"https://nsearchives.nseindia.com/corporate/R_{year}_a.pdf",
+            },
+            {
+                "an_dt": f"01-Jan-{year} 10:00:00",
+                "desc": "Newspaper Publication",
+                "attchmntText": "Newspaper clipping",
+                "attchmntFile": f"https://nsearchives.nseindia.com/corporate/N_{year}.pdf",
+            },
+        ]
+
+    monkeypatch.setattr(ef, "_fetch_nse_announcement_window", fake_window)
+    picked_live = ef.discover_nse_filings("infy")
+    assert calls[0] == ("2019-01-01", "2019-12-31")
+    assert len(calls) >= 7  # 2019 through current calendar year
+    assert all(p["category"] in ("concall", "results") for p in picked_live)
+    assert {p["url"] for p in picked_live} >= {
+        "https://nsearchives.nseindia.com/corporate/T_2019_a.pdf",
+        "https://nsearchives.nseindia.com/corporate/T_2021_a.pdf",
+    }
+    again = ef.discover_nse_filings(
+        "infy",
+        payload=[
+            {
+                "an_dt": "12-May-2019 19:00:00",
+                "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+                "attchmntText": "Transcript of earnings call",
+                "attchmntFile": "https://nsearchives.nseindia.com/corporate/T_2019_a.pdf",
+            }
+        ],
+    )
+    assert [p["url"] for p in again] == [
+        "https://nsearchives.nseindia.com/corporate/T_2019_a.pdf"
+    ]
 
 
 _COVER_LETTER = """Adani Enterprises Limited www.adanienterprises.com
@@ -871,7 +968,7 @@ def test_roll_daily_walks_unsearched_first_and_stops_on_budget(monkeypatch):
     from app.services.coverage import load_coverage, note_discovery
 
     ids = ["infy", "tcs", "wipro"]
-    monkeypatch.setattr(ic, "_nse_ids", lambda cohort: list(ids))
+    monkeypatch.setattr(ic, "_walk_ids", lambda cohort: list(ids))
     note_discovery("infy")
     calls = []
     budget = {"left": 2}
@@ -893,16 +990,109 @@ def test_roll_daily_walks_unsearched_first_and_stops_on_budget(monkeypatch):
 def test_roll_daily_stops_when_budget_spent(monkeypatch):
     from app.services import india_coverage as ic
 
-    monkeypatch.setattr(ic, "_nse_ids", lambda cohort: ["infy", "tcs"])
+    monkeypatch.setattr(ic, "_walk_ids", lambda cohort: ["infy", "tcs"])
     monkeypatch.setattr(ic, "budget_remaining", lambda bucket="fetch": 0)
     report = ic.roll_daily("all")
     assert report["processed"] == 0 and report["stopped"] == "daily_budget"
 
 
+def test_roll_daily_prioritises_incomplete_2019_lookback(monkeypatch):
+    from app.services import india_coverage as ic
+    from app.services.coverage import note_discovery
+
+    monkeypatch.setenv("INTELLENS_FILING_DISCOVERY_SINCE", "2019-01-01")
+    monkeypatch.setattr(ic, "_walk_ids", lambda cohort: ["infy", "tcs", "wipro"])
+    note_discovery("infy", since="2024-01-01")
+    note_discovery("tcs", since="2019-01-01")
+    calls = []
+
+    def fake_process(cid, **kw):
+        calls.append(cid)
+        return {"coverage_status": LISTED_ONLY, "ingest": {"results": []}}
+
+    monkeypatch.setattr(ic, "process_company", fake_process)
+    monkeypatch.setattr(ic, "budget_remaining", lambda bucket="fetch": 10)
+    ic.roll_daily("all", max_companies=3)
+    # Incomplete lookback first (wipro never searched, then infy still on 2024);
+    # tcs already reached 2019 and sorts last.
+    assert calls == ["wipro", "infy", "tcs"]
+
+
+def test_walk_ids_includes_bse_only_after_nse(monkeypatch):
+    from app.services import india_coverage as ic
+
+    monkeypatch.setattr(ic, "_nse_ids", lambda cohort: ["infy", "tcs"])
+    monkeypatch.setattr(ic, "_bse_only_ids", lambda cohort: ["bse_only_co", "infy"])
+    assert ic._walk_ids("all") == ["infy", "tcs", "bse_only_co"]
+
+
+def test_bse_only_ingest_skips_nse_api_uses_web_and_ir(monkeypatch):
+    from app.services import exchange_filings as ef
+
+    monkeypatch.setattr(ef, "nse_symbol_for", lambda company_id: None)
+    monkeypatch.setattr(ef, "discover_nse_filings", lambda *a, **k: (_ for _ in ()).throw(AssertionError("NSE")))
+    monkeypatch.setattr(ef, "discover_nse_annual_reports", lambda *a, **k: (_ for _ in ()).throw(AssertionError("NSE AR")))
+    monkeypatch.setattr(
+        ef,
+        "discover_via_web_search",
+        lambda company_id, **kw: [
+            {
+                "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/x.pdf",
+                "category": "concall",
+                "title": "BSE transcript",
+                "rank": 0,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "app.services.ir_discovery.discover_from_issuer_site",
+        lambda company_id: [],
+    )
+    calls = []
+
+    def fake_ingest_url(company_id, url, **kw):
+        calls.append(url)
+        return {"ok": True, "action": "already_stored", "url": url}
+
+    monkeypatch.setattr(ef, "ingest_url", fake_ingest_url)
+    monkeypatch.setattr(ef, "_outcome_urls", lambda company_id: [])
+    out = ef.ingest_company_urls("bse_only_co", live=True, discover=True)
+    assert calls == ["https://www.bseindia.com/xml-data/corpfiling/AttachHis/x.pdf"]
+    assert out["discovered"] == 1
+
+
+def test_store_first_extract_gate_skips_model(monkeypatch):
+    from app.services import disclosures
+    from app.services.india_coverage import process_company
+
+    monkeypatch.setenv("INTELLENS_INDIA_COVERAGE_EXTRACT", "0")
+    called = {"n": 0}
+
+    def boom(*a, **k):
+        called["n"] += 1
+        raise AssertionError("extract should be off")
+
+    monkeypatch.setattr(disclosures, "enabled", lambda: True)
+    monkeypatch.setattr(disclosures, "process_company", boom)
+    monkeypatch.setattr(
+        "app.services.india_coverage.ingest_company_urls",
+        lambda *a, **k: {"company_id": "infy", "results": [{"ok": True, "action": "upserted"}]},
+    )
+    monkeypatch.setattr("app.services.india_coverage._accepted_docs", lambda cid: [{"doc_id": "d1"}])
+    monkeypatch.setattr("app.services.india_coverage.maybe_promote_extracted", lambda cid: None)
+    monkeypatch.setattr("app.services.india_coverage._has_exchange_filing", lambda cid: True)
+    out = process_company("infy", live=True, extract=False, classify=False)
+    assert called["n"] == 0
+    assert out["extract"] == {}
+
+
 def test_coverage_progress_reports_roll_and_budgets(monkeypatch, capsys):
     from app.services import india_coverage as ic
 
+    monkeypatch.setattr(ic, "_walk_ids", lambda cohort: ["tcs", "wipro"])
     monkeypatch.setattr(ic, "_nse_ids", lambda cohort: ["tcs", "wipro"])
+    monkeypatch.setattr(ic, "_bse_only_ids", lambda cohort: [])
+    monkeypatch.setenv("INTELLENS_FILING_DISCOVERY_SINCE", "2019-01-01")
     seen_mid_roll = []
 
     def fake_process(cid, **kw):
@@ -910,11 +1100,19 @@ def test_coverage_progress_reports_roll_and_budgets(monkeypatch, capsys):
         return {"coverage_status": LISTED_ONLY, "ingest": {"results": []}}
 
     monkeypatch.setattr(ic, "process_company", fake_process)
+    monkeypatch.setattr(
+        "app.services.filing_archive.status",
+        lambda: {"pending": 3, "archived": 10, "configured": True},
+    )
     ic.roll_daily("nifty50")
     assert seen_mid_roll == ["tcs", "wipro"]
     progress = ic.coverage_progress()
     assert progress["roll"]["running"] is False and progress["roll"]["done"] == 2
     assert progress["searched_today"] == 2 and progress["cohort_size"] == 2
+    assert progress["discovery_since"] == "2019-01-01"
+    assert progress["lookback_reached"] == 2
+    assert progress["archive_pending"] == 3
+    assert progress["extract_enabled"] is True
     assert [s["company_id"] for s in progress["roll"]["recent"]] == ["wipro", "tcs"]
     assert set(progress["budgets_today"]) >= {"ai_extraction_calls", "filing_fetch", "web_searches"}
     assert '"india_coverage_step"' in capsys.readouterr().out
